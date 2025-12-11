@@ -1,0 +1,538 @@
+// 首页样式 - 清华紫主题 + 现代化设计
+
+@import '../../styles/theme.scss';
+@import '../../styles/mixins.scss';
+
+.index-page {
+  min-height: 100vh;
+  background-color: $bg-secondary;
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 140rpx; // 为自定义 TabBar 留出更多空间（高度增加到 120rpx + 额外间距）
+}
+
+// ==================== 头部区域（搜索栏+筛选栏）====================
+
+.header-section {
+  background-color: $bg-primary;
+  position: sticky;
+  top: 0;
+  z-index: $z-sticky;
+  box-shadow: $shadow-sm;
+}
+
+.search-section {
+  background-color: $bg-primary;
+  padding: $spacing-3 $spacing-4 $spacing-2;
+  margin: 0;
+}
+
+.search-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 0; // 确保无外边距
+}
+
+.search-icon {
+  position: absolute;
+  left: $spacing-3;
+  color: $text-tertiary;
+  font-size: $font-size-base;
+  z-index: 1;
+}
+
+.search-input {
+  width: 100%;
+  background-color: $gray-100;
+  padding: $spacing-2 $spacing-3 $spacing-2 64rpx;
+  border-radius: $radius-full;
+  font-size: $font-size-base;
+  transition: all $transition-base $ease-out;
+  
+  &:focus {
+    background-color: $gray-50;
+    box-shadow: 0 0 0 4rpx rgba($primary, 0.1);
+  }
+}
+
+.search-clear {
+  position: absolute;
+  right: $spacing-3;
+  padding: $spacing-1;
+  color: $text-tertiary;
+  font-size: 32rpx;
+  @include flex-center;
+  width: 48rpx;
+  height: 48rpx;
+  
+  &:active {
+    color: $text-secondary;
+  }
+}
+
+// ==================== 页面滚动容器 ====================
+
+.page-scroll {
+  flex: 1;
+  height: 100%;
+  background-color: $bg-secondary;
+}
+
+.page-content {
+  padding-top: 0;
+  padding-bottom: 180rpx; // 增加底部 padding，确保内容不被 TabBar 遮挡
+  background-color: $bg-secondary;
+  margin: 0;
+}
+
+// ==================== 筛选栏 ====================
+
+.filter-bar {
+  background-color: $bg-primary;
+  padding: $spacing-2 $spacing-4;
+  display: flex;
+  gap: $spacing-6;
+  border-top: 1rpx solid $border-light;
+  border-bottom: 1rpx solid $border-light;
+  margin: 0;
+}
+
+.filter-tab {
+  position: relative;
+  padding-bottom: $spacing-2;
+  @include text-body;
+  color: $text-secondary;
+  transition: color $transition-base $ease-out;
+  
+  &.active {
+    @include text-title;
+    color: $primary;
+    font-weight: $font-weight-semibold;
+  }
+  
+  &:active {
+    opacity: 0.7;
+  }
+}
+
+.filter-tab-indicator {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 40rpx;
+  height: 6rpx;
+  background: $gradient-primary;
+  border-radius: $radius-full;
+  animation: scaleIn $transition-base $ease-out;
+}
+
+// ==================== 内容容器 ====================
+
+.feed-container {
+  padding: 0 $spacing-4 $spacing-2; // 顶部无padding，紧贴筛选栏
+  background-color: $bg-secondary;
+  margin: 0;
+  padding-top: 0; // 移除顶部padding，让第一条卡片完整显示
+}
+
+// ==================== 空状态 ====================
+
+.empty-state {
+  @include card;
+  padding: $spacing-8 $spacing-4;
+  text-align: center;
+  margin-top: $spacing-6;
+}
+
+.empty-icon {
+  font-size: 120rpx;
+  margin-bottom: $spacing-3;
+  display: block;
+  opacity: 0.6;
+}
+
+.empty-title {
+  @include text-title;
+  color: $text-secondary;
+  margin-bottom: $spacing-1;
+  display: block;
+}
+
+.empty-desc {
+  @include text-caption;
+  color: $text-tertiary;
+  display: block;
+}
+
+// ==================== 卡片样式 ====================
+
+.feed-card {
+  @include card;
+  @include card-hover;
+  margin-bottom: $spacing-3;
+  margin-top: $spacing-3;
+  transition: all $transition-base $ease-out;
+  width: 100%; // 确保卡片宽度完整
+  box-sizing: border-box; // 包含 border
+  
+  &.first-card {
+    margin-top: $spacing-2; // 第一条卡片最小上边距，确保顶部完整显示
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+// 确保第一条卡片的顶部色条完整显示
+.feed-card.first-card .card-top-bar {
+  margin-top: 0;
+}
+
+.card-top-bar {
+  height: 8rpx;
+  width: 100%;
+  background: $gradient-primary;
+  margin: 0; // 确保无外边距
+  display: block; // 确保显示
+}
+
+.card-content {
+  padding: $spacing-4;
+  box-sizing: border-box; // 确保 padding 包含在宽度内
+  width: 100%; // 确保宽度完整
+  overflow: hidden; // 防止内容溢出
+}
+
+.card-header {
+  @include flex-between;
+  margin-bottom: $spacing-2;
+  align-items: flex-start; // 确保顶部对齐
+}
+
+.card-header-left {
+  flex: 1;
+  margin-right: $spacing-2;
+}
+
+.card-favorite-btn {
+  flex-shrink: 0;
+  // 确保收藏按钮无边框和背景
+  background: transparent !important;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  
+  &::before,
+  &::after {
+    display: none !important;
+  }
+}
+
+.type-tag {
+  @include text-caption;
+  padding: 4rpx $spacing-2;
+  border-radius: $radius-sm;
+  font-weight: $font-weight-medium;
+  display: inline-block;
+  
+  &.recruit {
+    background-color: rgba($info, 0.1);
+    color: $info;
+    border: 1rpx solid rgba($info, 0.2);
+  }
+  
+  &.activity {
+    background-color: rgba($warning, 0.1);
+    color: $warning;
+    border: 1rpx solid rgba($warning, 0.2);
+  }
+  
+  &.lecture {
+    background-color: rgba($primary, 0.1);
+    color: $primary;
+    border: 1rpx solid rgba($primary, 0.2);
+  }
+}
+
+.card-title {
+  @include text-title; // 从 text-title-lg 改为 text-title，字体从 40rpx 降为 36rpx
+  margin-bottom: $spacing-2;
+  display: block;
+  line-height: 1.6;
+  word-break: break-word; // 允许在单词内断行
+  overflow-wrap: break-word; // 长单词强制换行
+  word-wrap: break-word; // 兼容性
+  max-width: 100%; // 确保不超出容器
+  box-sizing: border-box; // 包含 padding
+  // 不使用 text-ellipsis-multi，直接显示所有内容，最多3行
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-info {
+  background-color: $gray-50;
+  padding: $spacing-2;
+  border-radius: $radius-base;
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.info-item {
+  @include flex-start;
+  gap: $spacing-2;
+  @include text-caption;
+  color: $text-secondary;
+  
+  &.location {
+    width: 100%;
+  }
+}
+
+.info-icon {
+  color: $primary;
+  font-size: $font-size-base;
+  flex-shrink: 0;
+}
+
+.info-text {
+  flex: 1;
+  @include text-ellipsis;
+}
+
+// ==================== 详情页弹窗 ====================
+
+.detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: $z-modal;
+  background-color: $bg-primary;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp $transition-slow $ease-out;
+  padding-bottom: 140rpx; // 为底部导航栏留出空间
+  box-sizing: border-box;
+}
+
+.detail-header {
+  @include flex-between;
+  padding: $spacing-3 $spacing-2 $spacing-3 $spacing-4; // 左边padding更小，让返回键更靠左
+  border-bottom: 1rpx solid $border-light;
+  background-color: $bg-primary;
+  box-shadow: $shadow-sm;
+  align-items: center;
+}
+
+.detail-header-right {
+  display: flex;
+  gap: $spacing-1;
+  flex-shrink: 0;
+}
+
+.detail-back-btn {
+  padding: $spacing-2;
+  background: transparent !important;
+  border: none !important;
+  font-size: 48rpx;
+  color: $primary; // 使用主色调
+  font-weight: $font-weight-bold;
+  line-height: 1;
+  margin-left: -$spacing-1; // 靠左对齐
+  min-width: auto;
+  min-height: auto;
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  
+  &:active {
+    opacity: 0.7;
+    transform: translateX(-4rpx); // 点击时向左移动
+  }
+}
+
+.detail-title {
+  @include text-title;
+  flex: 1;
+  @include text-ellipsis;
+  text-align: center;
+  padding: 0 $spacing-2;
+}
+
+.detail-scroll-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.detail-hero {
+  height: 400rpx;
+  width: 100%;
+  position: relative;
+  padding: $spacing-6;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  @include gradient-primary;
+  color: $text-inverse;
+}
+
+.detail-content {
+  padding: $spacing-5;
+}
+
+.detail-info-card {
+  @include card;
+  padding: $spacing-4;
+  margin-top: -80rpx;
+  position: relative;
+  z-index: $z-base;
+  box-shadow: $shadow-lg;
+}
+
+.detail-section-title {
+  @include text-caption;
+  color: $text-secondary; // 从tertiary改为secondary，增强对比度
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+  margin-bottom: $spacing-3;
+  display: block;
+  font-weight: $font-weight-semibold;
+}
+
+.detail-info-item {
+  @include flex-start;
+  gap: $spacing-3;
+  margin-bottom: $spacing-4;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detail-info-icon {
+  background: $gradient-primary-light;
+  padding: $spacing-2;
+  border-radius: $radius-full;
+  color: $text-inverse;
+  font-size: 32rpx;
+  width: 64rpx;
+  height: 64rpx;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.detail-info-content {
+  flex: 1;
+}
+
+.detail-info-label {
+  @include text-caption;
+  color: $text-secondary; // 从tertiary改为secondary，增强对比度
+  margin-bottom: $spacing-1;
+  display: block;
+  font-weight: $font-weight-medium;
+}
+
+.detail-info-value {
+  @include text-body;
+  color: $text-primary; // 确保使用主文本色
+  font-weight: $font-weight-semibold; // 增强字重
+  display: block;
+  font-size: $font-size-lg; // 稍微增大字体
+}
+
+.detail-body {
+  margin-top: $spacing-6;
+}
+
+.detail-body-title {
+  @include text-title;
+  margin-bottom: $spacing-2;
+  display: block;
+  color: $text-primary; // 确保标题颜色清晰
+}
+
+.detail-summary {
+  @include text-body;
+  line-height: $line-height-relaxed;
+  margin-bottom: $spacing-4;
+  display: block;
+  color: $text-secondary; // 使用secondary而不是tertiary，增强可读性
+  font-size: $font-size-base;
+}
+
+.detail-raw-content {
+  background-color: $gray-50;
+  border-radius: $radius-base;
+  padding: $spacing-4;
+  @include text-body;
+  color: $text-primary; // 从secondary改为primary，增强对比度
+  border: 1rpx solid $border-light;
+  line-height: $line-height-relaxed;
+  font-size: $font-size-base;
+}
+
+.detail-actions {
+  padding: $spacing-4;
+  border-top: 1rpx solid $border-light;
+  background-color: $bg-primary;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.04);
+  position: relative;
+  z-index: $z-base + 1;
+  width: 100%;
+  flex-shrink: 0;
+  min-height: 120rpx;
+}
+
+.detail-action-btn {
+  width: 100%;
+  @include btn-primary;
+  padding: $spacing-3;
+  border-radius: $radius-lg;
+  @include text-body;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-2;
+  border: none;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// ==================== Toast提示 ====================
+
+.toast {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: rgba($gray-900, 0.85);
+  color: $text-inverse;
+  padding: $spacing-2 $spacing-4;
+  border-radius: $radius-full;
+  @include text-body;
+  font-weight: $font-weight-medium;
+  z-index: $z-tooltip;
+  box-shadow: $shadow-xl;
+  backdrop-filter: blur(20rpx);
+  animation: scaleIn $transition-base $ease-out;
+}

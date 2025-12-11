@@ -1,0 +1,388 @@
+// 收藏页样式 - 清华紫主题
+
+@import '../../styles/theme.scss';
+@import '../../styles/mixins.scss';
+
+.favorites-page {
+  min-height: 100vh;
+  background-color: $bg-secondary;
+
+  &.loading,
+  &.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .favorites-scroll {
+    height: 100vh;
+  }
+
+  // 头部
+  .favorites-header {
+    padding: $spacing-3 $spacing-4 $spacing-2;
+    background-color: $bg-primary;
+    border-bottom: 1rpx solid $border-light;
+    box-shadow: $shadow-sm;
+    position: sticky;
+    top: 0;
+    z-index: $z-sticky;
+
+    .favorites-count {
+      @include text-body;
+      color: $text-secondary;
+      font-weight: $font-weight-medium;
+    }
+  }
+
+  // 列表
+  .favorites-list {
+    padding: $spacing-2 $spacing-4;
+    display: flex;
+    flex-direction: column;
+    gap: $spacing-2;
+  }
+
+  // 收藏卡片
+  .favorite-card {
+    @include card;
+    @include card-hover;
+    overflow: hidden;
+
+    .card-top-bar {
+      height: 8rpx;
+      width: 100%;
+      background: $gradient-primary;
+    }
+
+    .card-content {
+      padding: $spacing-4;
+
+      .card-header {
+        @include flex-between;
+        margin-bottom: $spacing-2;
+
+        .card-tags {
+          display: flex;
+          align-items: center;
+          gap: $spacing-1;
+          flex: 1;
+
+          .type-tag {
+            @include text-caption;
+            padding: 4rpx $spacing-1;
+            border-radius: $radius-sm;
+            font-weight: $font-weight-medium;
+
+            &.recruit {
+              background-color: rgba($info, 0.1);
+              color: $info;
+              border: 1rpx solid rgba($info, 0.2);
+            }
+
+            &.activity {
+              background-color: rgba($warning, 0.1);
+              color: $warning;
+              border: 1rpx solid rgba($warning, 0.2);
+            }
+
+            &.lecture {
+              background-color: rgba($primary, 0.1);
+              color: $primary;
+              border: 1rpx solid rgba($primary, 0.2);
+            }
+          }
+
+          .source-tag {
+            @include text-caption;
+            color: $text-tertiary;
+            background-color: $gray-100;
+            padding: 4rpx $spacing-1;
+            border-radius: $radius-sm;
+          }
+        }
+      }
+
+      .card-title {
+        @include text-title;
+        line-height: $line-height-normal;
+        margin-bottom: $spacing-2;
+        display: block;
+        @include text-ellipsis-multi(2);
+      }
+
+      .card-info {
+        display: flex;
+        flex-direction: column;
+        gap: $spacing-1;
+        margin-bottom: $spacing-2;
+
+        .info-item {
+          @include flex-start;
+          gap: $spacing-1;
+
+          .info-icon {
+            font-size: $font-size-base;
+            color: $primary;
+          }
+
+          .info-text {
+            @include text-caption;
+            color: $text-secondary;
+          }
+        }
+      }
+
+      .card-summary {
+        @include text-caption;
+        line-height: $line-height-relaxed;
+        display: block;
+        @include text-ellipsis-multi(2);
+        color: $text-tertiary;
+      }
+    }
+  }
+
+  // 空状态
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: $spacing-2;
+    padding: $spacing-8 $spacing-5;
+
+    .empty-icon {
+      font-size: 120rpx;
+      margin-bottom: $spacing-1;
+      opacity: 0.6;
+    }
+
+    .empty-title {
+      @include text-title;
+      color: $text-secondary;
+    }
+
+    .empty-desc {
+      @include text-body;
+      color: $text-tertiary;
+      text-align: center;
+    }
+
+    .empty-action {
+      margin-top: $spacing-2;
+      padding: $spacing-2 $spacing-4;
+      @include btn-primary;
+      @include text-body;
+      font-weight: $font-weight-medium;
+      border-radius: $radius-lg;
+    }
+  }
+}
+
+// ==================== 详情 Modal（复用首页样式）====================
+
+.detail-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: $z-modal;
+  background-color: $bg-primary;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp $transition-slow $ease-out;
+}
+
+.detail-header {
+  @include flex-between;
+  padding: $spacing-3 $spacing-2 $spacing-3 $spacing-4;
+  border-bottom: 1rpx solid $border-light;
+  background-color: $bg-primary;
+  box-shadow: $shadow-sm;
+  align-items: center;
+}
+
+.detail-header-right {
+  display: flex;
+  gap: $spacing-1;
+  flex-shrink: 0;
+}
+
+.detail-back-btn {
+  padding: $spacing-2;
+  background: transparent !important;
+  border: none !important;
+  font-size: 48rpx;
+  color: $primary;
+  font-weight: $font-weight-bold;
+  line-height: 1;
+  margin-left: -$spacing-1;
+  min-width: auto;
+  min-height: auto;
+  width: auto;
+  height: auto;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  
+  &:active {
+    opacity: 0.7;
+    transform: translateX(-4rpx);
+  }
+}
+
+.detail-title {
+  @include text-title;
+  flex: 1;
+  @include text-ellipsis;
+  text-align: center;
+  padding: 0 $spacing-2;
+}
+
+.detail-scroll {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.detail-hero {
+  height: 400rpx;
+  width: 100%;
+  position: relative;
+  padding: $spacing-6;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  @include gradient-primary;
+  color: $text-inverse;
+}
+
+.detail-content {
+  padding: $spacing-5;
+}
+
+.detail-info-card {
+  @include card;
+  padding: $spacing-4;
+  margin-top: -80rpx;
+  position: relative;
+  z-index: $z-base;
+  box-shadow: $shadow-lg;
+}
+
+.detail-section-title {
+  @include text-caption;
+  color: $text-secondary;
+  text-transform: uppercase;
+  letter-spacing: 2rpx;
+  margin-bottom: $spacing-3;
+  display: block;
+  font-weight: $font-weight-semibold;
+}
+
+.detail-info-item {
+  @include flex-start;
+  gap: $spacing-3;
+  margin-bottom: $spacing-4;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.detail-info-icon {
+  background: $gradient-primary-light;
+  padding: $spacing-2;
+  border-radius: $radius-full;
+  color: $text-inverse;
+  font-size: 32rpx;
+  width: 64rpx;
+  height: 64rpx;
+  @include flex-center;
+  flex-shrink: 0;
+}
+
+.detail-info-content {
+  flex: 1;
+}
+
+.detail-info-label {
+  @include text-caption;
+  color: $text-secondary;
+  margin-bottom: $spacing-1;
+  display: block;
+  font-weight: $font-weight-medium;
+}
+
+.detail-info-value {
+  @include text-body;
+  color: $text-primary;
+  font-weight: $font-weight-semibold;
+  display: block;
+  font-size: $font-size-lg;
+}
+
+.detail-body {
+  margin-top: $spacing-6;
+}
+
+.detail-body-title {
+  @include text-title;
+  margin-bottom: $spacing-2;
+  display: block;
+  color: $text-primary;
+}
+
+.detail-summary {
+  @include text-body;
+  line-height: $line-height-relaxed;
+  margin-bottom: $spacing-4;
+  display: block;
+  color: $text-secondary;
+  font-size: $font-size-base;
+}
+
+.detail-raw-content {
+  background-color: $gray-50;
+  border-radius: $radius-base;
+  padding: $spacing-4;
+  @include text-body;
+  color: $text-primary;
+  border: 1rpx solid $border-light;
+  line-height: $line-height-relaxed;
+  font-size: $font-size-base;
+}
+
+.detail-actions {
+  padding: $spacing-4;
+  border-top: 1rpx solid $border-light;
+  background-color: $bg-primary;
+  box-shadow: 0 -4rpx 12rpx rgba(0, 0, 0, 0.04);
+}
+
+.detail-action-btn {
+  width: 100%;
+  @include btn-primary;
+  padding: $spacing-3;
+  border-radius: $radius-lg;
+  @include text-body;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-2;
+  border: none;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+// 动画
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}

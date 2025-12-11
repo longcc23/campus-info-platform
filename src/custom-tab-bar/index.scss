@@ -1,0 +1,51 @@
+@import '../styles/theme.scss';
+
+.custom-tab-bar {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  min-height: 120rpx; // 增加高度，避免与内容重叠
+  background-color: $bg-primary;
+  background: linear-gradient(to top, rgba($bg-primary, 0.98) 0%, $bg-primary 100%); // 渐变背景，更好的遮罩效果
+  backdrop-filter: blur(10rpx); // 毛玻璃效果，增强遮罩
+  border-top: 1rpx solid $border-light;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+  padding-top: 16rpx; // 增加顶部 padding
+  padding-bottom: calc(env(safe-area-inset-bottom) + 16rpx); // iPhone X+ 安全区域 + 额外 padding
+  z-index: 9999; // 确保 TabBar 在最上层
+  box-shadow: 0 -4rpx 20rpx rgba(0, 0, 0, 0.1); // 增强阴影，更明显的分层效果
+}
+
+.tab-bar-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  transition: all $transition-base $ease-out;
+  
+  &.active {
+    .tab-bar-text {
+      color: $primary;
+      font-weight: $font-weight-semibold;
+    }
+  }
+}
+
+.tab-bar-text {
+  font-size: 32rpx; // 增大字体：从默认约 24rpx 增加到 32rpx
+  font-weight: $font-weight-normal;
+  color: $text-secondary;
+  line-height: 1.2;
+  transition: color $transition-base $ease-out;
+  
+  .tab-bar-item.active & {
+    color: $primary;
+    font-weight: $font-weight-semibold;
+  }
+}
+

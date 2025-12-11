@@ -1,0 +1,165 @@
+// 个人中心页样式 - 清华紫主题
+
+@import '../../styles/theme.scss';
+@import '../../styles/mixins.scss';
+
+.profile-page {
+  min-height: 100vh;
+  background: linear-gradient(to bottom, $primary 0%, $primary-dark 50%, $bg-secondary 50%, $bg-secondary 100%);
+  padding-bottom: 140rpx; // 为自定义 TabBar 留出更多空间（高度增加到 120rpx + 额外间距）
+  @include safe-area-bottom($spacing-5);
+
+  &.loading {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: $bg-secondary;
+  }
+
+  // 个人信息卡片
+  .profile-header {
+    padding: 120rpx $spacing-4 $spacing-5;
+    display: flex;
+    align-items: center;
+    gap: $spacing-3;
+
+    .avatar {
+      width: 160rpx;
+      height: 160rpx;
+      border-radius: $radius-full;
+      background: $bg-primary;
+      @include flex-center;
+      box-shadow: $shadow-lg;
+      border: 4rpx solid rgba($text-inverse, 0.2);
+
+      .avatar-text {
+        font-size: 64rpx;
+        font-weight: $font-weight-bold;
+        color: $primary;
+      }
+    }
+
+    .user-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: $spacing-1;
+
+      .username {
+        @include text-title-lg;
+        color: $text-inverse;
+      }
+
+      .user-id {
+        @include text-caption;
+        color: rgba($text-inverse, 0.8);
+      }
+    }
+  }
+
+  // 统计卡片
+  .stats-card {
+    margin: 0 $spacing-4 $spacing-3;
+    @include card;
+    padding: $spacing-4;
+    @include flex-between;
+    box-shadow: $shadow-base;
+
+    .stat-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: $spacing-1;
+      flex: 1;
+
+      .stat-value {
+        @include text-title-xl;
+        color: $primary;
+      }
+
+      .stat-label {
+        @include text-caption;
+        color: $text-secondary;
+      }
+    }
+
+    .stat-divider {
+      width: 1rpx;
+      height: 80rpx;
+      background: $border-light;
+    }
+  }
+
+  // 功能区域
+  .menu-section {
+    margin-bottom: $spacing-3;
+
+    .section-title {
+      padding: 0 $spacing-4 $spacing-2;
+      @include text-caption;
+      color: $text-secondary;
+      text-transform: uppercase;
+      letter-spacing: 2rpx;
+      font-weight: $font-weight-semibold;
+    }
+
+    .menu-list {
+      @include card;
+      margin: 0 $spacing-4;
+      overflow: hidden;
+      box-shadow: $shadow-base;
+
+      .menu-item {
+        @include flex-start;
+        padding: $spacing-4;
+        background: $bg-primary;
+        border: none;
+        border-bottom: 1rpx solid $border-light;
+        transition: background $transition-base $ease-out;
+
+        &:last-child {
+          border-bottom: none;
+        }
+
+        &:active:not(.disabled) {
+          background: $gray-50;
+        }
+
+        &.disabled {
+          opacity: 0.5;
+        }
+
+        .menu-icon {
+          font-size: 48rpx;
+          margin-right: $spacing-2;
+          width: 56rpx;
+          @include flex-center;
+        }
+
+        .menu-content {
+          flex: 1;
+          display: flex;
+          flex-direction: column;
+          gap: 4rpx;
+          text-align: left;
+
+          .menu-title {
+            @include text-title;
+            color: $text-primary;
+            font-weight: $font-weight-medium;
+          }
+
+          .menu-desc {
+            @include text-caption;
+            color: $text-tertiary;
+          }
+        }
+
+        .menu-arrow {
+          font-size: 32rpx;
+          color: $border-default;
+        }
+      }
+    }
+  }
+}

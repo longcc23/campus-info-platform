@@ -1,0 +1,17 @@
+const path = require('path')
+
+module.exports = {
+  plugins: [
+    // Tailwind CSS 插件
+    require('tailwindcss'),
+    // Autoprefixer 插件（自动添加浏览器前缀）
+    require('autoprefixer'),
+    // weapp-tailwindcss 插件（将 Tailwind 类名转换为小程序样式）
+    require('weapp-tailwindcss')({
+      // 可选配置项：
+      // rem2rpx: true, // 是否将 rem 转换为 rpx（默认 false）
+      // htmlFontSize: 16, // 根字体大小，用于 rem 转换（默认 16）
+    }),
+  ],
+}
+

@@ -1,0 +1,9 @@
+// Tailwind CSS 指令
+// 必须在文件最顶部引入
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+// 你的自定义样式
+// 可以在这里添加全局样式
+

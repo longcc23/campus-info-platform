@@ -1,0 +1,221 @@
+/**
+ * Supabase 客户端初始化
+ * 适配微信小程序环境
+ * 
+ * ⚠️ 重要：polyfill 必须在导入 Supabase SDK 之前加载
+ */
+
+// 首先加载 polyfill（必须在导入 Supabase SDK 之前）
+import './polyfill'
+
+import Taro from '@tarojs/taro'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
+
+// Supabase 配置
+const SUPABASE_URL = 'https://civlywqsdzzrvsutlrxx.supabase.co'
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdmx5d3FzZHp6cnZzdXRscnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTkzODUsImV4cCI6MjA4MDMzNTM4NX0.vHueW-6OoZg1srGLzMvRGS1Cwy1bpyX-isVtJ_z6SbQ'
+
+// 注意：Headers, EventTarget, AbortSignal, AbortController 的 polyfill 已在 polyfill.ts 中定义
+
+/**
+ * Fetch polyfill - 使用 Taro.request
+ */
+const fetchPolyfill = async (url: string, options: any = {}): Promise<any> => {
+  const { method = 'GET', headers = {}, body, signal } = options
+
+  // 检查是否已取消
+  if (signal && signal.aborted) {
+    const abortError = new Error('Request aborted')
+    abortError.name = 'AbortError'
+    throw abortError
+  }
+
+  const header: Record<string, string> = {}
+  if (headers instanceof Headers) {
+    headers.forEach((value, key) => {
+      header[key] = value
+    })
+  } else {
+    Object.entries(headers).forEach(([key, value]) => {
+      header[key] = String(value)
+    })
+  }
+
+  try {
+    const response = await Taro.request({
+      url,
+      method: method as any,
+      header,
+      data: body ? (typeof body === 'string' ? JSON.parse(body) : body) : undefined,
+      dataType: 'json',
+    })
+
+    const responseBody = typeof response.data === 'string' 
+      ? response.data 
+      : JSON.stringify(response.data || {})
+
+    return {
+      ok: response.statusCode >= 200 && response.statusCode < 300,
+      status: response.statusCode,
+      statusText: 'OK',
+      url,
+      headers: new Headers(response.header || {}),
+      json: async () => {
+        try {
+          return typeof response.data === 'object' ? response.data : JSON.parse(responseBody)
+        } catch {
+          throw new Error('Invalid JSON')
+        }
+      },
+      text: async () => responseBody,
+      arrayBuffer: async () => new ArrayBuffer(0),
+      blob: async () => new Blob(),
+    }
+  } catch (error: any) {
+    return {
+      ok: false,
+      status: error.statusCode || 500,
+      statusText: error.errMsg || 'Network Error',
+      url,
+      headers: new Headers({}),
+      json: async () => { throw error },
+      text: async () => { throw error },
+      arrayBuffer: async () => { throw error },
+      blob: async () => { throw error },
+    }
+  }
+}
+
+if (typeof globalThis.fetch === 'undefined') {
+  globalThis.fetch = fetchPolyfill as any
+}
+
+/**
+ * 创建 Supabase 客户端
+ */
+export const supabase: SupabaseClient = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  global: {
+    fetch: fetchPolyfill as any,
+  },
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false,
+  },
+})
+
+/**
+ * Events 表类型定义
+ */
+export interface Event {
+  id: number
+  title: string
+  type: 'recruit' | 'activity' | 'lecture'
+  source_group: string
+  publish_time: string
+  tags: string[]
+  key_info: {
+    date: string
+    time: string
+    location: string
+    deadline: string
+  }
+  summary?: string
+  raw_content?: string
+  is_top: boolean
+  status: 'active' | 'inactive' | 'archived' | 'new' | 'urgent'
+  poster_color: string
+  created_at?: string
+  updated_at?: string
+}
+
+/**
+ * 获取所有活动
+ */
+export async function getEvents(filters?: {
+  type?: 'recruit' | 'activity' | 'lecture'
+  status?: string
+  limit?: number
+}) {
+  let query = supabase
+    .from('events')
+    .select('*')
+    .order('is_top', { ascending: false })
+    .order('publish_time', { ascending: false })
+
+  if (filters?.type) {
+    query = query.eq('type', filters.type)
+  }
+
+  if (filters?.status) {
+    query = query.eq('status', filters.status)
+  }
+
+  if (filters?.limit) {
+    query = query.limit(filters.limit)
+  }
+
+  const { data, error } = await query
+
+  if (error) {
+    console.error('获取活动失败:', error)
+    throw error
+  }
+
+  return { data, error: null }
+}
+
+/**
+ * 根据 ID 获取单个活动
+ */
+export async function getEventById(id: number) {
+  const { data, error } = await supabase
+    .from('events')
+    .select('*')
+    .eq('id', id)
+    .single()
+
+  if (error) {
+    console.error('获取活动失败:', error)
+    throw error
+  }
+
+  return { data, error: null }
+}
+
+/**
+ * 创建新活动（需要认证）
+ */
+export async function createEvent(event: Omit<Event, 'id' | 'created_at' | 'updated_at'>) {
+  const { data, error } = await supabase
+    .from('events')
+    .insert([event])
+    .select()
+    .single()
+
+  if (error) {
+    console.error('创建活动失败:', error)
+    throw error
+  }
+
+  return { data, error: null }
+}
+
+/**
+ * 更新活动（需要认证）
+ */
+export async function updateEvent(id: number, updates: Partial<Event>) {
+  const { data, error } = await supabase
+    .from('events')
+    .update(updates)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('更新活动失败:', error)
+    throw error
+  }
+
+  return { data, error: null }
+}

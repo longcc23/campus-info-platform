@@ -1,0 +1,157 @@
+/**
+ * SCSS Mixins - 通用样式混合器
+ */
+
+@import './theme.scss';
+
+// ==================== 文字样式 ====================
+
+// 标题样式
+@mixin text-title-xl {
+  font-size: $font-size-3xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: $text-primary;
+}
+
+@mixin text-title-lg {
+  font-size: $font-size-2xl;
+  font-weight: $font-weight-bold;
+  line-height: $line-height-tight;
+  color: $text-primary;
+}
+
+@mixin text-title {
+  font-size: $font-size-xl;
+  font-weight: $font-weight-semibold;
+  line-height: $line-height-normal;
+  color: $text-primary;
+}
+
+@mixin text-body {
+  font-size: $font-size-base;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-relaxed;
+  color: $text-secondary;
+}
+
+@mixin text-caption {
+  font-size: $font-size-sm;
+  font-weight: $font-weight-normal;
+  line-height: $line-height-normal;
+  color: $text-tertiary;
+}
+
+// ==================== 卡片样式 ====================
+
+@mixin card {
+  background-color: $bg-primary;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-base;
+  border: 1rpx solid $border-light;
+  overflow: hidden;
+}
+
+@mixin card-hover {
+  transition: all $transition-base $ease-out;
+  
+  &:active {
+    transform: scale(0.98);
+    box-shadow: $shadow-sm;
+  }
+}
+
+// ==================== 按钮样式 ====================
+
+@mixin btn-primary {
+  background: $gradient-primary;
+  color: $text-inverse;
+  border: none;
+  border-radius: $radius-base;
+  font-weight: $font-weight-medium;
+  box-shadow: $shadow-primary;
+  
+  &:active {
+    opacity: 0.9;
+    transform: translateY(2rpx);
+  }
+}
+
+@mixin btn-secondary {
+  background-color: $bg-primary;
+  color: $primary;
+  border: 1rpx solid $primary;
+  border-radius: $radius-base;
+  font-weight: $font-weight-medium;
+  
+  &:active {
+    background-color: $gray-50;
+  }
+}
+
+@mixin btn-ghost {
+  background-color: transparent;
+  color: $text-secondary;
+  border: none;
+  
+  &:active {
+    background-color: $gray-100;
+  }
+}
+
+// ==================== 渐变背景 ====================
+
+@mixin gradient-primary {
+  background: $gradient-primary;
+}
+
+@mixin gradient-primary-light {
+  background: $gradient-primary-light;
+}
+
+// ==================== 布局工具 ====================
+
+@mixin flex-center {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin flex-between {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+@mixin flex-start {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+
+// ==================== 文本省略 ====================
+
+@mixin text-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@mixin text-ellipsis-multi($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// ==================== 安全区域 ====================
+
+@mixin safe-area-bottom($offset: 0) {
+  padding-bottom: calc(env(safe-area-inset-bottom) + #{$offset});
+}
+
+@mixin safe-area-top($offset: 0) {
+  padding-top: calc(env(safe-area-inset-top) + #{$offset});
+}
+
