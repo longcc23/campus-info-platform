@@ -36,7 +36,7 @@ export default function About() {
           <Text className="logo-text">U</Text>
         </View>
         <Text className="app-name">UniFlow 智汇流</Text>
-        <Text className="app-version">版本 3.2.0</Text>
+        <Text className="app-version">版本 1.0.0</Text>
         <Text className="app-slogan">让校园信息不再流失，让每一个机会触手可及</Text>
       </View>
 
