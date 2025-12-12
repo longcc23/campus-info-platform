@@ -1,8 +1,8 @@
 {
-  "name": "infor-platform",
-  "version": "1.0.0",
+  "name": "uniflow-campus",
+  "version": "3.2.0",
   "private": true,
-  "description": "Taro 小程序项目",
+  "description": "UniFlow (智汇校园) - 基于 AI 的校园信息智能聚合平台",
   "templateInfo": {
     "name": "default",
     "typescript": true,

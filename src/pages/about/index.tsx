@@ -33,11 +33,11 @@ export default function About() {
       {/* 应用信息 */}
       <View className="app-info">
         <View className="app-logo">
-          <Text className="logo-text">CDC</Text>
+          <Text className="logo-text">U</Text>
         </View>
-        <Text className="app-name">CDC智汇中心</Text>
-        <Text className="app-version">版本 1.0.0</Text>
-        <Text className="app-slogan">连接机会，成就未来</Text>
+        <Text className="app-name">UniFlow 智汇校园</Text>
+        <Text className="app-version">版本 3.2.0</Text>
+        <Text className="app-slogan">让校园信息不再流失，让每一个机会触手可及</Text>
       </View>
 
       {/* 项目介绍 */}
@@ -45,10 +45,10 @@ export default function About() {
         <Text className="section-title">📖 项目简介</Text>
         <View className="section-content">
           <Text className="description">
-            CDC智汇中心是一个专为学生打造的信息聚合平台，致力于整合各类实习招聘、讲座活动等有价值的机会信息。
+            UniFlow (智汇校园) 是一个基于 AI 的校园信息智能聚合平台，通过多模态解析技术，自动采集、结构化并展示校园招聘、讲座、活动等信息。
           </Text>
           <Text className="description">
-            我们的目标是让每一个有价值的机会都能被需要的人看到，帮助同学们不错过任何成长和发展的机会。
+            我们的理念是"做工具而非平台"——随手存、随手查、不打扰。让每一个有价值的机会都能被需要的人看到。
           </Text>
         </View>
       </View>
@@ -91,28 +91,16 @@ export default function About() {
           <View className="contact-item">
             <Text className="contact-label">开发团队</Text>
             <View className="contact-value-row">
-              <Text className="contact-value">CDC开发小组</Text>
+              <Text className="contact-value">UniFlow 产品团队</Text>
             </View>
           </View>
           <View className="contact-item">
-            <Text className="contact-label">技术支持</Text>
+            <Text className="contact-label">开源地址</Text>
             <View className="contact-value-row">
-              <Text className="contact-value">support@cdc.edu.cn</Text>
+              <Text className="contact-value">github.com/longcc23/campus-info-platform</Text>
               <Button 
                 className="copy-btn"
-                onClick={() => handleCopyContact('support@cdc.edu.cn')}
-              >
-                <Text>复制</Text>
-              </Button>
-            </View>
-          </View>
-          <View className="contact-item">
-            <Text className="contact-label">意见反馈</Text>
-            <View className="contact-value-row">
-              <Text className="contact-value">feedback@cdc.edu.cn</Text>
-              <Button 
-                className="copy-btn"
-                onClick={() => handleCopyContact('feedback@cdc.edu.cn')}
+                onClick={() => handleCopyContact('https://github.com/longcc23/campus-info-platform')}
               >
                 <Text>复制</Text>
               </Button>
@@ -123,8 +111,8 @@ export default function About() {
 
       {/* 版权信息 */}
       <View className="footer">
-        <Text className="copyright">© 2024 CDC智汇中心</Text>
-        <Text className="copyright">用心连接每一个机会</Text>
+        <Text className="copyright">© 2025 UniFlow 智汇校园</Text>
+        <Text className="copyright">让信息流动，让机会触手可及</Text>
       </View>
     </View>
   )

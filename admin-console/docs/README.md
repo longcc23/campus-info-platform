@@ -1,4 +1,4 @@
-# CDC 智汇中心 - 管理后台
+# UniFlow Admin - 智汇校园管理后台
 
 **版本**：V3.0  
 **技术栈**：Next.js 14 + React 18 + TypeScript + Tailwind CSS + Supabase

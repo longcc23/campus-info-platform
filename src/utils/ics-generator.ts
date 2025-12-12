@@ -200,13 +200,13 @@ export function generateICS(event: CalendarEvent): string {
   // ICS 文件头
   lines.push('BEGIN:VCALENDAR')
   lines.push('VERSION:2.0')
-  lines.push('PRODID:-//CDC InfoHub//Calendar Event//CN')
+  lines.push('PRODID:-//UniFlow//Calendar Event//CN')
   lines.push('CALSCALE:GREGORIAN')
   lines.push('METHOD:PUBLISH')
   
   // 事件开始
   lines.push('BEGIN:VEVENT')
-  lines.push(`UID:${Date.now()}@cdc-infohub`)
+  lines.push(`UID:${Date.now()}@uniflow-campus`)
   lines.push(`DTSTAMP:${formatDateForICS(new Date())}`)
   
   // 开始时间

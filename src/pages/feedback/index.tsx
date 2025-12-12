@@ -52,7 +52,7 @@ export default function Feedback() {
 
       Taro.showModal({
         title: '反馈已记录 📝',
-        content: '感谢您的宝贵意见！反馈内容已复制到剪贴板，您也可以直接发送邮件到 feedback@cdc.edu.cn\n\n我们会认真对待每一条反馈，持续改进产品体验。',
+        content: '感谢您的宝贵意见！反馈内容已复制到剪贴板。\n\n我们会认真对待每一条反馈，持续改进产品体验。',
         showCancel: false,
         confirmText: '知道了',
         confirmColor: '#8B5CF6',
@@ -180,8 +180,8 @@ export default function Feedback() {
         <Text className="contact-title">其他联系方式</Text>
         <View className="contact-methods">
           <View className="contact-method">
-            <Text className="method-icon">📧</Text>
-            <Text className="method-text">邮箱：feedback@cdc.edu.cn</Text>
+            <Text className="method-icon">🔗</Text>
+            <Text className="method-text">GitHub: longcc23/campus-info-platform</Text>
           </View>
           <View className="contact-method">
             <Text className="method-icon">💬</Text>

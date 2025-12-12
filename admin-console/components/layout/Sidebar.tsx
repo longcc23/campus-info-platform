@@ -34,7 +34,7 @@ export default function Sidebar() {
   return (
     <div className="fixed left-0 top-0 w-64 bg-slate-900 text-white h-screen flex flex-col">
       <div className="p-6">
-        <h1 className="text-xl font-bold">CDC 智汇中心</h1>
+        <h1 className="text-xl font-bold">UniFlow</h1>
         <p className="text-sm text-slate-400 mt-1">管理后台</p>
       </div>
       

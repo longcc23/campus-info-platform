@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "CDC 智汇中心 - 管理后台",
-  description: "CDC 智汇中心管理后台，AI 智能采集与内容管理",
+  title: "UniFlow Admin - 智汇校园管理后台",
+  description: "UniFlow (智汇校园) 管理后台，AI 智能采集与内容管理",
 };
 
 export default function RootLayout({
