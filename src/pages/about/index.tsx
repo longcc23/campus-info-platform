@@ -35,7 +35,7 @@ export default function About() {
         <View className="app-logo">
           <Text className="logo-text">U</Text>
         </View>
-        <Text className="app-name">UniFlow 智汇校园</Text>
+        <Text className="app-name">UniFlow 智汇流</Text>
         <Text className="app-version">版本 3.2.0</Text>
         <Text className="app-slogan">让校园信息不再流失，让每一个机会触手可及</Text>
       </View>
@@ -45,7 +45,7 @@ export default function About() {
         <Text className="section-title">📖 项目简介</Text>
         <View className="section-content">
           <Text className="description">
-            UniFlow (智汇校园) 是一个基于 AI 的校园信息智能聚合平台，通过多模态解析技术，自动采集、结构化并展示校园招聘、讲座、活动等信息。
+            UniFlow (智汇流) 是一个基于 AI 的校园信息智能聚合平台，通过多模态解析技术，自动采集、结构化并展示校园招聘、讲座、活动等信息。
           </Text>
           <Text className="description">
             我们的理念是"做工具而非平台"——随手存、随手查、不打扰。让每一个有价值的机会都能被需要的人看到。
@@ -111,7 +111,7 @@ export default function About() {
 
       {/* 版权信息 */}
       <View className="footer">
-        <Text className="copyright">© 2025 UniFlow 智汇校园</Text>
+        <Text className="copyright">© 2025 UniFlow 智汇流</Text>
         <Text className="copyright">让信息流动，让机会触手可及</Text>
       </View>
     </View>

@@ -128,7 +128,7 @@ export const getShareConfig = (shareData: ShareData) => {
 export const triggerShare = async (shareData: ShareData): Promise<ShareResult> => {
   try {
     // 直接复制分享内容，这是最实用的分享方式
-    const shareText = `📢 ${shareData.title}\n\n${shareData.desc}\n\n🔗 查看详情：${shareData.link}\n\n📱 来自 UniFlow 智汇校园`
+    const shareText = `📢 ${shareData.title}\n\n${shareData.desc}\n\n🔗 查看详情：${shareData.link}\n\n📱 来自 UniFlow 智汇流`
     
     await Taro.setClipboardData({
       data: shareText
@@ -160,7 +160,7 @@ export const showShareOptions = async (shareData: ShareData): Promise<ShareResul
     
     if (result.tapIndex === 0) {
       // 复制完整分享内容
-      const shareText = `📢 ${shareData.title}\n\n${shareData.desc}\n\n🔗 查看详情：${shareData.link}\n\n📱 来自 UniFlow 智汇校园`
+      const shareText = `📢 ${shareData.title}\n\n${shareData.desc}\n\n🔗 查看详情：${shareData.link}\n\n📱 来自 UniFlow 智汇流`
       await Taro.setClipboardData({
         data: shareText
       })
