@@ -5,13 +5,19 @@
 import { View, Text, ScrollView, Button } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
-import { getViewHistory, type Event, recordViewHistory } from '../../utils/supabase-rest'
+import { getViewHistory, type Event, recordViewHistory, clearViewHistory } from '../../utils/supabase-rest'
 import FavoriteButton from '../../components/FavoriteButton'
+import { SkeletonList } from '../../components/Skeleton'
+import ExpiredFilter from '../../components/ExpiredFilter'
+import ShareButton from '../../components/ShareButton'
 import { createCalendarEventFromItem, addToPhoneCalendar } from '../../utils/ics-generator'
+import { isExpired } from '../../services/expiration'
 import { getSafeAreaBottom } from '../../utils/system-info'
 import authService from '../../services/auth'
 import favoritesService from '../../services/favorites'
 import './index.scss'
+
+// 过期判断逻辑已移至 src/services/expiration.ts
 
 export default function History() {
   const [history, setHistory] = useState<Event[]>([])
@@ -19,6 +25,7 @@ export default function History() {
   const [refreshing, setRefreshing] = useState(false)
   const [selectedItem, setSelectedItem] = useState<Event | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set())
+  const [hideExpired, setHideExpired] = useState(false)
 
   useEffect(() => {
     loadHistory()
@@ -149,27 +156,84 @@ export default function History() {
     })
   }
 
-  if (loading) {
-    return (
-      <View className="history-page loading">
-        <Text>加载中...</Text>
-      </View>
-    )
+  const handleCopyLink = (link: string) => {
+    Taro.setClipboardData({
+      data: link,
+      success: () => {
+        // 不显示提示，系统会自动显示"内容已复制"
+      },
+      fail: () => {
+        Taro.showToast({
+          title: '复制失败',
+          icon: 'none'
+        })
+      }
+    })
   }
 
-  if (history.length === 0) {
-    return (
-      <View className="history-page empty">
-        <View className="empty-state">
-          <Text className="empty-icon">🕐</Text>
-          <Text className="empty-title">还没有浏览历史</Text>
-          <Text className="empty-desc">去首页看看感兴趣的机会吧</Text>
-          <View className="empty-action" onClick={handleNavigateToHome}>
-            <Text>去首页</Text>
-          </View>
-        </View>
-      </View>
-    )
+  // 处理链接点击：复制并提示用户在浏览器打开
+  const handleLinkClick = (link: string, linkType: 'registration' | 'apply' = 'apply') => {
+    Taro.setClipboardData({
+      data: link,
+      success: () => {
+        const title = linkType === 'registration' ? '报名链接已复制' : '链接已复制'
+        Taro.showModal({
+          title: title,
+          content: '链接已复制到剪贴板，请在浏览器中粘贴打开',
+          showCancel: false,
+          confirmText: '知道了',
+          confirmColor: '#8B5CF6'
+        })
+      },
+      fail: () => {
+        Taro.showToast({
+          title: '复制失败',
+          icon: 'none'
+        })
+      }
+    })
+  }
+
+  const handleClearHistory = async () => {
+    const result = await Taro.showModal({
+      title: '确认清空',
+      content: '确定要清空所有浏览历史吗？此操作不可恢复。',
+      confirmText: '清空',
+      confirmColor: '#EF4444',
+      cancelText: '取消'
+    })
+    
+    if (result.confirm) {
+      try {
+        const userId = await authService.getOpenID()
+        if (!userId) return
+        
+        const { error } = await clearViewHistory(userId)
+        if (error) {
+          throw new Error(error.message)
+        }
+        
+        setHistory([])
+        Taro.showToast({
+          title: '已清空',
+          icon: 'success'
+        })
+      } catch (error) {
+        console.error('清空浏览历史失败:', error)
+        Taro.showToast({
+          title: '清空失败',
+          icon: 'none'
+        })
+      }
+    }
+  }
+
+  // 获取筛选后的历史列表
+  const getFilteredHistory = () => {
+    if (!hideExpired) {
+      return history
+    }
+    return history.filter(item => !isExpired(item))
   }
 
   return (
@@ -181,19 +245,47 @@ export default function History() {
         refresherTriggered={refreshing}
         onRefresherRefresh={handleRefresh}
       >
-        <View className="history-header">
-          <Text className="history-count">共 {history.length} 条浏览记录</Text>
-        </View>
+        {loading ? (
+          <SkeletonList count={5} />
+        ) : history.length === 0 ? (
+          <View className="empty-state">
+            <Text className="empty-icon">🕐</Text>
+            <Text className="empty-title">还没有浏览历史</Text>
+            <Text className="empty-desc">去首页看看感兴趣的机会吧</Text>
+            <View className="empty-action" onClick={handleNavigateToHome}>
+              <Text>去首页</Text>
+            </View>
+          </View>
+        ) : (
+          <>
+            <View className="history-header">
+              <View className="history-header-left">
+                <Text className="history-count">共 {getFilteredHistory().length} 条浏览记录</Text>
+                <ExpiredFilter
+                  value={hideExpired}
+                  onChange={setHideExpired}
+                  className="history-expired-filter"
+                />
+              </View>
+              <View className="clear-history-btn" onClick={handleClearHistory}>
+                <Text>🗑️ 清空</Text>
+              </View>
+            </View>
 
-        <View className="history-list">
-          {history.map(item => (
+            <View className="history-list">
+              {getFilteredHistory().map(item => {
+                const expired = isExpired(item)
+                return (
             <View
               key={item.id}
-              className="history-card"
+              className={`history-card ${expired ? 'expired' : ''}`}
               onClick={() => handleEventClick(item)}
             >
               {/* 顶部色条 */}
-              <View className="card-top-bar" style={{ background: `linear-gradient(to right, ${item.poster_color})` }} />
+              <View 
+                className="card-top-bar" 
+                style={{ background: expired ? '#9CA3AF' : `linear-gradient(to right, ${item.poster_color})` }} 
+              />
 
               {/* 卡片内容 */}
               <View className="card-content">
@@ -203,6 +295,7 @@ export default function History() {
                     <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : item.type === 'lecture' ? 'lecture' : 'activity'}`}>
                       {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
                     </Text>
+                    {expired && <Text className="expired-tag">已过期</Text>}
                     <Text className="source-tag">{item.source_group}</Text>
                   </View>
                   <FavoriteButton
@@ -222,7 +315,7 @@ export default function History() {
                 </View>
 
                 {/* 标题 */}
-                <Text className="card-title">{item.title}</Text>
+                <Text className={`card-title ${expired ? 'expired-text' : ''}`}>{item.title}</Text>
 
                 {/* 关键信息 */}
                 <View className="card-info">
@@ -231,7 +324,7 @@ export default function History() {
                     item.key_info.deadline && (
                       <View className="info-item">
                         <Text className="info-icon">⏰</Text>
-                        <Text className="info-text">{item.key_info.deadline}</Text>
+                        <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.key_info.deadline}</Text>
                       </View>
                     )
                   ) : (
@@ -240,13 +333,13 @@ export default function History() {
                       {item.key_info.date && (
                         <View className="info-item">
                           <Text className="info-icon">📅</Text>
-                          <Text className="info-text">{item.key_info.date}</Text>
+                          <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.key_info.date}</Text>
                         </View>
                       )}
                       {item.key_info.time && (
                         <View className="info-item">
                           <Text className="info-icon">🕐</Text>
-                          <Text className="info-text">{item.key_info.time}</Text>
+                          <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.key_info.time}</Text>
                         </View>
                       )}
                     </>
@@ -254,7 +347,7 @@ export default function History() {
                   {item.key_info.location && (
                     <View className="info-item">
                       <Text className="info-icon">📍</Text>
-                      <Text className="info-text">{item.key_info.location}</Text>
+                      <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.key_info.location}</Text>
                     </View>
                   )}
                 </View>
@@ -264,9 +357,12 @@ export default function History() {
                   <Text className="card-summary">{item.summary}</Text>
                 )}
               </View>
-            </View>
-          ))}
-        </View>
+              </View>
+                )
+              })}
+          </View>
+        </>
+        )}
       </ScrollView>
 
       {/* 详情 Modal */}
@@ -281,6 +377,12 @@ export default function History() {
             </Button>
             <Text className="detail-title">{selectedItem.title}</Text>
             <View className="detail-header-right">
+              <ShareButton 
+                eventData={selectedItem}
+                size="medium"
+                type="icon"
+                className="detail-share-btn"
+              />
               <FavoriteButton 
                 eventId={selectedItem.id}
                 initialFavorited={favoriteIds.has(selectedItem.id)}
@@ -294,8 +396,6 @@ export default function History() {
                     newFavoriteIds.delete(selectedItem.id)
                   }
                   setFavoriteIds(newFavoriteIds)
-                  // 更新选中项状态
-                  setSelectedItem({ ...selectedItem, isFavorited })
                 }}
               />
             </View>
@@ -361,9 +461,20 @@ export default function History() {
                         </View>
                         <View className="detail-info-content" style={{ flex: 1 }}>
                           <Text className="detail-info-label">投递方式</Text>
-                          <Text className="detail-info-value" style={{ wordBreak: 'break-all' }}>
-                            {selectedItem.key_info.link}
-                          </Text>
+                          <View className="detail-info-value-row">
+                            <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
+                              {selectedItem.key_info.link}
+                            </Text>
+                            <View 
+                              className="copy-link-btn"
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                handleCopyLink(selectedItem.key_info.link || '')
+                              }}
+                            >
+                              <Text>📋 复制</Text>
+                            </View>
+                          </View>
                         </View>
                       </View>
                     )}
@@ -429,6 +540,29 @@ export default function History() {
                         <View className="detail-info-content">
                           <Text className="detail-info-label">截止时间</Text>
                           <Text className="detail-info-value">{selectedItem.key_info.deadline}</Text>
+                        </View>
+                      </View>
+                    )}
+                    
+                    {selectedItem.key_info.registration_link && (
+                      <View 
+                        className="detail-info-item clickable-link"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleLinkClick(selectedItem.key_info.registration_link || '', 'registration')
+                        }}
+                      >
+                        <View className="detail-info-icon">
+                          <Text>🔗</Text>
+                        </View>
+                        <View className="detail-info-content" style={{ flex: 1 }}>
+                          <Text className="detail-info-label">报名链接</Text>
+                          <View className="detail-info-value-row">
+                            <Text className="detail-info-value link-text" style={{ wordBreak: 'break-all', flex: 1, color: '#8B5CF6' }}>
+                              {selectedItem.key_info.registration_link}
+                            </Text>
+                            <Text style={{ color: '#8B5CF6', fontSize: '24rpx' }}>点击复制 →</Text>
+                          </View>
                         </View>
                       </View>
                     )}

@@ -31,6 +31,7 @@ export interface Event {
     position?: string
     education?: string
     link?: string
+    registration_link?: string  // 活动/讲座报名链接
     referral?: boolean
   }
   summary?: string

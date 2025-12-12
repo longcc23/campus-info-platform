@@ -4,8 +4,8 @@
  */
 
 import OpenAI from 'openai'
-import { SYSTEM_PROMPT } from './system-prompt'
-import type { ParsedEvent } from '@/types/ai'
+import { getSystemPrompt } from './system-prompt'
+import type { ParsedEvent, OutputLanguage } from '@/types/ai'
 
 // 创建 OpenAI 客户端的函数（延迟初始化，避免模块加载时检查）
 function getOpenAIClient() {
@@ -21,13 +21,14 @@ function getOpenAIClient() {
   })
 }
 
-export async function parseText(text: string): Promise<ParsedEvent> {
+export async function parseText(text: string, language: OutputLanguage = 'zh'): Promise<ParsedEvent> {
   try {
     const openai = getOpenAIClient()
+    const systemPrompt = getSystemPrompt(language)
     const response = await openai.chat.completions.create({
       model: 'deepseek-chat',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: `群消息：\n${text}` },
       ],
       response_format: { type: 'json_object' },

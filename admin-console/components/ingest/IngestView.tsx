@@ -5,7 +5,7 @@ import { Sparkles, FileText, Link as LinkIcon, Image as ImageIcon } from 'lucide
 import InputArea from './InputArea'
 import ReviewArea from './ReviewArea'
 import AILogs from './AILogs'
-import type { ParsedEvent, InputType } from '@/types/ai'
+import type { ParsedEvent, InputType, OutputLanguage } from '@/types/ai'
 
 export default function IngestView() {
   const [inputType, setInputType] = useState<InputType>('text')
@@ -14,6 +14,7 @@ export default function IngestView() {
   const [isLoading, setIsLoading] = useState(false)
   const [logs, setLogs] = useState<string[]>([])
   const [originalContent, setOriginalContent] = useState('')
+  const [outputLanguage, setOutputLanguage] = useState<OutputLanguage>('zh')
 
   const handleParse = async () => {
     if (!inputContent.trim()) {
@@ -34,6 +35,7 @@ export default function IngestView() {
         body: JSON.stringify({
           type: inputType,
           content: inputContent,
+          language: outputLanguage,
         }),
       })
 
@@ -243,6 +245,38 @@ export default function IngestView() {
               value={inputContent}
               onChange={setInputContent}
             />
+            
+            {/* 输出语言选择 */}
+            <div className="mt-4 flex items-center space-x-4">
+              <span className="text-sm text-gray-600">输出语言：</span>
+              <div className="flex space-x-2">
+                {[
+                  { value: 'zh', label: '中文' },
+                  { value: 'zh-en', label: '中+英' },
+                  { value: 'en', label: '英文' },
+                ].map((option) => (
+                  <label
+                    key={option.value}
+                    className={`flex items-center px-3 py-1.5 rounded-md cursor-pointer border transition-colors ${
+                      outputLanguage === option.value
+                        ? 'bg-purple-100 border-purple-500 text-purple-700'
+                        : 'bg-white border-gray-300 text-gray-600 hover:border-gray-400'
+                    }`}
+                  >
+                    <input
+                      type="radio"
+                      name="outputLanguage"
+                      value={option.value}
+                      checked={outputLanguage === option.value}
+                      onChange={(e) => setOutputLanguage(e.target.value as OutputLanguage)}
+                      className="sr-only"
+                    />
+                    <span className="text-sm">{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            
             <button
               onClick={handleParse}
               disabled={isLoading || !inputContent.trim()}

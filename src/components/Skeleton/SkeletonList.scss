@@ -1,0 +1,15 @@
+.skeleton-list {
+  padding: 24rpx;
+  
+  // 淡入动画（当 Skeleton 首次显示时）
+  animation: fadeIn 300ms ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}

@@ -1,21 +1,23 @@
-import React, { Component } from 'react'
-import { View, Text, Input, Button, ScrollView, Image } from '@tarojs/components'
+import { Component } from 'react'
+import { View, Text, Input, Button, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { 
   getEvents, 
   type Event,
   getWechatOpenID,
   upsertUser,
-  recordViewHistory,
-  getFavorites,
-  getViewHistory
+  recordViewHistory
 } from '../../utils/supabase-rest'
 import { 
   createCalendarEventFromItem, 
   addToPhoneCalendar 
 } from '../../utils/ics-generator'
 import FavoriteButton from '../../components/FavoriteButton'
+import { SkeletonList } from '../../components/Skeleton'
+import ExpiredFilter from '../../components/ExpiredFilter'
+import ShareButton from '../../components/ShareButton'
 import favoritesService from '../../services/favorites'
+import { isExpired, filterExpiredEvents } from '../../services/expiration'
 import { getSafeAreaBottom } from '../../utils/system-info'
 import './index.scss'
 
@@ -29,6 +31,7 @@ interface KeyInfo {
   position?: string
   education?: string
   link?: string
+  registration_link?: string  // 活动/讲座报名链接
   referral?: boolean
 }
 
@@ -49,79 +52,7 @@ interface FeedItem {
   posterColor: string
 }
 
-// --- Mock Data ---
-const INITIAL_DATA: FeedItem[] = [
-  {
-    id: 1,
-    type: 'activity',
-    status: 'open',
-    title: 'Google Office Tour & 2026 暑期实习预热',
-    organizer: 'Google x 学院CDC',
-    sourceGroup: 'CDC 官方通知群 1群',
-    publishTime: '10分钟前',
-    tags: ['企业参访', '外企', '含Office Tour'],
-    keyInfo: {
-      date: '12月4日 (周三)',
-      time: '14:00 - 16:00',
-      location: 'Google Beijing Office',
-      deadline: '名额有限，先到先得'
-    },
-    summary: '面向中国籍学生的2026 Summer Intern预热。含Opening, Business Intro, 校友分享及Office Tour。',
-    rawContent: `Agenda:
-• 14:00–14:05 Opening & Kahoot
-• 14:05–14:15 Business Introduction
-• 14:15–14:30 Alumni Sharing
-• 15:00-16:00 Interview Process Introduction
-• Office Tour
-
-注：活动语言为中文。`,
-    isTop: true,
-    isSaved: false,
-    posterColor: 'from-blue-600 to-red-500'
-  },
-  {
-    id: 2,
-    type: 'lecture',
-    status: 'urgent',
-    title: 'Career BootCamp: Networking & Insights',
-    organizer: 'Tsinghua SEM CDC',
-    sourceGroup: 'SEM 职业发展中心',
-    publishTime: '2小时前',
-    tags: ['技能工作坊', '嘉宾分享', '职业辅导'],
-    keyInfo: {
-      date: '2025.12.02',
-      time: '14:00 - 16:00 (GMT+8)',
-      location: '伟伦楼 (详见报名群)',
-      deadline: '活动开始前'
-    },
-    summary: 'Guest Speaker: Rosemary Zhou. 曾负责文华东方酒店集团全球人力运营。Topic: Build Your Network, Personal Brand.',
-    rawContent: '通过本次 BootCamp，你将学习到如何构建职场人脉，打造个人品牌，以及对中国职业市场的深入洞察。',
-    isTop: false,
-    isSaved: true,
-    posterColor: 'from-green-500 to-teal-400'
-  },
-  {
-    id: 3,
-    type: 'recruit',
-    status: 'open',
-    title: '2025年秋季学期中期实践活动招募',
-    organizer: '清华大学学生就业服务协会',
-    sourceGroup: '校友内推群 (经管)',
-    publishTime: '昨天',
-    tags: ['校级组织', '社工锻炼'],
-    keyInfo: {
-      date: '近期面试',
-      time: '课余时间灵活安排',
-      location: '校内/线上',
-      deadline: '2025.11.30'
-    },
-    summary: '立大志，入主流，上大舞台，干大事业！学生职业发展指导中心招募新一届骨干。',
-    rawContent: '主要负责秋季学期的就业引导、大型招聘会筹备以及企业联络工作。',
-    isTop: false,
-    isSaved: false,
-    posterColor: 'from-purple-600 to-indigo-600'
-  }
-]
+// 过期判断逻辑已移至 src/services/expiration.ts
 
 interface IndexState {
   activeFilter: 'all' | 'recruit' | 'activity'
@@ -131,6 +62,9 @@ interface IndexState {
   userId: string | null
   favorites: FeedItem[]
   searchKeyword: string
+  loading: boolean
+  isFirstLoad: boolean
+  hideExpired: boolean
 }
 
 export default class Index extends Component<{}, IndexState> {
@@ -138,12 +72,15 @@ export default class Index extends Component<{}, IndexState> {
     super(props)
     this.state = {
       activeFilter: 'all',
-      feed: INITIAL_DATA,
+      feed: [],
       selectedItem: null,
       toast: null,
       userId: null,
       favorites: [],
-      searchKeyword: ''
+      searchKeyword: '',
+      loading: true,
+      isFirstLoad: true,
+      hideExpired: false
     }
   }
 
@@ -208,6 +145,11 @@ export default class Index extends Component<{}, IndexState> {
 
   loadEvents = async () => {
     try {
+      // 只在首次加载时显示 Skeleton
+      if (this.state.isFirstLoad) {
+        this.setState({ loading: true })
+      }
+      
       console.log('📡 开始加载 Supabase 数据...')
       const { data, error } = await getEvents()
       
@@ -219,10 +161,15 @@ export default class Index extends Component<{}, IndexState> {
       if (data && data.length > 0) {
         console.log(`✅ 成功加载 ${data.length} 条数据`)
         const feedItems = data.map(this.convertEventToFeedItem)
-        this.setState({ feed: feedItems })
+        this.setState({ 
+          feed: feedItems,
+          isFirstLoad: false
+        })
       }
     } catch (error: any) {
       console.error('❌ 加载数据异常：', error)
+    } finally {
+      this.setState({ loading: false })
     }
   }
 
@@ -271,6 +218,38 @@ export default class Index extends Component<{}, IndexState> {
     if (userId) {
       await recordViewHistory(userId, item.id)
     }
+  }
+
+  handleCopyLink = (link: string) => {
+    Taro.setClipboardData({
+      data: link,
+      success: () => {
+        // 不显示提示，系统会自动显示"内容已复制"
+      },
+      fail: () => {
+        this.showToast('复制失败')
+      }
+    })
+  }
+
+  // 处理链接点击：复制并提示用户在浏览器打开
+  handleLinkClick = (link: string, linkType: 'registration' | 'apply' = 'apply') => {
+    Taro.setClipboardData({
+      data: link,
+      success: () => {
+        const title = linkType === 'registration' ? '报名链接已复制' : '链接已复制'
+        Taro.showModal({
+          title: title,
+          content: '链接已复制到剪贴板，请在浏览器中粘贴打开',
+          showCancel: false,
+          confirmText: '知道了',
+          confirmColor: '#8B5CF6'
+        })
+      },
+      fail: () => {
+        this.showToast('复制失败')
+      }
+    })
   }
 
   handleAddToCalendar = async (item: FeedItem) => {
@@ -329,9 +308,9 @@ export default class Index extends Component<{}, IndexState> {
   }
 
   getFilteredFeed = () => {
-    const { feed, activeFilter, searchKeyword } = this.state
+    const { feed, activeFilter, searchKeyword, hideExpired } = this.state
     
-    return feed.filter(item => {
+    let filteredItems = feed.filter(item => {
       // 分类过滤
       let matchesFilter = true
       if (activeFilter === 'activity') {
@@ -341,6 +320,11 @@ export default class Index extends Component<{}, IndexState> {
       }
       
       if (!matchesFilter) return false
+      
+      // 过期筛选
+      if (hideExpired && isExpired(item)) {
+        return false
+      }
       
       // 搜索过滤
       if (!searchKeyword.trim()) return true
@@ -355,10 +339,12 @@ export default class Index extends Component<{}, IndexState> {
         (item.keyInfo.location && item.keyInfo.location.toLowerCase().includes(keyword))
       )
     })
+    
+    return filteredItems
   }
 
   render() {
-    const { activeFilter, selectedItem, toast, feed, searchKeyword } = this.state
+    const { activeFilter, selectedItem, toast, feed, searchKeyword, loading, isFirstLoad } = this.state
     const filteredFeed = this.getFilteredFeed()
     const safeAreaBottom = getSafeAreaBottom()
 
@@ -389,20 +375,28 @@ export default class Index extends Component<{}, IndexState> {
           
           {/* Filter Bar */}
           <View className="filter-bar">
-            {[
-              { id: 'all', label: '全部' }, 
-              { id: 'recruit', label: '实习招聘' }, 
-              { id: 'activity', label: '讲座活动' }
-            ].map((tab) => (
-              <View 
-                key={tab.id}
-                className={`filter-tab ${activeFilter === tab.id ? 'active' : ''}`}
-                onClick={() => this.setState({ activeFilter: tab.id as any })}
-              >
-                <Text>{tab.label}</Text>
-                {activeFilter === tab.id && <View className="filter-tab-indicator" />}
-              </View>
-            ))}
+            <View className="filter-tabs">
+              {[
+                { id: 'all', label: '全部' }, 
+                { id: 'recruit', label: '实习招聘' }, 
+                { id: 'activity', label: '讲座活动' }
+              ].map((tab) => (
+                <View 
+                  key={tab.id}
+                  className={`filter-tab ${activeFilter === tab.id ? 'active' : ''}`}
+                  onClick={() => this.setState({ activeFilter: tab.id as any })}
+                >
+                  <Text>{tab.label}</Text>
+                  {activeFilter === tab.id && <View className="filter-tab-indicator" />}
+                </View>
+              ))}
+            </View>
+            
+            <ExpiredFilter
+              value={this.state.hideExpired}
+              onChange={(hideExpired) => this.setState({ hideExpired })}
+              className="filter-expired-toggle"
+            />
           </View>
         </View>
 
@@ -415,66 +409,77 @@ export default class Index extends Component<{}, IndexState> {
         >
           <View className="page-content" style={{ paddingBottom: `${safeAreaBottom + 200}rpx` }}>
 
-            <View className="feed-container">
-              {/* Feed List */}
-              {filteredFeed.length === 0 ? (
-                <View className="empty-state">
-                  <Text className="empty-icon">📭</Text>
-                  <Text className="empty-title">暂无数据</Text>
-                  <Text className="empty-desc">试试其他筛选条件</Text>
-                </View>
-              ) : (
-                filteredFeed.map((item, index) => (
-                  <View 
-                    key={item.id} 
-                    className={`feed-card ${index === 0 ? 'first-card' : ''}`}
-                    onClick={() => this.handleItemClick(item)}
-                  >
-                    <View className="card-top-bar" style={{ background: `linear-gradient(to right, ${item.posterColor})` }} />
-                    <View className="card-content">
-                      <View className="card-header">
-                        <View className="card-header-left">
-                          <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : item.type === 'lecture' ? 'lecture' : 'activity'}`}>
-                            {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
-                          </Text>
-                        </View>
-                        <FavoriteButton 
-                          eventId={item.id}
-                          initialFavorited={item.isSaved}
-                          className="card-favorite-btn"
-                          onToggle={(isFavorited) => {
-                            this.setState({
-                              feed: feed.map(feedItem => 
-                                feedItem.id === item.id 
-                                  ? { ...feedItem, isSaved: isFavorited } 
-                                  : feedItem
-                              )
-                            })
-                          }}
-                        />
-                      </View>
-                      <Text className="card-title">{item.title}</Text>
-                      <View className="card-info">
-                        <View className="info-item">
-                          <Text className="info-icon">{item.type === 'recruit' ? '⏰' : '📅'}</Text>
-                          <Text className="info-text">
-                            {item.type === 'recruit' && item.keyInfo.deadline 
-                              ? item.keyInfo.deadline 
-                              : item.keyInfo.date || '-'}
-                          </Text>
-                        </View>
-                        {item.keyInfo.location && (
-                          <View className="info-item location">
-                            <Text className="info-icon">📍</Text>
-                            <Text className="info-text">{item.keyInfo.location}</Text>
-                          </View>
-                        )}
-                      </View>
-                    </View>
+            {/* 显示 Skeleton 或真实内容 */}
+            {loading && isFirstLoad ? (
+              <SkeletonList count={5} />
+            ) : (
+              <View className="feed-container">
+                {/* Feed List */}
+                {filteredFeed.length === 0 ? (
+                  <View className="empty-state">
+                    <Text className="empty-icon">📭</Text>
+                    <Text className="empty-title">暂无数据</Text>
+                    <Text className="empty-desc">试试其他筛选条件</Text>
                   </View>
-                ))
-              )}
-            </View>
+                ) : (
+                  filteredFeed.map((item, index) => {
+                    const expired = isExpired(item)
+                    return (
+                      <View 
+                        key={item.id} 
+                        className={`feed-card ${index === 0 ? 'first-card' : ''} ${expired ? 'expired' : ''}`}
+                        onClick={() => this.handleItemClick(item)}
+                      >
+                        <View className="card-top-bar" style={{ background: expired ? '#9CA3AF' : `linear-gradient(to right, ${item.posterColor})` }} />
+                        <View className="card-content">
+                          <View className="card-header">
+                            <View className="card-header-left">
+                              <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : item.type === 'lecture' ? 'lecture' : 'activity'}`}>
+                                {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
+                              </Text>
+                              {expired && (
+                                <Text className="expired-tag">已过期</Text>
+                              )}
+                            </View>
+                            <FavoriteButton 
+                              eventId={item.id}
+                              initialFavorited={item.isSaved}
+                              className="card-favorite-btn"
+                              onToggle={(isFavorited) => {
+                                this.setState({
+                                  feed: feed.map(feedItem => 
+                                    feedItem.id === item.id 
+                                      ? { ...feedItem, isSaved: isFavorited } 
+                                      : feedItem
+                                  )
+                                })
+                              }}
+                            />
+                          </View>
+                          <Text className={`card-title ${expired ? 'expired-text' : ''}`}>{item.title}</Text>
+                          <View className="card-info">
+                            <View className="info-item">
+                              <Text className="info-icon">{item.type === 'recruit' ? '⏰' : '📅'}</Text>
+                              <Text className={`info-text ${expired ? 'expired-text' : ''}`}>
+                                {item.type === 'recruit' && item.keyInfo.deadline 
+                                  ? item.keyInfo.deadline 
+                                  : item.keyInfo.date || '-'}
+                              </Text>
+                            </View>
+                            {item.keyInfo.location && (
+                              <View className="info-item location">
+                                <Text className="info-icon">📍</Text>
+                                <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.keyInfo.location}</Text>
+                              </View>
+                            )}
+                          </View>
+                        </View>
+                      </View>
+                    )
+                  })
+                )}
+              </View>
+            )}
           </View>
         </ScrollView>
 
@@ -490,6 +495,12 @@ export default class Index extends Component<{}, IndexState> {
               </Button>
               <Text className="detail-title">{selectedItem.title}</Text>
               <View className="detail-header-right">
+                <ShareButton 
+                  eventData={selectedItem}
+                  size="medium"
+                  type="icon"
+                  className="detail-share-btn"
+                />
                 <FavoriteButton 
                   eventId={selectedItem.id}
                   initialFavorited={selectedItem.isSaved}
@@ -569,9 +580,20 @@ export default class Index extends Component<{}, IndexState> {
                           </View>
                           <View className="detail-info-content" style={{ flex: 1 }}>
                             <Text className="detail-info-label">投递方式</Text>
-                            <Text className="detail-info-value" style={{ wordBreak: 'break-all' }}>
-                              {selectedItem.keyInfo.link}
-                            </Text>
+                            <View className="detail-info-value-row">
+                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
+                                {selectedItem.keyInfo.link}
+                              </Text>
+                              <View 
+                                className="copy-link-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  this.handleCopyLink(selectedItem.keyInfo.link || '')
+                                }}
+                              >
+                                <Text>📋 复制</Text>
+                              </View>
+                            </View>
                           </View>
                         </View>
                       )}
@@ -637,6 +659,29 @@ export default class Index extends Component<{}, IndexState> {
                           <View className="detail-info-content">
                             <Text className="detail-info-label">截止时间</Text>
                             <Text className="detail-info-value">{selectedItem.keyInfo.deadline}</Text>
+                          </View>
+                        </View>
+                      )}
+                      
+                      {selectedItem.keyInfo.registration_link && (
+                        <View 
+                          className="detail-info-item clickable-link"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            this.handleLinkClick(selectedItem.keyInfo.registration_link || '', 'registration')
+                          }}
+                        >
+                          <View className="detail-info-icon">
+                            <Text>🔗</Text>
+                          </View>
+                          <View className="detail-info-content" style={{ flex: 1 }}>
+                            <Text className="detail-info-label">报名链接</Text>
+                            <View className="detail-info-value-row">
+                              <Text className="detail-info-value link-text" style={{ wordBreak: 'break-all', flex: 1, color: '#8B5CF6' }}>
+                                {selectedItem.keyInfo.registration_link}
+                              </Text>
+                              <Text style={{ color: '#8B5CF6', fontSize: '24rpx' }}>点击复制 →</Text>
+                            </View>
                           </View>
                         </View>
                       )}

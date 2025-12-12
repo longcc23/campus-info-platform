@@ -5,8 +5,8 @@
 
 import * as cheerio from 'cheerio'
 import OpenAI from 'openai'
-import { SYSTEM_PROMPT } from './system-prompt'
-import type { ParsedEvent } from '@/types/ai'
+import { getSystemPrompt } from './system-prompt'
+import type { ParsedEvent, OutputLanguage } from '@/types/ai'
 
 // 创建 OpenAI 客户端的函数（延迟初始化，避免模块加载时检查）
 function getOpenAIClient() {
@@ -95,17 +95,18 @@ async function extractWebContent(url: string): Promise<string> {
   }
 }
 
-export async function parseURL(url: string): Promise<ParsedEvent> {
+export async function parseURL(url: string, language: OutputLanguage = 'zh'): Promise<ParsedEvent> {
   try {
     // 1. 抓取网页内容
     const content = await extractWebContent(url)
 
     // 2. 调用 AI 解析
     const openai = getOpenAIClient()
+    const systemPrompt = getSystemPrompt(language)
     const response = await openai.chat.completions.create({
       model: 'deepseek-chat',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: `网页内容：\n${content}` },
       ],
       response_format: { type: 'json_object' },

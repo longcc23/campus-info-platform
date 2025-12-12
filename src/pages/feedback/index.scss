@@ -1,0 +1,253 @@
+// 意见反馈页面样式
+
+@import '../../styles/theme.scss';
+@import '../../styles/mixins.scss';
+
+.feedback-page {
+  min-height: 100vh;
+  background-color: $bg-secondary;
+  padding-bottom: 140rpx; // 为底部导航栏留出空间
+}
+
+// 头部
+.feedback-header {
+  @include flex-between;
+  padding: $spacing-3 $spacing-4;
+  background-color: $bg-primary;
+  border-bottom: 1rpx solid $border-light;
+  box-shadow: $shadow-sm;
+  position: sticky;
+  top: 0;
+  z-index: $z-sticky;
+  align-items: center;
+}
+
+.back-btn {
+  padding: $spacing-2;
+  background: transparent !important;
+  border: none !important;
+  font-size: 48rpx;
+  color: $primary;
+  font-weight: $font-weight-bold;
+  line-height: 1;
+  min-width: auto;
+  min-height: auto;
+  width: auto;
+  height: auto;
+  
+  &:active {
+    opacity: 0.7;
+    transform: translateX(-4rpx);
+  }
+}
+
+.page-title {
+  @include text-title;
+  flex: 1;
+  text-align: center;
+  padding: 0 $spacing-2;
+}
+
+// 反馈说明
+.feedback-intro {
+  background-color: $bg-primary;
+  margin: $spacing-3 $spacing-4;
+  border-radius: $radius-lg;
+  padding: $spacing-5;
+  box-shadow: $shadow-sm;
+  text-align: center;
+}
+
+.intro-title {
+  @include text-title;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-3;
+  display: block;
+  color: $text-primary;
+}
+
+.intro-desc {
+  @include text-body;
+  line-height: $line-height-relaxed;
+  color: $text-secondary;
+  display: block;
+}
+
+// 反馈表单
+.feedback-form {
+  background-color: $bg-primary;
+  margin: $spacing-3 $spacing-4;
+  border-radius: $radius-lg;
+  padding: $spacing-5;
+  box-shadow: $shadow-sm;
+}
+
+.form-section {
+  margin-bottom: $spacing-5;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-label {
+  @include text-body;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+  margin-bottom: $spacing-2;
+  display: block;
+}
+
+// 类型选择器
+.type-selector {
+  display: flex;
+  gap: $spacing-2;
+}
+
+.type-btn {
+  flex: 1;
+  padding: $spacing-3;
+  border-radius: $radius-base;
+  background-color: $gray-50;
+  border: 2rpx solid transparent;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: $spacing-1;
+  min-width: auto;
+  min-height: auto;
+  
+  &.active {
+    background-color: rgba($primary, 0.1);
+    border-color: $primary;
+  }
+  
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.type-icon {
+  font-size: $font-size-lg;
+}
+
+.type-label {
+  @include text-caption;
+  font-weight: $font-weight-medium;
+  color: $text-primary;
+}
+
+// 表单输入
+.form-input {
+  width: 100%;
+  padding: $spacing-3;
+  border-radius: $radius-base;
+  background-color: $gray-50;
+  border: 1rpx solid $border-light;
+  @include text-body;
+  color: $text-primary;
+  
+  &:focus {
+    border-color: $primary;
+    background-color: $bg-primary;
+  }
+}
+
+.form-textarea {
+  width: 100%;
+  min-height: 200rpx;
+  padding: $spacing-3;
+  border-radius: $radius-base;
+  background-color: $gray-50;
+  border: 1rpx solid $border-light;
+  @include text-body;
+  color: $text-primary;
+  line-height: $line-height-relaxed;
+  
+  &:focus {
+    border-color: $primary;
+    background-color: $bg-primary;
+  }
+}
+
+.char-count {
+  @include text-caption;
+  color: $text-tertiary;
+  text-align: right;
+  margin-top: $spacing-1;
+  display: block;
+}
+
+.form-note {
+  @include text-caption;
+  color: $text-tertiary;
+  margin-top: $spacing-1;
+  display: block;
+}
+
+// 提交按钮
+.submit-btn {
+  width: 100%;
+  padding: $spacing-4;
+  border-radius: $radius-lg;
+  background: $gradient-primary;
+  color: $text-inverse;
+  font-weight: $font-weight-semibold;
+  @include text-body;
+  border: none;
+  box-shadow: $shadow-primary;
+  margin-top: $spacing-4;
+  
+  &:active {
+    transform: translateY(2rpx);
+    box-shadow: $shadow-sm;
+  }
+  
+  &.submitting {
+    opacity: 0.7;
+    pointer-events: none;
+  }
+}
+
+// 其他联系方式
+.other-contact {
+  background-color: $bg-primary;
+  margin: $spacing-3 $spacing-4;
+  border-radius: $radius-lg;
+  padding: $spacing-5;
+  box-shadow: $shadow-sm;
+}
+
+.contact-title {
+  @include text-body;
+  font-weight: $font-weight-semibold;
+  color: $text-primary;
+  margin-bottom: $spacing-3;
+  display: block;
+}
+
+.contact-methods {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.contact-method {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+  padding: $spacing-2;
+  border-radius: $radius-base;
+  background-color: $gray-50;
+}
+
+.method-icon {
+  font-size: $font-size-base;
+  flex-shrink: 0;
+}
+
+.method-text {
+  @include text-caption;
+  color: $text-secondary;
+  flex: 1;
+}

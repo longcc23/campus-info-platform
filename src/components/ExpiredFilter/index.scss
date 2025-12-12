@@ -1,0 +1,52 @@
+// 过期筛选开关组件样式
+
+@import '../../styles/theme.scss';
+@import '../../styles/mixins.scss';
+
+.expired-filter {
+  display: flex;
+  align-items: center;
+  
+  .expired-filter-content {
+    display: flex;
+    align-items: center;
+    gap: $spacing-2;
+    
+    .expired-filter-label {
+      @include text-caption;
+      color: $text-secondary;
+      font-weight: $font-weight-medium;
+      white-space: nowrap;
+    }
+    
+    .expired-filter-switch {
+      transform: scale(0.8);
+      
+      // 自定义开关样式
+      &::after {
+        background-color: $primary !important;
+      }
+    }
+  }
+  
+  // 禁用状态
+  &.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+  }
+  
+  // 紧凑模式
+  &.compact {
+    .expired-filter-content {
+      gap: $spacing-1;
+      
+      .expired-filter-label {
+        font-size: $font-size-xs;
+      }
+      
+      .expired-filter-switch {
+        transform: scale(0.7);
+      }
+    }
+  }
+}

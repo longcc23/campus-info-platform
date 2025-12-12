@@ -1,0 +1,60 @@
+.skeleton-card {
+  background: #ffffff;
+  border-radius: 16rpx;
+  padding: 24rpx;
+  margin-bottom: 24rpx;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+
+  // 顶部标题行
+  &__header {
+    display: flex;
+    align-items: center;
+    margin-bottom: 20rpx;
+  }
+
+  &__icon {
+    flex-shrink: 0;
+    margin-right: 16rpx;
+  }
+
+  &__title-wrapper {
+    flex: 1;
+    min-width: 0; // 防止 flex 子元素溢出
+  }
+
+  // 标签行
+  &__tags {
+    display: flex;
+    gap: 12rpx;
+    margin-bottom: 20rpx;
+    flex-wrap: wrap;
+  }
+
+  // 摘要行
+  &__summary {
+    margin-bottom: 20rpx;
+    
+    .skeleton-box {
+      margin-bottom: 12rpx;
+      
+      &:last-child {
+        margin-bottom: 0;
+      }
+    }
+  }
+
+  // 底部信息行
+  &__footer {
+    display: flex;
+    gap: 16rpx;
+    align-items: center;
+  }
+}
+
+// 响应式适配
+@media (max-width: 375px) {
+  .skeleton-card {
+    padding: 20rpx;
+    margin-bottom: 20rpx;
+  }
+}

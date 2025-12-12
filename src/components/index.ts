@@ -1,6 +1,19 @@
 /**
  * 组件统一导出
+ * 
+ * 使用方式：
+ * import { FavoriteButton, ShareButton, ExpiredFilter, SkeletonList } from '@/components'
  */
 
+// 收藏按钮组件
 export { default as FavoriteButton } from './FavoriteButton'
 export type { FavoriteButtonProps } from './FavoriteButton/types'
+
+// 分享按钮组件
+export { default as ShareButton } from './ShareButton'
+
+// 过期筛选组件
+export { default as ExpiredFilter } from './ExpiredFilter'
+
+// 骨架屏组件
+export { SkeletonBox, SkeletonCard, SkeletonList } from './Skeleton'

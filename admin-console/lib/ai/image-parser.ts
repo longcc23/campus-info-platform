@@ -5,8 +5,8 @@
  */
 
 import OpenAI from 'openai'
-import { SYSTEM_PROMPT } from './system-prompt'
-import type { ParsedEvent } from '@/types/ai'
+import { getSystemPrompt } from './system-prompt'
+import type { ParsedEvent, OutputLanguage } from '@/types/ai'
 
 // 创建 OpenAI 客户端的函数（延迟初始化，避免模块加载时检查）
 function getOpenAIClient() {
@@ -40,17 +40,18 @@ async function extractTextFromImage(imageData: string | File): Promise<string> {
 /**
  * 解析图片（通过 OCR 提取文字后解析）
  */
-export async function parseImage(imageData: string | File): Promise<ParsedEvent> {
+export async function parseImage(imageData: string | File, language: OutputLanguage = 'zh'): Promise<ParsedEvent> {
   try {
     // 1. OCR 提取文字
     const textContent = await extractTextFromImage(imageData)
 
     // 2. 调用 AI 解析
     const openai = getOpenAIClient()
+    const systemPrompt = getSystemPrompt(language)
     const response = await openai.chat.completions.create({
       model: 'deepseek-chat',
       messages: [
-        { role: 'system', content: SYSTEM_PROMPT },
+        { role: 'system', content: systemPrompt },
         { role: 'user', content: `海报图片中的文字内容：\n${textContent}\n\n请从以上文字中提取活动信息：` },
       ],
       response_format: { type: 'json_object' },

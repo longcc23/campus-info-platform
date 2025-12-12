@@ -28,6 +28,7 @@ export interface Event {
     position?: string // 岗位名称（可以是多个岗位）
     education?: string // 学历要求
     link?: string // 投递链接/问卷链接
+    registration_link?: string // 活动/讲座报名链接
     referral?: boolean // 是否内推
   }
   summary?: string
@@ -601,6 +602,34 @@ export async function recordViewHistory(userId: string, eventId: number): Promis
   } catch (error) {
     // 静默失败，不影响用户体验
     console.error('记录浏览历史失败:', error)
+  }
+}
+
+/**
+ * 清除用户浏览历史
+ */
+export async function clearViewHistory(userId: string): Promise<{ data: any; error: any }> {
+  const url = `${SUPABASE_URL}/rest/v1/view_history?user_id=eq.${userId}`
+  
+  try {
+    const response = await Taro.request({
+      url,
+      method: 'DELETE',
+      header: {
+        'apikey': SUPABASE_ANON_KEY,
+        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+      },
+    })
+
+    return { data: response.data, error: null }
+  } catch (error: any) {
+    return {
+      data: null,
+      error: {
+        message: error.errMsg || 'Network error',
+        details: error,
+      },
+    }
   }
 }
 

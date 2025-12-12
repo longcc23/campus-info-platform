@@ -27,7 +27,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body: AIParseRequest = await request.json()
-    const { type, content } = body
+    const { type, content, language = 'zh' } = body
 
     if (!type || !content) {
       return NextResponse.json(
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     }
 
     // 调用解析器
-    const result = await parseContent(type, processedContent)
+    const result = await parseContent(type, processedContent, language)
 
     return NextResponse.json(
       {

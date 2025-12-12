@@ -1,0 +1,222 @@
+// 关于页面样式
+
+@import '../../styles/theme.scss';
+@import '../../styles/mixins.scss';
+
+.about-page {
+  min-height: 100vh;
+  background-color: $bg-secondary;
+  padding-bottom: 140rpx; // 为底部导航栏留出空间
+}
+
+// 头部
+.about-header {
+  @include flex-between;
+  padding: $spacing-3 $spacing-4;
+  background-color: $bg-primary;
+  border-bottom: 1rpx solid $border-light;
+  box-shadow: $shadow-sm;
+  position: sticky;
+  top: 0;
+  z-index: $z-sticky;
+  align-items: center;
+}
+
+.back-btn {
+  padding: $spacing-2;
+  background: transparent !important;
+  border: none !important;
+  font-size: 48rpx;
+  color: $primary;
+  font-weight: $font-weight-bold;
+  line-height: 1;
+  min-width: auto;
+  min-height: auto;
+  width: auto;
+  height: auto;
+  
+  &:active {
+    opacity: 0.7;
+    transform: translateX(-4rpx);
+  }
+}
+
+.page-title {
+  @include text-title;
+  flex: 1;
+  text-align: center;
+  padding: 0 $spacing-2;
+}
+
+// 应用信息
+.app-info {
+  padding: $spacing-8 $spacing-4;
+  text-align: center;
+  background-color: $bg-primary;
+}
+
+.app-logo {
+  width: 120rpx;
+  height: 120rpx;
+  border-radius: $radius-full;
+  background: $gradient-primary;
+  @include flex-center;
+  margin: 0 auto $spacing-4;
+  box-shadow: $shadow-lg;
+}
+
+.logo-text {
+  font-size: 48rpx;
+  font-weight: $font-weight-bold;
+  color: $text-inverse;
+}
+
+.app-name {
+  @include text-title-lg;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-1;
+  display: block;
+}
+
+.app-version {
+  @include text-body;
+  color: $text-secondary;
+  margin-bottom: $spacing-2;
+  display: block;
+}
+
+.app-slogan {
+  @include text-body;
+  color: $text-tertiary;
+  font-style: italic;
+  display: block;
+}
+
+// 内容区域
+.content-section {
+  background-color: $bg-primary;
+  margin: $spacing-3 $spacing-4;
+  border-radius: $radius-lg;
+  padding: $spacing-5;
+  box-shadow: $shadow-sm;
+}
+
+.section-title {
+  @include text-title;
+  font-weight: $font-weight-semibold;
+  margin-bottom: $spacing-4;
+  display: block;
+  color: $text-primary;
+}
+
+.section-content {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.description {
+  @include text-body;
+  line-height: $line-height-relaxed;
+  color: $text-secondary;
+  display: block;
+}
+
+// 功能特色
+.feature-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-3;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-2;
+  border-radius: $radius-base;
+  background-color: $gray-50;
+}
+
+.feature-icon {
+  font-size: $font-size-lg;
+  flex-shrink: 0;
+}
+
+.feature-text {
+  @include text-body;
+  color: $text-primary;
+  font-weight: $font-weight-medium;
+}
+
+// 联系我们
+.contact-list {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-4;
+}
+
+.contact-item {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-1;
+}
+
+.contact-label {
+  @include text-caption;
+  color: $text-secondary;
+  font-weight: $font-weight-medium;
+  display: block;
+}
+
+.contact-value-row {
+  display: flex;
+  align-items: center;
+  gap: $spacing-2;
+}
+
+.contact-value {
+  @include text-body;
+  color: $text-primary;
+  flex: 1;
+  word-break: break-all;
+}
+
+.copy-btn {
+  flex-shrink: 0;
+  padding: $spacing-1 $spacing-2;
+  background-color: $primary-lighter;
+  color: $primary-dark;
+  border-radius: $radius-sm;
+  font-size: $font-size-sm;
+  font-weight: $font-weight-medium;
+  border: none;
+  min-width: auto;
+  min-height: auto;
+  
+  &:active {
+    background-color: $primary-light;
+    transform: scale(0.95);
+  }
+}
+
+// 底部版权
+.footer {
+  padding: $spacing-6 $spacing-4;
+  text-align: center;
+  background-color: $bg-primary;
+  margin: $spacing-3 $spacing-4;
+  border-radius: $radius-lg;
+  box-shadow: $shadow-sm;
+}
+
+.copyright {
+  @include text-caption;
+  color: $text-tertiary;
+  margin-bottom: $spacing-1;
+  display: block;
+  
+  &:last-child {
+    margin-bottom: 0;
+  }
+}

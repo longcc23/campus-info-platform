@@ -3,7 +3,9 @@ export default {
     'pages/index/index',
     'pages/profile/index',
     'pages/favorites/index',
-    'pages/history/index'
+    'pages/history/index',
+    'pages/about/index',
+    'pages/feedback/index'
   ],
   window: {
     backgroundTextStyle: 'light',

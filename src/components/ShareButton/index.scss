@@ -1,0 +1,125 @@
+// 分享按钮组件样式
+
+@import '../../styles/theme.scss';
+@import '../../styles/mixins.scss';
+
+.share-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: $radius-base;
+  transition: all $transition-base $ease-out;
+  cursor: pointer;
+  background: transparent;
+  border: 1rpx solid $border-default;
+  
+  &:active {
+    transform: scale(0.95);
+    opacity: 0.7;
+  }
+  
+  // 尺寸变体
+  &.small {
+    padding: $spacing-1 $spacing-2;
+    gap: $spacing-1;
+    
+    .share-icon {
+      font-size: $font-size-sm;
+    }
+    
+    .share-text {
+      @include text-caption;
+      font-weight: $font-weight-medium;
+    }
+  }
+  
+  &.medium {
+    padding: $spacing-2 $spacing-3;
+    gap: $spacing-1;
+    
+    .share-icon {
+      font-size: $font-size-base;
+    }
+    
+    .share-text {
+      @include text-body;
+      font-weight: $font-weight-medium;
+    }
+  }
+  
+  &.large {
+    padding: $spacing-3 $spacing-4;
+    gap: $spacing-2;
+    
+    .share-icon {
+      font-size: $font-size-lg;
+    }
+    
+    .share-text {
+      @include text-title;
+      font-weight: $font-weight-semibold;
+    }
+  }
+  
+  // 类型变体
+  &.icon {
+    padding: $spacing-2;
+    border-radius: $radius-full;
+    
+    .share-icon {
+      margin: 0;
+    }
+  }
+  
+  &.text {
+    .share-text {
+      color: $primary;
+    }
+    
+    &:hover {
+      background-color: rgba($primary, 0.05);
+    }
+  }
+  
+  &.both {
+    .share-icon {
+      color: $text-secondary;
+    }
+    
+    .share-text {
+      color: $text-primary;
+    }
+    
+    &:hover {
+      background-color: $gray-50;
+      border-color: $primary;
+      
+      .share-icon {
+        color: $primary;
+      }
+    }
+  }
+  
+  // 禁用状态
+  &.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+  }
+  
+  // 主题色变体
+  &.primary {
+    background-color: $primary;
+    border-color: $primary;
+    
+    .share-icon,
+    .share-text {
+      color: $text-inverse;
+    }
+    
+    &:hover {
+      background-color: $primary-dark;
+      border-color: $primary-dark;
+    }
+  }
+}

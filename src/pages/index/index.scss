@@ -92,10 +92,22 @@
   background-color: $bg-primary;
   padding: $spacing-2 $spacing-4;
   display: flex;
-  gap: $spacing-6;
+  justify-content: space-between;
+  align-items: center;
   border-top: 1rpx solid $border-light;
   border-bottom: 1rpx solid $border-light;
   margin: 0;
+}
+
+.filter-tabs {
+  display: flex;
+  gap: $spacing-6;
+  flex: 1;
+}
+
+.filter-expired-toggle {
+  flex-shrink: 0;
+  margin-left: $spacing-3;
 }
 
 .filter-tab {
@@ -336,6 +348,11 @@
   display: flex;
   gap: $spacing-1;
   flex-shrink: 0;
+  align-items: center;
+}
+
+.detail-share-btn {
+  margin-right: $spacing-1;
 }
 
 .detail-back-btn {
@@ -460,6 +477,29 @@
   font-size: $font-size-lg; // 稍微增大字体
 }
 
+.detail-info-value-row {
+  display: flex;
+  align-items: flex-start;
+  gap: $spacing-2;
+}
+
+.copy-link-btn {
+  flex-shrink: 0;
+  padding: $spacing-2 $spacing-3; // 增加内边距
+  background: #C4B5FD; // 浅紫色背景，与主题一致
+  color: #000000; // 黑色文字，高对比度
+  border-radius: $radius-sm;
+  font-size: 26rpx; // 增大字体
+  font-weight: 700; // 最粗字重
+  border: 2rpx solid #C4B5FD; // 添加边框增强视觉效果
+  
+  &:active {
+    background: #A78BFA; // 点击时变为稍深的紫色
+    border-color: #A78BFA;
+    transform: scale(0.95);
+  }
+}
+
 .detail-body {
   margin-top: $spacing-6;
 }
@@ -505,13 +545,21 @@
 
 .detail-action-btn {
   width: 100%;
-  @include btn-primary;
-  padding: $spacing-3;
+  background: #C4B5FD; // 浅紫色背景，与主题一致
+  color: #000000; // 黑色文字，高对比度
+  padding: $spacing-4; // 增加内边距
   border-radius: $radius-lg;
-  @include text-body;
-  font-weight: $font-weight-semibold;
+  font-size: 32rpx; // 增大字体
+  font-weight: 700; // 最粗字重
   margin-bottom: $spacing-2;
-  border: none;
+  border: 3rpx solid #C4B5FD; // 添加粗边框
+  box-shadow: 0 4rpx 12rpx rgba(196, 181, 253, 0.3); // 紫色阴影
+  
+  &:active {
+    background: #A78BFA; // 点击时变为稍深的紫色
+    border-color: #A78BFA;
+    transform: translateY(2rpx);
+  }
   
   &:last-child {
     margin-bottom: 0;
@@ -535,4 +583,45 @@
   box-shadow: $shadow-xl;
   backdrop-filter: blur(20rpx);
   animation: scaleIn $transition-base $ease-out;
+}
+
+// ==================== Skeleton 加载动画 ====================
+
+.feed-container {
+  animation: fadeIn 300ms ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+// ==================== 过期状态样式 ====================
+
+.feed-card.expired {
+  opacity: 0.7;
+  
+  .card-top-bar {
+    background: $gray-400 !important;
+  }
+}
+
+.expired-tag {
+  display: inline-block;
+  background-color: $gray-400;
+  color: white;
+  font-size: 20rpx;
+  padding: 4rpx 12rpx;
+  border-radius: $radius-sm;
+  margin-left: $spacing-2;
+}
+
+.expired-text {
+  color: $text-tertiary !important;
 }
