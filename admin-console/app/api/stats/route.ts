@@ -60,16 +60,23 @@ export async function GET(request: NextRequest) {
       .in('status', ['active', 'published'])
       .gte('created_at', todayStartISO)
 
-    // 4. 活跃用户数 (users 表，最近 7 天有访问)
+    // 4. 用户统计
     const sevenDaysAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000)
+    let totalUsers = 0
     let activeUsers = 0
     try {
-      const { count } = await supabase
+      // 总用户数
+      const { count: totalCount } = await supabase
+        .from('users')
+        .select('*', { count: 'exact', head: true })
+      totalUsers = totalCount || 0
+      
+      // 活跃用户数（最近 7 天有访问）
+      const { count: activeCount } = await supabase
         .from('users')
         .select('*', { count: 'exact', head: true })
         .gte('last_seen', sevenDaysAgo.toISOString())
-      
-      activeUsers = count || 0
+      activeUsers = activeCount || 0
     } catch (error) {
       console.warn('users table may not exist:', error)
     }
@@ -96,18 +103,39 @@ export async function GET(request: NextRequest) {
 
     // 6. 热门活动排行（按收藏数，Top 5）
     let topEvents: any[] = []
+    let uniqueFavoriteUsers = 0
     try {
+      // 获取所有收藏数据（包括 user_id 用于验证）
       const { data: favoritesData } = await supabase
         .from('favorites')
-        .select('event_id')
-        .eq('status', 'active')
+        .select('event_id, user_id')
 
       // 统计每个活动的收藏数
       const favoriteCounts: Record<number, number> = {}
+      const favoriteUsersByEvent: Record<number, Set<string>> = {}
+      
       if (favoritesData) {
+        // 统计收藏用户数（去重）
+        const allFavoriteUserIds = new Set<string>()
+        
         favoritesData.forEach((fav) => {
-          favoriteCounts[fav.event_id] = (favoriteCounts[fav.event_id] || 0) + 1
+          const eventId = fav.event_id
+          const userId = fav.user_id
+          
+          // 统计收藏数
+          favoriteCounts[eventId] = (favoriteCounts[eventId] || 0) + 1
+          
+          // 统计每个活动的收藏用户
+          if (!favoriteUsersByEvent[eventId]) {
+            favoriteUsersByEvent[eventId] = new Set()
+          }
+          favoriteUsersByEvent[eventId].add(userId)
+          
+          // 统计总收藏用户数
+          allFavoriteUserIds.add(userId)
         })
+        
+        uniqueFavoriteUsers = allFavoriteUserIds.size
       }
 
       // 获取所有已发布的活动
@@ -125,6 +153,7 @@ export async function GET(request: NextRequest) {
             title: event.title,
             type: event.type,
             favorite_count: favoriteCounts[event.id] || 0,
+            favorite_users_count: favoriteUsersByEvent[event.id]?.size || 0,
           }))
           .sort((a, b) => b.favorite_count - a.favorite_count)
           .slice(0, 5)
@@ -170,7 +199,9 @@ export async function GET(request: NextRequest) {
         todayViews,
         totalFavorites,
         todayEvents: todayEventsCount || 0,
+        totalUsers,
         activeUsers,
+        uniqueFavoriteUsers,
         typeDistribution: typeStats,
         topEvents,
         viewTrend,

@@ -15,7 +15,9 @@ interface StatsData {
   todayViews: number
   totalFavorites: number
   todayEvents: number
+  totalUsers?: number
   activeUsers: number
+  uniqueFavoriteUsers?: number
   typeDistribution: {
     recruit: number
     activity: number
@@ -26,6 +28,7 @@ interface StatsData {
     title: string
     type: string
     favorite_count: number
+    favorite_users_count?: number
   }>
   viewTrend: Array<{
     date: string
@@ -166,6 +169,16 @@ export default function DashboardPage() {
               <p className="mt-2 text-3xl font-bold text-gray-900">
                 {stats?.activeUsers.toLocaleString() || 0}
               </p>
+              {stats?.totalUsers !== undefined && stats.totalUsers > stats.activeUsers && (
+                <p className="text-xs text-gray-500 mt-1">
+                  总用户: {stats.totalUsers}
+                </p>
+              )}
+              {stats?.uniqueFavoriteUsers !== undefined && (
+                <p className="text-xs text-gray-500 mt-1">
+                  收藏用户: {stats.uniqueFavoriteUsers}
+                </p>
+              )}
             </div>
             <div className="h-12 w-12 bg-green-100 rounded-full flex items-center justify-center">
               <Users className="h-6 w-6 text-green-600" />
@@ -305,9 +318,25 @@ export default function DashboardPage() {
                       </div>
                     </div>
                   </div>
-                  <div className="flex-shrink-0 flex items-center space-x-1 text-gray-600 ml-4">
-                    <Heart className="h-4 w-4 text-pink-500" />
-                    <span className="text-sm font-medium">{event.favorite_count}</span>
+                  <div className="flex-shrink-0 flex flex-col items-end space-y-1 ml-4">
+                    <div className="flex items-center space-x-1 text-gray-600">
+                      <Heart className="h-4 w-4 text-pink-500" />
+                      <span className="text-sm font-medium">{event.favorite_count}</span>
+                    </div>
+                    {event.favorite_users_count !== undefined && event.favorite_users_count !== event.favorite_count && (
+                      <span className="text-xs text-gray-400">
+                        {event.favorite_users_count} 用户
+                      </span>
+                    )}
+                    {/* 只在数据异常时显示警告：收藏数 > 收藏用户数（说明有重复收藏） */}
+                    {event.favorite_users_count !== undefined && event.favorite_count > event.favorite_users_count && (
+                      <span 
+                        className="text-xs text-yellow-600" 
+                        title={`数据异常：收藏数(${event.favorite_count}) > 收藏用户数(${event.favorite_users_count})，可能存在重复收藏`}
+                      >
+                        ⚠️
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
