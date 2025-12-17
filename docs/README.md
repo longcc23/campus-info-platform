@@ -1,154 +1,134 @@
-# 📚 CDC 智汇中心 - 文档索引
+# 📚 UniFlow 项目文档
 
-**版本**：V3.1.0  
-**最后更新**：2025年12月12日
+欢迎来到 **UniFlow (智汇流)** 项目文档中心！
+
+本文档库包含项目的所有技术文档、开发指南和配置说明。
 
 ---
 
-## 🎯 快速导航
+## 📖 快速导航
 
-### 📖 入门必读
+### 🏗️ [架构设计](./architecture/)
+
+项目的整体架构、技术栈和设计规范。
 
 | 文档 | 说明 |
 |------|------|
-| [README.md](../README.md) | 项目主文档 |
+| [产品架构总览](./architecture/overview.md) | 项目整体架构设计 |
+| [技术栈说明](./architecture/tech-stack.md) | 使用的技术栈详细说明 |
+| [前端设计规范](./architecture/frontend-design.md) | UI/UX 设计规范和组件规范 |
+| [架构快速参考](./architecture/quick-reference.md) | 架构关键信息速查 |
+| [管理后台 PRD](./architecture/admin-prd.md) | 管理后台产品需求文档 |
+| [V3.0 架构重设计](./architecture/v3-redesign.md) | V3.0 架构重构说明 |
+| [前端重设计指南](./architecture/frontend-redesign.md) | 前端架构优化方案 |
+
+### 📖 [开发指南](./guides/)
+
+开发过程中常用的服务、组件和功能的使用指南。
+
+| 文档 | 说明 |
+|------|------|
+| [认证服务使用指南](./guides/auth-service.md) | AuthService 的使用方法 |
+| [收藏服务使用指南](./guides/favorites-service.md) | FavoritesService 的使用方法 |
+| [骨架屏组件集成](./guides/skeleton-component.md) | Skeleton 组件的集成和使用 |
+| [数据库设置指南](./guides/database-setup.md) | 数据库初始化和配置 |
+| [收藏功能数据库](./guides/favorites-database.md) | 收藏功能的数据库设计 |
+| [TabBar 图标设置](./guides/tabbar-icons.md) | 底部导航栏图标配置 |
+| [TabBar 字体优化](./guides/tabbar-fonts.md) | 底部导航栏字体优化 |
+
+### ✨ [功能说明](./features/)
+
+各个核心功能的实现原理和使用说明。
+
+| 文档 | 说明 |
+|------|------|
+| [AI 智能识别](./features/ai-recognition.md) | AI 多模态内容识别功能 |
+| [搜索功能](./features/search.md) | 搜索和筛选功能实现 |
+| [日历功能](./features/calendar.md) | 添加到日历功能实现 |
+| [日历功能优化](./features/calendar-optimization.md) | 日历功能的优化方案 |
+| [收藏功能](./features/favorites.md) | 收藏功能快速启动 |
+| [分享功能](./features/share.md) | 分享功能实现说明 |
+| [微信链接解析](./features/wechat-link-parsing.md) | 微信公众号链接处理 |
+| [链接解析优化](./features/link-parsing.md) | 链接解析功能优化 |
+
+### ⚙️ [配置说明](./configuration/)
+
+项目的各项配置和集成指南。
+
+| 文档 | 说明 |
+|------|------|
+| [Supabase 集成](./configuration/supabase.md) | Supabase 后端集成指南 |
+| [Supabase 测试](./configuration/supabase-testing.md) | Supabase 连接测试 |
+| [微信小程序配置](./configuration/wechat-miniapp.md) | 微信小程序域名和权限配置 |
+| [Tailwind CSS 配置](./configuration/tailwindcss.md) | Tailwind CSS 在小程序中的配置 |
+| [API 配置](./configuration/api-config.md) | API 服务配置说明 |
+| [URL Polyfill](./configuration/url-polyfill.md) | URL 兼容性补丁配置 |
+
+---
+
+## 🚀 快速开始
+
+### 新手入门
+
+1. **阅读架构文档** → 了解项目整体架构和技术栈
+2. **配置开发环境** → 按照配置说明设置 Supabase、微信小程序等
+3. **查看开发指南** → 学习核心服务和组件的使用方法
+4. **参考功能说明** → 了解各个功能的实现细节
+
+### 常见任务
+
+- 🔐 **设置认证** → [认证服务使用指南](./guides/auth-service.md)
+- 💾 **配置数据库** → [数据库设置指南](./guides/database-setup.md)
+- 🎨 **UI 组件开发** → [前端设计规范](./architecture/frontend-design.md)
+- 🤖 **AI 功能开发** → [AI 智能识别](./features/ai-recognition.md)
+
+---
+
+## 📋 其他文档
+
+### 项目根目录文档
+
+| 文档 | 说明 |
+|------|------|
+| [README.md](../README.md) | 项目主文档（快速开始） |
+| [VERSION.md](../VERSION.md) | 版本信息和更新历史 |
+| [CHANGELOG.md](../CHANGELOG.md) | 详细更新日志 |
 | [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md) | 项目结构说明 |
-| [CHANGELOG.md](../CHANGELOG.md) | 更新日志 |
-| [VERSION.md](../VERSION.md) | 版本信息 |
+| [FEATURE_COMPLETION_REPORT.md](../FEATURE_COMPLETION_REPORT.md) | 功能完成状态 |
 
-### 🏗️ 架构文档
+### 管理后台文档
 
-| 文档 | 说明 |
-|------|------|
-| [V3.0-架构快速参考.md](./V3.0-架构快速参考.md) | 架构快速参考（推荐先看） |
-| [V3.0-产品架构总览.md](./V3.0-产品架构总览.md) | 完整产品架构 |
-| [V3.0-技术栈说明.md](./V3.0-技术栈说明.md) | 技术选型说明 |
-| [V3.0-前端设计规范.md](./V3.0-前端设计规范.md) | UI/UX 设计规范 |
+详见 [admin-console/docs/README.md](../admin-console/docs/README.md)
 
-### 📋 产品文档
+### 脚本文档
 
-| 文档 | 说明 |
-|------|------|
-| [V3.0-管理后台PRD.md](./V3.0-管理后台PRD.md) | 管理后台产品需求文档 |
-| [project-management/PRD.md](./project-management/PRD.md) | 小程序产品需求文档 |
-| [project-management/FEATURE_STATUS.md](./project-management/FEATURE_STATUS.md) | 功能实现状态 |
-| [V3.1.0-发布说明.md](./V3.1.0-发布说明.md) | V3.1.0 版本发布说明 |
+详见 [scripts/README.md](../scripts/README.md)
 
 ---
 
-## 📱 小程序开发文档
+## 🔄 文档维护
 
-### 服务层文档
+- **当前版本**: V1.1.0
+- **最后更新**: 2025年12月18日
+- **维护者**: UniFlow 产品团队
 
-| 文档 | 说明 |
-|------|------|
-| [AuthService使用指南.md](./AuthService使用指南.md) | 认证服务使用指南 |
-| [FavoritesService使用指南.md](./FavoritesService使用指南.md) | 收藏服务使用指南 |
+### 文档贡献指南
 
-### 组件文档
-
-| 文档 | 说明 |
-|------|------|
-| [Skeleton组件集成指南.md](./Skeleton组件集成指南.md) | 骨架屏组件使用指南 |
-| [src/components/FavoriteButton/README.md](../src/components/FavoriteButton/README.md) | 收藏按钮组件文档 |
-| [src/components/Skeleton/README.md](../src/components/Skeleton/README.md) | 骨架屏组件文档 |
-
-### 功能实现文档
-
-| 文档 | 说明 |
-|------|------|
-| [收藏功能实现说明.md](./收藏功能实现说明.md) | 收藏功能实现详情 |
-| [收藏功能数据库设置指南.md](./收藏功能数据库设置指南.md) | 数据库设置指南 |
-| [日历功能实现说明.md](./日历功能实现说明.md) | 日历功能实现详情 |
-| [搜索功能实现说明.md](./搜索功能实现说明.md) | 搜索功能实现详情 |
+1. 保持文档与代码同步
+2. 使用清晰的标题和结构
+3. 提供代码示例和截图
+4. 及时更新过时内容
 
 ---
 
-## 🖥️ 管理后台文档
+## 💡 反馈与建议
 
-| 文档 | 说明 |
-|------|------|
-| [admin-console/README.md](../admin-console/README.md) | 管理后台快速开始 |
-| [AI智能识别功能实现说明.md](./AI智能识别功能实现说明.md) | AI 功能概述 |
-| [README_AI_API.md](./README_AI_API.md) | AI API 使用说明 |
+如果你发现文档中的问题或有改进建议，请：
 
----
-
-## 🔧 集成与配置
-
-| 文档 | 说明 |
-|------|------|
-| [Supabase集成指南.md](./Supabase集成指南.md) | Supabase 配置 |
-| [数据库初始化指南.md](./数据库初始化指南.md) | 数据库设置 |
-| [微信小程序域名配置说明.md](./微信小程序域名配置说明.md) | 小程序配置 |
-| [weapp-tailwindcss配置指南.md](./weapp-tailwindcss配置指南.md) | Tailwind 配置 |
+1. 在项目中创建 Issue
+2. 提交 Pull Request
+3. 联系项目维护者
 
 ---
 
-## ⚠️ 问题排查
-
-| 文档 | 说明 |
-|------|------|
-| [API调用失败问题排查.md](./API调用失败问题排查.md) | API 问题排查 |
-| [内容显示问题排查.md](./内容显示问题排查.md) | 显示问题排查 |
-| [网络请求问题排查.md](./网络请求问题排查.md) | 网络问题排查 |
-| [域名配置问题解决.md](./域名配置问题解决.md) | 域名问题解决 |
-| [TabBar图标问题解决方案.md](./TabBar图标问题解决方案.md) | TabBar 问题 |
-
----
-
-## 🎨 UI/UX 文档
-
-| 文档 | 说明 |
-|------|------|
-| [UI优化完成报告.md](./UI优化完成报告.md) | UI 优化报告 |
-| [UI原生化改造完成报告.md](./UI原生化改造完成报告.md) | 原生化改造报告 |
-| [TabBar字体优化说明.md](./TabBar字体优化说明.md) | TabBar 字体优化 |
-
----
-
-## 🚀 新手入门
-
-### 第一次接触项目？
-
-1. **了解架构** → 阅读 [V3.0-架构快速参考.md](./V3.0-架构快速参考.md)
-2. **查看 PRD** → 阅读 [V3.0-管理后台PRD.md](./V3.0-管理后台PRD.md)
-3. **查看项目结构** → 阅读 [PROJECT_STRUCTURE.md](../PROJECT_STRUCTURE.md)
-4. **配置环境** → 查看 [Supabase集成指南.md](./Supabase集成指南.md)
-
-### 开发小程序功能？
-
-1. 查看 [AuthService使用指南.md](./AuthService使用指南.md)
-2. 查看 [FavoritesService使用指南.md](./FavoritesService使用指南.md)
-3. 查看组件文档
-
-### 开发管理后台功能？
-
-1. 查看 [admin-console/README.md](../admin-console/README.md)
-2. 查看 AI 功能文档
-
-### 遇到问题？
-
-→ 查看问题排查文档
-
----
-
-## 📝 文档维护
-
-### 添加新文档
-
-1. 根据内容选择合适的分类
-2. 使用清晰的命名：`功能名-描述.md`
-3. 更新本索引文件
-
-### 文档命名规范
-
-- **功能文档**：`功能名实现说明.md`
-- **问题文档**：`问题描述.md`
-- **配置文档**：`配置名说明.md`
-- **架构文档**：`V3.0-模块名.md`
-
----
-
-**维护者**：开发团队  
-**最后更新**：2025年12月12日
+**📖 开始阅读文档，快速上手 UniFlow 项目开发！**
