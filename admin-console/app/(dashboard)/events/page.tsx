@@ -300,7 +300,7 @@ export default function EventsPage() {
       </div>
 
       {/* 活动列表表格 */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
+      <div className="bg-white rounded-lg shadow">
         {loading ? (
           <div className="p-8 text-center text-gray-500">加载中...</div>
         ) : filteredEvents.length === 0 ? (
@@ -308,23 +308,23 @@ export default function EventsPage() {
             {searchQuery ? '没有找到匹配的活动' : '暂无活动数据'}
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
+          <div>
+            <table className="w-full table-fixed divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-[50%] px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     标题
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-[8%] px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     类型
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-[8%] px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     状态
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-[18%] px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     发布时间
                   </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <th className="w-[16%] px-2 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     操作
                   </th>
                 </tr>
@@ -332,53 +332,53 @@ export default function EventsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {filteredEvents.map((event) => (
                   <tr key={event.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
+                    <td className="px-4 py-3">
+                      <div className="flex items-start">
                         {event.is_top && (
-                          <ArrowUp className="h-4 w-4 text-purple-600 mr-2" title="置顶" />
+                          <ArrowUp className="h-4 w-4 text-purple-600 mr-1 mt-0.5 flex-shrink-0" title="置顶" />
                         )}
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">{event.title}</div>
+                        <div className="min-w-0">
+                          <div className="text-sm font-medium text-gray-900 break-words leading-snug">{event.title}</div>
                           {event.summary && (
-                            <div className="text-sm text-gray-500 truncate max-w-md">
+                            <div className="text-xs text-gray-500 mt-1 line-clamp-2 break-words">
                               {event.summary}
                             </div>
                           )}
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 py-3 text-center">
                       {getTypeBadge(event.type)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
+                    <td className="px-2 py-3 text-center">
                       {getStatusBadge(event.status)}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                    <td className="px-2 py-3 text-center text-xs text-gray-500">
                       {event.published_at 
-                        ? new Date(event.published_at).toLocaleString('zh-CN')
+                        ? new Date(event.published_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
                         : event.created_at 
-                        ? new Date(event.created_at).toLocaleString('zh-CN')
+                        ? new Date(event.created_at).toLocaleString('zh-CN', { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' })
                         : '-'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <div className="flex items-center space-x-2">
+                    <td className="px-2 py-3">
+                      <div className="flex items-center justify-center space-x-1">
                         <Link
                           href={`/events/${event.id}/edit`}
-                          className="text-purple-600 hover:text-purple-900"
+                          className="p-1 text-purple-600 hover:text-purple-900 hover:bg-purple-50 rounded"
                           title="编辑"
                         >
                           <Edit className="h-4 w-4" />
                         </Link>
                         <button
                           onClick={() => handleToggleTop(event.id, event.is_top)}
-                          className={`${event.is_top ? 'text-purple-600' : 'text-gray-400'} hover:text-purple-900`}
+                          className={`p-1 rounded hover:bg-purple-50 ${event.is_top ? 'text-purple-600' : 'text-gray-400'} hover:text-purple-900`}
                           title={event.is_top ? '取消置顶' : '置顶'}
                         >
                           <ArrowUp className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleToggleStatus(event.id, event.status)}
-                          className="text-gray-600 hover:text-gray-900"
+                          className="p-1 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded"
                           title={event.status === 'published' ? '下架' : '发布'}
                         >
                           {event.status === 'published' ? (
@@ -389,7 +389,7 @@ export default function EventsPage() {
                         </button>
                         <button
                           onClick={() => handleDelete(event.id, event.title)}
-                          className="text-red-600 hover:text-red-900"
+                          className="p-1 text-red-600 hover:text-red-900 hover:bg-red-50 rounded"
                           title="删除"
                         >
                           <Trash2 className="h-4 w-4" />

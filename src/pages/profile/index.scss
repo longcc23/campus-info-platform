@@ -1,41 +1,103 @@
-// 个人中心页样式 - 清华紫主题
+// 个人中心页样式 - 现代简约设计
 
 @import '../../styles/theme.scss';
 @import '../../styles/mixins.scss';
 
 .profile-page {
   min-height: 100vh;
-  background: linear-gradient(to bottom, $primary 0%, $primary-dark 50%, $bg-secondary 50%, $bg-secondary 100%);
-  padding-bottom: 140rpx; // 为自定义 TabBar 留出更多空间（高度增加到 120rpx + 额外间距）
-  @include safe-area-bottom($spacing-5);
+  background: linear-gradient(180deg, #FDFCFF 0%, #F9F7FC 50%, #F5F3FA 100%);
+  padding-bottom: 120rpx;
+  position: relative;
+  overflow-x: hidden;
 
   &.loading {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    background: $bg-secondary;
+    background: #F8F7FC;
+    gap: 24rpx;
+
+    .loading-spinner {
+      width: 48rpx;
+      height: 48rpx;
+      border: 4rpx solid rgba($primary, 0.2);
+      border-top-color: $primary;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .loading-text {
+      font-size: 28rpx;
+      color: $text-secondary;
+    }
   }
 
-  // 个人信息卡片
-  .profile-header {
-    padding: 120rpx $spacing-4 $spacing-5;
+  // 顶部渐变背景 - 更柔和的淡紫色
+  .profile-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 500rpx;
+    background: linear-gradient(180deg, #F3E8FF 0%, #E9D5FF 50%, #DDD6FE 100%);
+    border-radius: 0 0 80rpx 80rpx;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50 Q 25 30, 50 50 T 100 50 L 100 100 L 0 100 Z' fill='%23ffffff' fill-opacity='0.03'/%3E%3C/svg%3E");
+      opacity: 0.8;
+    }
+  }
+
+  // 用户卡片 - 参考图片版式
+  .user-card {
+    position: relative;
+    z-index: 10;
+    margin: 120rpx 24rpx 0;
+    padding: 40rpx 32rpx;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20rpx);
+    border-radius: 28rpx;
+    box-shadow: 0 12rpx 48rpx rgba(139, 92, 246, 0.12);
     display: flex;
     align-items: center;
-    gap: $spacing-3;
+    gap: 24rpx;
+    border: 1rpx solid rgba(255, 255, 255, 0.8);
 
-    .avatar {
-      width: 160rpx;
-      height: 160rpx;
-      border-radius: $radius-full;
-      background: $bg-primary;
-      @include flex-center;
-      box-shadow: $shadow-lg;
-      border: 4rpx solid rgba($text-inverse, 0.2);
+    .avatar-wrapper {
+      position: relative;
+      flex-shrink: 0;
+      
+      .avatar {
+        width: 140rpx;
+        height: 140rpx;
+        border-radius: 50%;
+        background: linear-gradient(135deg, #F3E8FF 0%, #E9D5FF 100%);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 8rpx 24rpx rgba(139, 92, 246, 0.15);
+        
+        .avatar-emoji {
+          font-size: 64rpx;
+        }
+      }
 
-      .avatar-text {
-        font-size: 64rpx;
-        font-weight: $font-weight-bold;
-        color: $primary;
+      .avatar-ring {
+        position: absolute;
+        top: -6rpx;
+        left: -6rpx;
+        right: -6rpx;
+        bottom: -6rpx;
+        border: 3rpx solid rgba($primary, 0.15);
+        border-radius: 50%;
+        animation: pulse 3s ease-in-out infinite;
       }
     }
 
@@ -43,141 +105,243 @@
       flex: 1;
       display: flex;
       flex-direction: column;
-      gap: $spacing-1;
+      gap: 12rpx;
+
+      .greeting {
+        font-size: 24rpx;
+        color: $text-secondary;
+        display: flex;
+        align-items: center;
+        gap: 6rpx;
+      }
 
       .username {
-        @include text-title-lg;
-        color: $text-inverse;
+        font-size: 42rpx;
+        font-weight: 700;
+        color: $text-primary;
+        letter-spacing: 0.5rpx;
+        line-height: 1.2;
       }
 
-      .user-id {
-        @include text-caption;
-        color: rgba($text-inverse, 0.8);
+      .user-id-tag {
+        display: inline-flex;
+        align-self: flex-start;
+        margin-top: 4rpx;
+        padding: 6rpx 12rpx;
+        background: rgba($primary, 0.06);
+        border-radius: 12rpx;
+
+        .user-id {
+          font-size: 20rpx;
+          color: $primary;
+          font-family: 'SF Mono', 'Menlo', monospace;
+        }
       }
-    }
-  }
-
-  // 统计卡片
-  .stats-card {
-    margin: 0 $spacing-4 $spacing-3;
-    @include card;
-    padding: $spacing-4;
-    @include flex-between;
-    box-shadow: $shadow-base;
-
-    .stat-item {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: $spacing-1;
-      flex: 1;
-
-      .stat-value {
-        @include text-title-xl;
-        color: $primary;
-      }
-
-      .stat-label {
-        @include text-caption;
-        color: $text-secondary;
-      }
-    }
-
-    .stat-divider {
-      width: 1rpx;
-      height: 80rpx;
-      background: $border-light;
     }
   }
 
   // 功能区域
-  .menu-section {
-    margin-bottom: $spacing-3;
+  .section {
+    margin: 60rpx 24rpx 0;
 
     .section-title {
-      padding: 0 $spacing-4 $spacing-2;
-      @include text-caption;
+      font-size: 28rpx;
+      font-weight: 600;
       color: $text-secondary;
-      text-transform: uppercase;
-      letter-spacing: 2rpx;
-      font-weight: $font-weight-semibold;
+      margin-bottom: 24rpx;
+      padding-left: 8rpx;
     }
 
-    .menu-list {
-      @include card;
-      margin: 0 $spacing-4;
-      overflow: hidden;
-      box-shadow: $shadow-base;
+    .menu-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 16rpx;
 
-      .menu-item {
-        @include flex-start;
-        padding: $spacing-4;
-        background: $bg-primary;
-        border: none;
-        border-bottom: 1rpx solid $border-light;
-        transition: background $transition-base $ease-out;
+      .menu-card {
+        background: rgba(255, 255, 255, 0.98);
+        backdrop-filter: blur(10rpx);
+        border-radius: 24rpx;
+        padding: 48rpx 32rpx;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        border: 1rpx solid rgba(139, 92, 246, 0.08);
+        box-shadow: 0 6rpx 24rpx rgba(139, 92, 246, 0.08);
+        transition: all 0.3s ease;
+        position: relative;
+        aspect-ratio: 1/1;
+        min-height: 0;
+        width: 100%;
+        height: auto;
 
-        &:last-child {
-          border-bottom: none;
+        &::after {
+          display: none;
         }
 
-        &:active:not(.disabled) {
-          background: $gray-50;
+        &:active {
+          transform: translateY(2rpx) scale(0.98);
+          box-shadow: 0 3rpx 12rpx rgba(139, 92, 246, 0.12);
         }
 
-        &.disabled {
-          opacity: 0.5;
+        .menu-card-icon {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          margin-bottom: 20rpx;
+          position: relative;
+
+          // 图标背后的精致底纹
+          &::before {
+            content: '';
+            position: absolute;
+            width: 120rpx;
+            height: 120rpx;
+            border-radius: 50%;
+            z-index: 0;
+            opacity: 0.06;
+          }
+
+          &.favorites::before { background: #F87171; }
+          &.history::before { background: #60A5FA; }
+          &.feedback::before { background: #34D399; }
+          &.about::before { background: #A78BFA; }
+
+          .custom-icon {
+            width: 72rpx;
+            height: 72rpx;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+            position: relative;
+            z-index: 1;
+            opacity: 0.85;
+
+            &.favorites {
+              // 极简心形 - 珊瑚红
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23F87171' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z'%3E%3C/path%3E%3C/svg%3E");
+            }
+
+            &.history {
+              // 极简时钟 - 天空蓝
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2360A5FA' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cpolyline points='12 6 12 12 16 14'%3E%3C/polyline%3E%3C/svg%3E");
+            }
+
+            &.feedback {
+              // 极简对话框 - 薄荷绿
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%2334D399' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z'%3E%3C/path%3E%3C/svg%3E");
+            }
+
+            &.about {
+              // 极简信息 - 丁香紫
+              background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%23A78BFA' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='12' cy='12' r='10'%3E%3C/circle%3E%3Cline x1='12' y1='16' x2='12' y2='12'%3E%3C/line%3E%3Cline x1='12' y1='8' x2='12.01' y2='8'%3E%3C/line%3E%3C/svg%3E");
+            }
+          }
         }
 
-        .menu-icon {
-          font-size: 48rpx;
-          margin-right: $spacing-2;
-          width: 56rpx;
-          @include flex-center;
-        }
-
-        .menu-content {
-          flex: 1;
+        .menu-card-info {
           display: flex;
           flex-direction: column;
-          gap: 4rpx;
-          text-align: left;
+          align-items: center;
+          gap: 8rpx;
 
-          .menu-title {
-            @include text-title;
+          .menu-card-title {
+            font-size: 32rpx;
+            font-weight: 600;
             color: $text-primary;
-            font-weight: $font-weight-medium;
+            letter-spacing: 2rpx;
           }
 
-          .menu-desc {
-            @include text-caption;
-            color: $text-tertiary;
-          }
-        }
-
-        .menu-badge {
-          margin-right: $spacing-2;
-          
-          .badge-count {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-width: 40rpx;
-            height: 40rpx;
-            padding: 0 12rpx;
-            background: $primary;
-            color: $text-inverse;
-            font-size: 24rpx;
-            font-weight: $font-weight-semibold;
-            border-radius: $radius-full;
+          .menu-card-subtitle {
+            font-size: 22rpx;
+            color: #9CA3AF;
+            text-transform: uppercase;
+            letter-spacing: 1rpx;
           }
         }
 
-        .menu-arrow {
-          font-size: 32rpx;
-          color: $border-default;
+        .menu-card-badge {
+          position: absolute;
+          top: -8rpx;
+          right: -8rpx;
+          min-width: 48rpx;
+          height: 48rpx;
+          padding: 0 12rpx;
+          background: #EF4444;
+          border-radius: 24rpx;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          box-shadow: 0 6rpx 16rpx rgba(239, 68, 68, 0.5);
+          border: 3rpx solid #FFFFFF;
+          z-index: 2;
+
+          .badge-text {
+            font-size: 26rpx;
+            font-weight: 800;
+            color: #FFFFFF;
+            line-height: 1;
+          }
         }
       }
     }
+  }
+
+  // 底部信息 - 参考图片版式
+  .footer {
+    margin-top: 60rpx;
+    padding: 32rpx;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12rpx;
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200rpx;
+      padding: 48rpx 64rpx;
+      background: linear-gradient(135deg, rgba($primary, 0.03) 0%, rgba($primary, 0.08) 100%);
+      border-radius: 40rpx;
+      z-index: 0;
+    }
+
+    .footer-text {
+      font-size: 26rpx;
+      font-weight: 600;
+      color: $primary;
+      position: relative;
+      z-index: 1;
+    }
+
+    .footer-slogan {
+      font-size: 22rpx;
+      color: $text-secondary;
+      position: relative;
+      z-index: 1;
+      letter-spacing: 1rpx;
+    }
+  }
+}
+
+// 动画
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.3;
+  }
+  50% {
+    transform: scale(1.05);
+    opacity: 0.15;
   }
 }

@@ -84,48 +84,66 @@ export default function ReviewArea({ data, originalContent, onUpdate }: ReviewAr
       <div className="border-t pt-4">
         <h3 className="text-sm font-semibold text-gray-900 mb-3">关键信息</h3>
         <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-900 mb-1">公司名称</label>
-            <input
-              type="text"
-              value={formData.key_info.company || ''}
-              onChange={(e) => handleKeyInfoChange('company', e.target.value)}
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900"
-            />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-900 mb-1">岗位名称</label>
-            <input
-              type="text"
-              value={formData.key_info.position || ''}
-              onChange={(e) => handleKeyInfoChange('position', e.target.value)}
-              className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900"
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
+          {/* 公司名称 - 招聘类显示 */}
+          {formData.type === 'recruit' && (
             <div>
-              <label className="block text-xs font-medium text-gray-900 mb-1">日期</label>
+              <label className="block text-xs font-medium text-gray-900 mb-1">公司名称</label>
               <input
                 type="text"
-                value={formData.key_info.date || ''}
-                onChange={(e) => handleKeyInfoChange('date', e.target.value)}
-                placeholder="12月4日"
-                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900 placeholder-gray-400"
+                value={formData.key_info.company || ''}
+                onChange={(e) => handleKeyInfoChange('company', e.target.value)}
+                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900"
               />
             </div>
+          )}
+          
+          {/* 岗位名称 - 招聘类显示 */}
+          {formData.type === 'recruit' && (
             <div>
-              <label className="block text-xs font-medium text-gray-900 mb-1">时间</label>
+              <label className="block text-xs font-medium text-gray-900 mb-1">岗位名称</label>
               <input
                 type="text"
-                value={formData.key_info.time || ''}
-                onChange={(e) => handleKeyInfoChange('time', e.target.value)}
-                placeholder="14:00-16:00"
-                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900 placeholder-gray-400"
+                value={formData.key_info.position || ''}
+                onChange={(e) => handleKeyInfoChange('position', e.target.value)}
+                className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900"
               />
             </div>
-          </div>
+          )}
+
+          {/* 活动日期/时间 - 仅活动和讲座类显示 */}
+          {(formData.type === 'activity' || formData.type === 'lecture') && (
+            <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+              <p className="text-xs text-blue-700 font-medium mb-2">📅 活动举办时间</p>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-xs font-medium text-gray-900 mb-1">活动日期</label>
+                  <input
+                    type="text"
+                    value={formData.key_info.date || ''}
+                    onChange={(e) => handleKeyInfoChange('date', e.target.value)}
+                    placeholder="12月4日"
+                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900 placeholder-gray-400"
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-medium text-gray-900 mb-1">活动时间</label>
+                  <input
+                    type="text"
+                    value={formData.key_info.time || ''}
+                    onChange={(e) => handleKeyInfoChange('time', e.target.value)}
+                    placeholder="14:00-16:00"
+                    className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900 placeholder-gray-400"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 地点 */}
           <div>
-            <label className="block text-xs font-medium text-gray-900 mb-1">地点</label>
+            <label className="block text-xs font-medium text-gray-900 mb-1">
+              {formData.type === 'recruit' ? '工作地点' : '活动地点'}
+            </label>
             <input
               type="text"
               value={formData.key_info.location || ''}
@@ -133,8 +151,12 @@ export default function ReviewArea({ data, originalContent, onUpdate }: ReviewAr
               className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900"
             />
           </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-900 mb-1">截止时间</label>
+
+          {/* 截止时间 - 所有类型都显示，但标签不同 */}
+          <div className="bg-orange-50 border border-orange-200 rounded-md p-3">
+            <label className="block text-xs font-medium text-orange-800 mb-1">
+              ⏰ {formData.type === 'recruit' ? '投递截止时间' : '报名截止时间'}
+            </label>
             <input
               type="text"
               value={formData.key_info.deadline || ''}
@@ -143,9 +165,11 @@ export default function ReviewArea({ data, originalContent, onUpdate }: ReviewAr
               className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900 placeholder-gray-400"
             />
           </div>
+
+          {/* 投递链接/邮箱 */}
           <div>
             <label className="block text-xs font-medium text-gray-900 mb-1">
-              投递链接/邮箱
+              {formData.type === 'recruit' ? '投递链接/邮箱' : '报名链接'}
               <span className="text-gray-500 font-normal ml-1">(URL 或邮箱地址)</span>
             </label>
             <input
@@ -156,17 +180,21 @@ export default function ReviewArea({ data, originalContent, onUpdate }: ReviewAr
               className="w-full px-3 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-purple-500 bg-white text-gray-900 placeholder-gray-400"
             />
           </div>
-          <div>
-            <label className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                checked={formData.key_info.referral || false}
-                onChange={(e) => handleKeyInfoChange('referral', e.target.checked)}
-                className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
-              />
-              <span className="text-xs text-gray-900 font-medium">内推</span>
-            </label>
-          </div>
+
+          {/* 内推 - 仅招聘类显示 */}
+          {formData.type === 'recruit' && (
+            <div>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  checked={formData.key_info.referral || false}
+                  onChange={(e) => handleKeyInfoChange('referral', e.target.checked)}
+                  className="rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                />
+                <span className="text-xs text-gray-900 font-medium">内推</span>
+              </label>
+            </div>
+          )}
         </div>
       </div>
 

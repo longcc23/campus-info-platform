@@ -320,8 +320,8 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex-shrink-0 flex flex-col items-end space-y-1 ml-4">
                     <div className="flex items-center space-x-1 text-gray-600">
-                      <Heart className="h-4 w-4 text-pink-500" />
-                      <span className="text-sm font-medium">{event.favorite_count}</span>
+                    <Heart className="h-4 w-4 text-pink-500" />
+                    <span className="text-sm font-medium">{event.favorite_count}</span>
                     </div>
                     {event.favorite_users_count !== undefined && event.favorite_users_count !== event.favorite_count && (
                       <span className="text-xs text-gray-400">

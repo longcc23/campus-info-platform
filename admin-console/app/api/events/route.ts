@@ -138,7 +138,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const status = searchParams.get('status')
     const type = searchParams.get('type')
-    const limit = parseInt(searchParams.get('limit') || '50')
+    const limit = parseInt(searchParams.get('limit') || '1000')  // 默认显示全部（最多1000条）
     const offset = parseInt(searchParams.get('offset') || '0')
 
     // 构建查询
@@ -148,7 +148,11 @@ export async function GET(request: NextRequest) {
       .select('*')
       .order('is_top', { ascending: false })  // 置顶优先
       .order('created_at', { ascending: false })  // 然后按时间
-      .range(offset, offset + limit - 1)
+
+    // 只有明确指定 limit 时才分页
+    if (searchParams.get('limit')) {
+      query = query.range(offset, offset + limit - 1)
+    }
 
     // 状态筛选
     if (status) {

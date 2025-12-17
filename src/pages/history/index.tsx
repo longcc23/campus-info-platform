@@ -401,222 +401,259 @@ export default function History() {
             </View>
           </View>
 
-          <ScrollView 
-            scrollY 
-            className="detail-scroll"
-            enhanced
-            showScrollbar={false}
-          >
-            <View className="detail-hero" style={{ background: `linear-gradient(to bottom right, ${selectedItem.poster_color})` }}>
-              <Text style={{ fontSize: '40rpx', fontWeight: 'bold' }}>{selectedItem.title}</Text>
-            </View>
+          <View className="detail-scroll-wrapper">
+            <ScrollView 
+              scrollY 
+              className="detail-scroll"
+              enhanced
+              showScrollbar={false}
+            >
+              {/* 图片区域 */}
+              <View className="detail-hero">
+                <View className="detail-hero-gradient" />
+              </View>
 
-            <View className="detail-content">
-              <View className="detail-info-card">
-                <Text className="detail-section-title">关键信息</Text>
-                
-                {/* 招聘信息：公司、岗位、截止时间、投递方式 */}
-                {selectedItem.type === 'recruit' && (
-                  <>
-                    {selectedItem.key_info.company && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>🏢</Text>
+              {/* 标题 */}
+              <Text className="detail-main-title">{selectedItem.title}</Text>
+
+              <View className="detail-content">
+                <View className="detail-info-card">
+                  <Text className="detail-section-title">关键信息</Text>
+                  
+                  {/* 招聘信息 */}
+                  {selectedItem.type === 'recruit' && (
+                    <>
+                      {selectedItem.key_info.company && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>🏢</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">公司 | Company:</Text>
+                            <Text className="detail-info-value">{selectedItem.key_info.company}</Text>
+                          </View>
                         </View>
-                        <View className="detail-info-content">
-                          <Text className="detail-info-label">公司</Text>
-                          <Text className="detail-info-value">{selectedItem.key_info.company}</Text>
+                      )}
+                      
+                      {selectedItem.key_info.position && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>💼</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">岗位 | Position:</Text>
+                            <Text className="detail-info-value">{selectedItem.key_info.position}</Text>
+                          </View>
                         </View>
-                      </View>
-                    )}
-                    
-                    {selectedItem.key_info.position && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>💼</Text>
-                        </View>
-                        <View className="detail-info-content">
-                          <Text className="detail-info-label">岗位</Text>
-                          <Text className="detail-info-value">{selectedItem.key_info.position}</Text>
-                        </View>
-                      </View>
-                    )}
-                    
-                    {selectedItem.key_info.deadline && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>⏰</Text>
-                        </View>
-                        <View className="detail-info-content">
-                          <Text className="detail-info-label">截止时间</Text>
-                          <Text className="detail-info-value">{selectedItem.key_info.deadline}</Text>
-                        </View>
-                      </View>
-                    )}
-                    
-                    {selectedItem.key_info.link && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>📧</Text>
-                        </View>
-                        <View className="detail-info-content" style={{ flex: 1 }}>
-                          <Text className="detail-info-label">投递方式</Text>
-                          <View className="detail-info-value-row">
-                            <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
-                              {selectedItem.key_info.link}
-                            </Text>
-                            <View 
-                              className="copy-link-btn"
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                handleCopyLink(selectedItem.key_info.link || '')
-                              }}
-                            >
-                              <Text>📋 复制</Text>
+                      )}
+                      
+                      {/* 联系方式 */}
+                      {selectedItem.key_info.contact && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>💬</Text>
+                          </View>
+                          <View className="detail-info-content" style={{ flex: 1 }}>
+                            <Text className="detail-info-label">联系方式 | Contact:</Text>
+                            <View className="detail-info-value-row">
+                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
+                                {selectedItem.key_info.contact}
+                              </Text>
+                              <View 
+                                className="copy-link-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleCopyLink(selectedItem.key_info.contact || '')
+                                }}
+                              >
+                                <Text>复制 | Copy</Text>
+                              </View>
                             </View>
                           </View>
                         </View>
-                      </View>
-                    )}
-                    
-                    {selectedItem.key_info.education && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>🎓</Text>
-                        </View>
-                        <View className="detail-info-content">
-                          <Text className="detail-info-label">申请群体</Text>
-                          <Text className="detail-info-value">{selectedItem.key_info.education}</Text>
-                        </View>
-                      </View>
-                    )}
-                  </>
-                )}
-                
-                {/* 活动/讲座信息：日期、时间、地点 */}
-                {(selectedItem.type === 'activity' || selectedItem.type === 'lecture') && (
-                  <>
-                    {selectedItem.key_info.date && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>📅</Text>
-                        </View>
-                        <View className="detail-info-content">
-                          <Text className="detail-info-label">日期</Text>
-                          <Text className="detail-info-value">{selectedItem.key_info.date}</Text>
-                        </View>
-                      </View>
-                    )}
-                    
-                    {selectedItem.key_info.time && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>🕐</Text>
-                        </View>
-                        <View className="detail-info-content">
-                          <Text className="detail-info-label">时间</Text>
-                          <Text className="detail-info-value">{selectedItem.key_info.time}</Text>
-                        </View>
-                      </View>
-                    )}
-                    
-                    {selectedItem.key_info.location && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>📍</Text>
-                        </View>
-                        <View className="detail-info-content">
-                          <Text className="detail-info-label">地点</Text>
-                          <Text className="detail-info-value">{selectedItem.key_info.location}</Text>
-                        </View>
-                      </View>
-                    )}
-                    
-                    {selectedItem.key_info.deadline && (
-                      <View className="detail-info-item">
-                        <View className="detail-info-icon">
-                          <Text>⏰</Text>
-                        </View>
-                        <View className="detail-info-content">
-                          <Text className="detail-info-label">截止时间</Text>
-                          <Text className="detail-info-value">{selectedItem.key_info.deadline}</Text>
-                        </View>
-                      </View>
-                    )}
-                    
-                    {selectedItem.key_info.registration_link && (
-                      <View 
-                        className="detail-info-item clickable-link"
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          handleLinkClick(selectedItem.key_info.registration_link || '', 'registration')
-                        }}
-                      >
-                        <View className="detail-info-icon">
-                          <Text>🔗</Text>
-                        </View>
-                        <View className="detail-info-content" style={{ flex: 1 }}>
-                          <Text className="detail-info-label">报名链接</Text>
-                          <View className="detail-info-value-row">
-                            <Text className="detail-info-value link-text" style={{ wordBreak: 'break-all', flex: 1, color: '#8B5CF6' }}>
-                              {selectedItem.key_info.registration_link}
-                            </Text>
-                            <Text style={{ color: '#8B5CF6', fontSize: '24rpx' }}>点击复制 →</Text>
+                      )}
+                      
+                      {selectedItem.key_info.education && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>🎓</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">申请群体 | Applicants:</Text>
+                            <Text className="detail-info-value">{selectedItem.key_info.education}</Text>
                           </View>
                         </View>
-                      </View>
-                    )}
-                  </>
-                )}
-              </View>
+                      )}
+                      
+                      {selectedItem.key_info.deadline && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>⏰</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">截止时间 | Deadline:</Text>
+                            <Text className="detail-info-value">{selectedItem.key_info.deadline}</Text>
+                          </View>
+                        </View>
+                      )}
+                      
+                      {selectedItem.key_info.link && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>📧</Text>
+                          </View>
+                          <View className="detail-info-content" style={{ flex: 1 }}>
+                            <Text className="detail-info-label">投递方式 | Apply:</Text>
+                            <View className="detail-info-value-row">
+                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
+                                {selectedItem.key_info.link.replace(/^mailto:/i, '')}
+                              </Text>
+                              <View 
+                                className="copy-link-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleCopyLink((selectedItem.key_info.link || '').replace(/^mailto:/i, ''))
+                                }}
+                              >
+                                <Text>复制 | Copy</Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      )}
+                    </>
+                  )}
+                  
+                  {/* 活动/讲座信息 */}
+                  {(selectedItem.type === 'activity' || selectedItem.type === 'lecture') && (
+                    <>
+                      {selectedItem.key_info.date && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>📅</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">日期 | Date:</Text>
+                            <Text className="detail-info-value">{selectedItem.key_info.date}</Text>
+                          </View>
+                        </View>
+                      )}
+                      
+                      {selectedItem.key_info.time && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>🕐</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">时间 | Time:</Text>
+                            <Text className="detail-info-value">{selectedItem.key_info.time}</Text>
+                          </View>
+                        </View>
+                      )}
+                      
+                      {selectedItem.key_info.location && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>📍</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">地点 | Location:</Text>
+                            <Text className="detail-info-value">{selectedItem.key_info.location}</Text>
+                          </View>
+                        </View>
+                      )}
+                      
+                      {selectedItem.key_info.deadline && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>⏰</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">截止时间 | Deadline:</Text>
+                            <Text className="detail-info-value">{selectedItem.key_info.deadline}</Text>
+                          </View>
+                        </View>
+                      )}
+                      
+                      {selectedItem.key_info.registration_link && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>🔗</Text>
+                          </View>
+                          <View className="detail-info-content" style={{ flex: 1 }}>
+                            <Text className="detail-info-label">报名链接 | Register:</Text>
+                            <View className="detail-info-value-row">
+                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
+                                {selectedItem.key_info.registration_link}
+                              </Text>
+                              <View 
+                                className="copy-link-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  handleCopyLink(selectedItem.key_info.registration_link || '')
+                                }}
+                              >
+                                <Text>复制 | Copy</Text>
+                              </View>
+                            </View>
+                          </View>
+                        </View>
+                      )}
+                    </>
+                  )}
+                </View>
 
-              <View className="detail-body">
-                {/* 显示活动详情：优先显示 summary（如果有且与 raw_content 不同），否则显示 raw_content */}
-                {selectedItem.summary && selectedItem.raw_content && 
-                 selectedItem.raw_content.trim() && 
-                 selectedItem.summary.trim() !== selectedItem.raw_content.trim().substring(0, Math.min(selectedItem.summary.length, selectedItem.raw_content.length)).trim() ? (
-                  <>
-                    <Text className="detail-body-title">📄 活动详情</Text>
-                    <Text className="detail-summary">{selectedItem.summary}</Text>
-                    {selectedItem.raw_content && selectedItem.raw_content.trim() && (
-                      <View className="detail-raw-content" style={{ marginTop: '32rpx', paddingTop: '32rpx', borderTop: '1px solid #e5e7eb' }}>
-                        <Text className="detail-body-title" style={{ marginBottom: '16rpx', fontSize: '32rpx' }}>📋 详细内容</Text>
-                        <Text style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{selectedItem.raw_content}</Text>
-                      </View>
-                    )}
-                  </>
-                ) : (
-                  <>
-                    <Text className="detail-body-title">📄 活动详情</Text>
-                    <Text className="detail-summary" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                      {selectedItem.raw_content?.trim() || selectedItem.summary || ''}
-                    </Text>
-                  </>
-                )}
+                {/* 活动详情 */}
+                <View className="detail-body">
+                  {selectedItem.summary && selectedItem.raw_content && 
+                   selectedItem.raw_content.trim() && 
+                   selectedItem.summary.trim() !== selectedItem.raw_content.trim().substring(0, Math.min(selectedItem.summary.length, selectedItem.raw_content.length)).trim() ? (
+                    <>
+                      <Text className="detail-body-title">活动详情 | Details</Text>
+                      <Text className="detail-summary">{selectedItem.summary}</Text>
+                      {selectedItem.raw_content && selectedItem.raw_content.trim() && (
+                        <View className="detail-raw-content">
+                          <Text style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{selectedItem.raw_content}</Text>
+                        </View>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <Text className="detail-body-title">活动详情 | Details</Text>
+                      <Text className="detail-summary" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                        {selectedItem.raw_content?.trim() || selectedItem.summary || ''}
+                      </Text>
+                    </>
+                  )}
+                </View>
               </View>
+              </ScrollView>
             </View>
-          </ScrollView>
 
-          <View className="detail-actions" style={{ paddingBottom: `${getSafeAreaBottom() + 32}rpx` }}>
-            {/* 活动/讲座：有日期时显示添加到日历 */}
-            {selectedItem.type !== 'recruit' && selectedItem.key_info.date && (
-              <Button 
-                className="detail-action-btn"
-                onClick={() => handleAddToCalendar(selectedItem)}
-              >
-                <Text>📅 添加到日历</Text>
-              </Button>
-            )}
-            {/* 招聘：有截止时间时显示添加到日历 */}
-            {selectedItem.type === 'recruit' && selectedItem.key_info.deadline && (
-              <Button 
-                className="detail-action-btn"
-                onClick={() => handleAddToCalendar(selectedItem)}
-              >
-                <Text>📅 添加截止日期到日历</Text>
-              </Button>
-            )}
-          </View>
+          {/* 只有需要显示按钮时才渲染底部操作栏 */}
+          {((selectedItem.type !== 'recruit' && selectedItem.key_info?.date) ||
+            (selectedItem.type === 'recruit' && selectedItem.key_info?.deadline)) && (
+            <View className="detail-actions" style={{ paddingBottom: `${getSafeAreaBottom() + 32}rpx` }}>
+              {/* 活动/讲座：有日期时显示添加到日历 */}
+              {selectedItem.type !== 'recruit' && (
+                <Button 
+                  className="detail-action-btn"
+                  onClick={() => handleAddToCalendar(selectedItem)}
+                >
+                  <Text>📅 添加到日历 | Add to Calendar</Text>
+                </Button>
+              )}
+              {/* 招聘：有截止时间时显示添加到日历 */}
+              {selectedItem.type === 'recruit' && (
+                <Button 
+                  className="detail-action-btn"
+                  onClick={() => handleAddToCalendar(selectedItem)}
+                >
+                  <Text>📅 添加到日历 | Add to Calendar</Text>
+                </Button>
+              )}
+            </View>
+          )}
         </View>
       )}
     </View>

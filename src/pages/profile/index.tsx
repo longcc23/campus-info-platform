@@ -1,5 +1,5 @@
 /**
- * 个人中心页面
+ * 个人中心页面 - 现代简约设计
  */
 
 import { View, Text, Button } from '@tarojs/components'
@@ -12,6 +12,7 @@ import './index.scss'
 export default function Profile() {
   const [userId, setUserId] = useState<string | null>(null)
   const [favoritesCount, setFavoritesCount] = useState(0)
+  const [historyCount, setHistoryCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -19,20 +20,19 @@ export default function Profile() {
     updateTabBar()
   }, [])
 
-  // 每次页面显示时刷新收藏数量
+  // 每次页面显示时刷新数据
   useDidShow(() => {
     loadFavoritesCount()
     updateTabBar()
   })
 
   const updateTabBar = () => {
-    // 更新自定义 TabBar 的选中状态
     try {
       const page = Taro.getCurrentInstance()?.page
       if (page && typeof (page as any).getTabBar === 'function') {
         const tabBar = (page as any).getTabBar()
         if (tabBar && typeof tabBar.setSelected === 'function') {
-          tabBar.setSelected(1) // 我的页面的索引是 1
+          tabBar.setSelected(1)
         }
       }
     } catch (error) {
@@ -42,14 +42,9 @@ export default function Profile() {
 
   const loadUserInfo = async () => {
     try {
-      // 获取用户 ID
       const openid = await authService.getOpenID()
       setUserId(openid)
-
-      // 先显示页面，后台加载收藏数量
       setLoading(false)
-
-      // 获取收藏数量（后台加载）
       await loadFavoritesCount()
     } catch (error) {
       console.error('加载用户信息失败:', error)
@@ -67,109 +62,106 @@ export default function Profile() {
   }
 
   const handleNavigateToFavorites = () => {
-    Taro.navigateTo({
-      url: '/pages/favorites/index'
-    })
+    Taro.navigateTo({ url: '/pages/favorites/index' })
   }
 
   const handleNavigateToHistory = () => {
-    Taro.navigateTo({
-      url: '/pages/history/index'
-    })
+    Taro.navigateTo({ url: '/pages/history/index' })
   }
 
   const handleNavigateToAbout = () => {
-    Taro.navigateTo({
-      url: '/pages/about/index'
-    })
+    Taro.navigateTo({ url: '/pages/about/index' })
   }
 
   const handleNavigateToFeedback = () => {
-    Taro.navigateTo({
-      url: '/pages/feedback/index'
-    })
+    Taro.navigateTo({ url: '/pages/feedback/index' })
   }
 
   if (loading) {
     return (
       <View className="profile-page loading">
-        <Text>加载中...</Text>
+        <View className="loading-spinner"></View>
+        <Text className="loading-text">加载中...</Text>
       </View>
     )
   }
 
   return (
     <View className="profile-page">
-      {/* 个人信息卡片 */}
-      <View className="profile-header">
-        <View className="avatar">
-          <Text className="avatar-text">U</Text>
+      {/* 顶部渐变背景 */}
+      <View className="profile-bg"></View>
+      
+      {/* 用户卡片 */}
+      <View className="user-card">
+        <View className="avatar-wrapper">
+          <View className="avatar">
+            <Text className="avatar-emoji">👤</Text>
+          </View>
+          <View className="avatar-ring"></View>
         </View>
         <View className="user-info">
-          <Text className="username">微信用户</Text>
-          <Text className="user-id">ID: {userId?.substring(0, 16)}...</Text>
+          <Text className="greeting">Hi, 欢迎回来 👋</Text>
+          <Text className="username">UniFlow 用户</Text>
+          <View className="user-id-tag">
+            <Text className="user-id">ID: {userId?.substring(0, 12)}...</Text>
+          </View>
         </View>
       </View>
 
-      {/* 功能列表 */}
-      <View className="menu-section">
-        <Text className="section-title">我的内容</Text>
-        
-        <View className="menu-list">
-          <Button className="menu-item" onClick={handleNavigateToFavorites}>
-            <View className="menu-icon">❤️</View>
-            <View className="menu-content">
-              <Text className="menu-title">我的收藏</Text>
-              <Text className="menu-desc">查看收藏的活动和招聘</Text>
+      {/* 功能入口 */}
+      <View className="section">
+        <View className="menu-grid">
+          <Button className="menu-card" onClick={handleNavigateToFavorites}>
+            <View className="menu-card-icon favorites">
+              <View className="custom-icon favorites"></View>
             </View>
-            <View className="menu-badge">
-              {favoritesCount > 0 && <Text className="badge-count">{favoritesCount}</Text>}
+            <View className="menu-card-info">
+              <Text className="menu-card-title">我的收藏</Text>
+              <Text className="menu-card-subtitle">My Favorites</Text>
             </View>
-            <View className="menu-arrow">
-              <Text>›</Text>
+            {favoritesCount > 0 && (
+              <View className="menu-card-badge">
+                <Text className="badge-text">{favoritesCount}</Text>
+              </View>
+            )}
+          </Button>
+
+          <Button className="menu-card" onClick={handleNavigateToHistory}>
+            <View className="menu-card-icon history">
+              <View className="custom-icon history"></View>
+            </View>
+            <View className="menu-card-info">
+              <Text className="menu-card-title">浏览历史</Text>
+              <Text className="menu-card-subtitle">History</Text>
             </View>
           </Button>
 
-          <Button className="menu-item" onClick={handleNavigateToHistory}>
-            <View className="menu-icon">🕐</View>
-            <View className="menu-content">
-              <Text className="menu-title">浏览历史</Text>
-              <Text className="menu-desc">最近浏览的内容</Text>
+          <Button className="menu-card" onClick={handleNavigateToFeedback}>
+            <View className="menu-card-icon feedback">
+              <View className="custom-icon feedback"></View>
             </View>
-            <View className="menu-arrow">
-              <Text>›</Text>
+            <View className="menu-card-info">
+              <Text className="menu-card-title">意见反馈</Text>
+              <Text className="menu-card-subtitle">Feedback</Text>
+            </View>
+          </Button>
+
+          <Button className="menu-card" onClick={handleNavigateToAbout}>
+            <View className="menu-card-icon about">
+              <View className="custom-icon about"></View>
+            </View>
+            <View className="menu-card-info">
+              <Text className="menu-card-title">关于我们</Text>
+              <Text className="menu-card-subtitle">About Us</Text>
             </View>
           </Button>
         </View>
       </View>
 
-      {/* 其他功能 */}
-      <View className="menu-section">
-        <Text className="section-title">其他</Text>
-        
-        <View className="menu-list">
-          <Button className="menu-item" onClick={handleNavigateToFeedback}>
-            <View className="menu-icon">💬</View>
-            <View className="menu-content">
-              <Text className="menu-title">意见反馈</Text>
-              <Text className="menu-desc">畅所欲言，我们会认真改进</Text>
-            </View>
-            <View className="menu-arrow">
-              <Text>›</Text>
-            </View>
-          </Button>
-
-          <Button className="menu-item" onClick={handleNavigateToAbout}>
-            <View className="menu-icon">ℹ️</View>
-            <View className="menu-content">
-              <Text className="menu-title">关于</Text>
-              <Text className="menu-desc">项目简介和版本信息</Text>
-            </View>
-            <View className="menu-arrow">
-              <Text>›</Text>
-            </View>
-          </Button>
-        </View>
+      {/* 底部信息 */}
+      <View className="footer">
+        <Text className="footer-text">UniFlow v1.0.0</Text>
+        <Text className="footer-slogan">智汇流 · 让信息触手可及</Text>
       </View>
     </View>
   )

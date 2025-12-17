@@ -14,7 +14,6 @@ export default {
     navigationBarTextStyle: 'white'
   },
   tabBar: {
-    custom: true, // 启用自定义 TabBar
     color: '#4B5563',
     selectedColor: '#8B5CF6',
     backgroundColor: '#FFFFFF',
@@ -22,11 +21,15 @@ export default {
     list: [
       {
         pagePath: 'pages/index/index',
-        text: '首页'
+        text: '首页 | Home',
+        iconPath: 'assets/tabbar/home.png',
+        selectedIconPath: 'assets/tabbar/home-active.png'
       },
       {
         pagePath: 'pages/profile/index',
-        text: '我的'
+        text: '我的 | My',
+        iconPath: 'assets/tabbar/profile.png',
+        selectedIconPath: 'assets/tabbar/profile-active.png'
       }
     ]
   }

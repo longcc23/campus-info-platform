@@ -31,6 +31,7 @@ interface KeyInfo {
   position?: string
   education?: string
   link?: string
+  contact?: string  // 联系方式（微信号、电话等）
   registration_link?: string  // 活动/讲座报名链接
   referral?: boolean
 }
@@ -110,6 +111,7 @@ export default class Index extends Component<{}, IndexState> {
       console.error('更新 TabBar 状态失败:', error)
     }
   }
+
 
   // 下拉刷新处理
   onPullDownRefresh = async () => {
@@ -526,15 +528,19 @@ export default class Index extends Component<{}, IndexState> {
                 enhanced
                 showScrollbar={false}
               >
-                <View className="detail-hero" style={{ background: `linear-gradient(to bottom right, ${selectedItem.posterColor})` }}>
-                  <Text style={{ fontSize: '40rpx', fontWeight: 'bold' }}>{selectedItem.title}</Text>
+                {/* 图片区域 */}
+                <View className="detail-hero">
+                  <View className="detail-hero-gradient" />
                 </View>
+
+                {/* 标题 */}
+                <Text className="detail-main-title">{selectedItem.title}</Text>
 
                 <View className="detail-content">
                 <View className="detail-info-card">
                   <Text className="detail-section-title">关键信息</Text>
                   
-                  {/* 招聘信息：公司、岗位、截止时间、投递方式 */}
+                  {/* 招聘信息：公司、岗位、联系方式、申请群体 */}
                   {selectedItem.type === 'recruit' && (
                     <>
                       {selectedItem.keyInfo.company && (
@@ -543,7 +549,7 @@ export default class Index extends Component<{}, IndexState> {
                             <Text>🏢</Text>
                           </View>
                           <View className="detail-info-content">
-                            <Text className="detail-info-label">公司</Text>
+                            <Text className="detail-info-label">公司 | Company:</Text>
                             <Text className="detail-info-value">{selectedItem.keyInfo.company}</Text>
                           </View>
                         </View>
@@ -555,43 +561,32 @@ export default class Index extends Component<{}, IndexState> {
                             <Text>💼</Text>
                           </View>
                           <View className="detail-info-content">
-                            <Text className="detail-info-label">岗位</Text>
+                            <Text className="detail-info-label">岗位 | Position:</Text>
                             <Text className="detail-info-value">{selectedItem.keyInfo.position}</Text>
                           </View>
                         </View>
                       )}
                       
-                      {selectedItem.keyInfo.deadline && (
+                      {/* 联系方式（微信号、电话等） */}
+                      {selectedItem.keyInfo.contact && (
                         <View className="detail-info-item">
                           <View className="detail-info-icon">
-                            <Text>⏰</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">截止时间</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.deadline}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.link && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>📧</Text>
+                            <Text>💬</Text>
                           </View>
                           <View className="detail-info-content" style={{ flex: 1 }}>
-                            <Text className="detail-info-label">投递方式</Text>
+                            <Text className="detail-info-label">联系方式 | Contact:</Text>
                             <View className="detail-info-value-row">
                               <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
-                                {selectedItem.keyInfo.link}
+                                {selectedItem.keyInfo.contact}
                               </Text>
                               <View 
                                 className="copy-link-btn"
                                 onClick={(e) => {
                                   e.stopPropagation()
-                                  this.handleCopyLink(selectedItem.keyInfo.link || '')
+                                  this.handleCopyLink(selectedItem.keyInfo.contact || '')
                                 }}
                               >
-                                <Text>📋 复制</Text>
+                                <Text>复制 | Copy</Text>
                               </View>
                             </View>
                           </View>
@@ -604,8 +599,45 @@ export default class Index extends Component<{}, IndexState> {
                             <Text>🎓</Text>
                           </View>
                           <View className="detail-info-content">
-                            <Text className="detail-info-label">申请群体</Text>
+                            <Text className="detail-info-label">申请群体 | Applicants:</Text>
                             <Text className="detail-info-value">{selectedItem.keyInfo.education}</Text>
+                          </View>
+                        </View>
+                      )}
+                      
+                      {selectedItem.keyInfo.deadline && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>⏰</Text>
+                          </View>
+                          <View className="detail-info-content">
+                            <Text className="detail-info-label">截止时间 | Deadline:</Text>
+                            <Text className="detail-info-value">{selectedItem.keyInfo.deadline}</Text>
+                          </View>
+                        </View>
+                      )}
+                      
+                      {selectedItem.keyInfo.link && (
+                        <View className="detail-info-item">
+                          <View className="detail-info-icon">
+                            <Text>📧</Text>
+                          </View>
+                          <View className="detail-info-content" style={{ flex: 1 }}>
+                            <Text className="detail-info-label">投递方式 | Apply:</Text>
+                            <View className="detail-info-value-row">
+                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
+                                {selectedItem.keyInfo.link.replace(/^mailto:/i, '')}
+                              </Text>
+                              <View 
+                                className="copy-link-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  this.handleCopyLink((selectedItem.keyInfo.link || '').replace(/^mailto:/i, ''))
+                                }}
+                              >
+                                <Text>复制 | Copy</Text>
+                              </View>
+                            </View>
                           </View>
                         </View>
                       )}
@@ -621,7 +653,7 @@ export default class Index extends Component<{}, IndexState> {
                             <Text>📅</Text>
                           </View>
                           <View className="detail-info-content">
-                            <Text className="detail-info-label">日期</Text>
+                            <Text className="detail-info-label">日期 | Date:</Text>
                             <Text className="detail-info-value">{selectedItem.keyInfo.date}</Text>
                           </View>
                         </View>
@@ -633,7 +665,7 @@ export default class Index extends Component<{}, IndexState> {
                             <Text>🕐</Text>
                           </View>
                           <View className="detail-info-content">
-                            <Text className="detail-info-label">时间</Text>
+                            <Text className="detail-info-label">时间 | Time:</Text>
                             <Text className="detail-info-value">{selectedItem.keyInfo.time}</Text>
                           </View>
                         </View>
@@ -645,7 +677,7 @@ export default class Index extends Component<{}, IndexState> {
                             <Text>📍</Text>
                           </View>
                           <View className="detail-info-content">
-                            <Text className="detail-info-label">地点</Text>
+                            <Text className="detail-info-label">地点 | Location:</Text>
                             <Text className="detail-info-value">{selectedItem.keyInfo.location}</Text>
                           </View>
                         </View>
@@ -657,30 +689,32 @@ export default class Index extends Component<{}, IndexState> {
                             <Text>⏰</Text>
                           </View>
                           <View className="detail-info-content">
-                            <Text className="detail-info-label">截止时间</Text>
+                            <Text className="detail-info-label">截止时间 | Deadline:</Text>
                             <Text className="detail-info-value">{selectedItem.keyInfo.deadline}</Text>
                           </View>
                         </View>
                       )}
                       
                       {selectedItem.keyInfo.registration_link && (
-                        <View 
-                          className="detail-info-item clickable-link"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            this.handleLinkClick(selectedItem.keyInfo.registration_link || '', 'registration')
-                          }}
-                        >
+                        <View className="detail-info-item">
                           <View className="detail-info-icon">
                             <Text>🔗</Text>
                           </View>
                           <View className="detail-info-content" style={{ flex: 1 }}>
-                            <Text className="detail-info-label">报名链接</Text>
+                            <Text className="detail-info-label">报名链接 | Register:</Text>
                             <View className="detail-info-value-row">
-                              <Text className="detail-info-value link-text" style={{ wordBreak: 'break-all', flex: 1, color: '#8B5CF6' }}>
+                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
                                 {selectedItem.keyInfo.registration_link}
                               </Text>
-                              <Text style={{ color: '#8B5CF6', fontSize: '24rpx' }}>点击复制 →</Text>
+                              <View 
+                                className="copy-link-btn"
+                                onClick={(e) => {
+                                  e.stopPropagation()
+                                  this.handleCopyLink(selectedItem.keyInfo.registration_link || '')
+                                }}
+                              >
+                                <Text>复制 | Copy</Text>
+                              </View>
                             </View>
                           </View>
                         </View>
@@ -689,24 +723,23 @@ export default class Index extends Component<{}, IndexState> {
                   )}
                 </View>
 
+                {/* 活动详情 */}
                 <View className="detail-body">
-                  {/* 显示活动详情：优先显示 summary（如果有且与 rawContent 不同），否则显示 rawContent */}
                   {selectedItem.summary && selectedItem.rawContent && 
                    selectedItem.rawContent.trim() && 
                    selectedItem.summary.trim() !== selectedItem.rawContent.trim().substring(0, Math.min(selectedItem.summary.length, selectedItem.rawContent.length)).trim() ? (
                     <>
-                      <Text className="detail-body-title">📄 活动详情</Text>
+                      <Text className="detail-body-title">活动详情 | Details</Text>
                       <Text className="detail-summary">{selectedItem.summary}</Text>
                       {selectedItem.rawContent && selectedItem.rawContent.trim() && (
-                        <View className="detail-raw-content" style={{ marginTop: '32rpx', paddingTop: '32rpx', borderTop: '1px solid #e5e7eb' }}>
-                          <Text className="detail-body-title" style={{ marginBottom: '16rpx', fontSize: '32rpx' }}>📋 详细内容</Text>
+                        <View className="detail-raw-content">
                           <Text style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{selectedItem.rawContent}</Text>
                         </View>
                       )}
                     </>
                   ) : (
                     <>
-                      <Text className="detail-body-title">📄 活动详情</Text>
+                      <Text className="detail-body-title">活动详情 | Details</Text>
                       <Text className="detail-summary" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
                         {selectedItem.rawContent?.trim() || selectedItem.summary || ''}
                       </Text>
@@ -717,30 +750,31 @@ export default class Index extends Component<{}, IndexState> {
               </ScrollView>
             </View>
 
-            <View className="detail-actions">
-              {/* 活动/讲座：有日期时显示添加到日历 */}
-              {(selectedItem.type === 'activity' || selectedItem.type === 'lecture') && 
-               selectedItem.keyInfo && 
-               selectedItem.keyInfo.date && (
-                <Button 
-                  className="detail-action-btn"
-                  onClick={() => this.handleAddToCalendar(selectedItem)}
-                >
-                  <Text>📅 添加到日历</Text>
-                </Button>
-              )}
-              {/* 招聘：有截止时间时显示添加到日历 */}
-              {selectedItem.type === 'recruit' && 
-               selectedItem.keyInfo && 
-               selectedItem.keyInfo.deadline && (
-                <Button 
-                  className="detail-action-btn"
-                  onClick={() => this.handleAddToCalendar(selectedItem)}
-                >
-                  <Text>📅 添加截止日期到日历</Text>
-                </Button>
-              )}
-            </View>
+            {/* 只有需要显示按钮时才渲染底部操作栏 */}
+            {(((selectedItem.type === 'activity' || selectedItem.type === 'lecture') && 
+               selectedItem.keyInfo?.date) ||
+              (selectedItem.type === 'recruit' && selectedItem.keyInfo?.deadline)) && (
+              <View className="detail-actions">
+                {/* 活动/讲座：有日期时显示添加到日历 */}
+                {(selectedItem.type === 'activity' || selectedItem.type === 'lecture') && (
+                  <Button 
+                    className="detail-action-btn"
+                    onClick={() => this.handleAddToCalendar(selectedItem)}
+                  >
+                    <Text>📅 添加到日历 | Add to Calendar</Text>
+                  </Button>
+                )}
+                {/* 招聘：有截止时间时显示添加到日历 */}
+                {selectedItem.type === 'recruit' && (
+                  <Button 
+                    className="detail-action-btn"
+                    onClick={() => this.handleAddToCalendar(selectedItem)}
+                  >
+                    <Text>📅 添加到日历 | Add to Calendar</Text>
+                  </Button>
+                )}
+              </View>
+            )}
           </View>
         )}
 
@@ -754,3 +788,4 @@ export default class Index extends Component<{}, IndexState> {
     )
   }
 }
+
