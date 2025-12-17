@@ -206,6 +206,93 @@ npm run dev
 
 ---
 
+## 🏷️ 标签系统
+
+UniFlow 采用标准化的来源标签体系，确保信息来源清晰、准确。
+
+### 标准来源标签
+
+| 标签 | 中英文 | 适用场景 |
+|------|--------|---------|
+| CDC | CDC \| CDC | CDC 发布或内推的信息 |
+| 内推 | 内推 \| Referral | 通过内推渠道获得的信息 |
+| 校友推荐 | 校友推荐 \| Alumni Referral | 校友或学长学姐推荐的信息 |
+| 学院官方 | 学院官方 \| College Official | 学院官方发布的信息 |
+| 公司官方 | 公司官方 \| Company Official | 公司自己发布的官方招聘信息 |
+| 其他 | 其他 \| Other | 来源不明确或其他渠道的信息 |
+
+### 标签与公司名称的区分
+
+**重要**：标签系统的 `source_group` 字段表示**信息发布来源**，而非公司名称。
+
+- ✅ **正确示例**：
+  - `source_group`: "公司官方 | Company Official"
+  - `key_info.company`: "亚投行 | AIIB"
+
+- ❌ **错误示例**：
+  - `source_group`: "亚投行 | AIIB"（这是公司名，不是来源）
+
+### AI 自动识别规则
+
+AI 会根据原始文本自动判断来源标签：
+
+- 提到"CDC"、"职业发展中心" → `CDC | CDC`
+- 提到"内推"、"推荐" → `内推 | Referral`
+- 提到"校友"、"学长学姐" → `校友推荐 | Alumni Referral`
+- 提到"学院"、"官方" → `学院官方 | College Official`
+- 公司自己发布 → `公司官方 | Company Official`
+- 来源不明确 → `其他 | Other`
+
+---
+
+## 🛠️ 数据管理工具
+
+### Excel 批量导入
+
+支持从 Excel 文件批量导入数据，自动进行 AI 解析和结构化处理。
+
+```bash
+# 双语版本（推荐）
+python3 scripts/import_excel_bilingual.py
+
+# 基础版本
+python3 scripts/import_excel_data.py
+```
+
+**功能特点**：
+- ✅ 自动 AI 解析：提取标题、类型、关键信息
+- ✅ 双语输出：中文 | English 格式
+- ✅ 自动去重：识别重复内容
+- ✅ 字段规范：link（投递链接/邮箱）vs contact（微信/电话）
+- ✅ 时间提取：精确提取截止时间、活动时间
+- ✅ 标签识别：自动识别来源标签
+
+### 数据核验报告
+
+生成详细的数据核验报告，用于人工检查 AI 解析结果。
+
+```bash
+python3 scripts/generate_verification_report.py
+```
+
+**报告内容**：
+- 📝 原始内容
+- 💾 数据库存储字段
+- 📱 小程序显示效果
+- ✅ 便于人工核验
+
+### 数据清理工具
+
+```bash
+# 清空所有数据
+python3 scripts/clear_all_data.py
+
+# 清理重复数据
+python3 scripts/cleanup_duplicates.py
+```
+
+---
+
 ## 📊 数据库设计
 
 ### 核心表结构
@@ -283,10 +370,18 @@ npm run dev
 
 ## 📈 版本信息
 
-**当前版本**：V1.0.0  
-**发布日期**：2025年12月12日
+**当前版本**：V1.1.0  
+**发布日期**：2025年12月18日
 
 详细版本信息请查看 [VERSION.md](./VERSION.md)
+
+### 最新更新 (V1.1.0)
+
+- 🏷️ 标签系统优化：统一来源标签体系
+- 🎨 UI/UX 改进：详情页重设计、TabBar 双语化
+- 📊 数据管理增强：Excel 批量导入、核验报告
+- ⚙️ Admin Console 优化：品牌统一、表格优化
+- 🗑️ 项目整理：删除临时文件、更新 .gitignore
 
 ---
 
@@ -308,7 +403,7 @@ npm run dev
 
 ---
 
-**最后更新**：2025年12月12日
+**最后更新**：2025年12月18日
 
 ---
 

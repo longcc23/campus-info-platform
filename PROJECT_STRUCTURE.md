@@ -2,8 +2,8 @@
 
 本文档详细说明项目的目录结构和文件组织方式。
 
-**版本**：V3.1.0  
-**最后更新**：2025年12月12日
+**版本**：V3.2.0  
+**最后更新**：2025年12月18日
 
 ---
 
@@ -37,6 +37,15 @@ infor_platform/
 │   │   ├── share.ts             # 分享服务
 │   │   └── expiration.ts        # 过期判断服务
 │   ├── styles/                  # 样式文件目录
+│   │   ├── theme.scss           # 主题变量（颜色、字体、间距）
+│   │   └── mixins.scss          # SCSS Mixins
+│   ├── assets/                  # 静态资源目录
+│   │   └── tabbar/              # TabBar 图标资源
+│   │       ├── home.png         # 首页图标
+│   │       ├── home-active.png  # 首页选中图标
+│   │       ├── profile.png      # 个人中心图标
+│   │       ├── profile-active.png # 个人中心选中图标
+│   │       └── README.md        # 图标使用说明
 │   └── utils/                   # 工具函数目录
 │       ├── supabase-rest.ts     # Supabase REST API
 │       ├── ics-generator.ts     # 日历文件生成
@@ -46,8 +55,16 @@ infor_platform/
 │   ├── components/              # React 组件
 │   └── lib/                     # 工具库
 ├── scripts/                     # Python 脚本目录
-│   ├── ingest_multimodal.py     # 多模态信息采集
+│   ├── ingest_multimodal.py     # 多模态信息采集（核心）
+│   ├── api_server.py            # AI 采集 API 服务器
+│   ├── import_excel_bilingual.py # Excel 批量导入（双语）
+│   ├── import_excel_data.py     # Excel 批量导入（基础）
+│   ├── generate_verification_report.py # 数据核验报告生成
+│   ├── clear_all_data.py        # 清空所有数据
 │   ├── cleanup_duplicates.py    # 清理重复数据
+│   ├── init_sample_data.py      # 示例数据初始化
+│   ├── check_data.py            # 数据检查工具
+│   ├── start_api.sh             # API 服务启动脚本
 │   └── requirements.txt         # Python 依赖
 ├── docs/                        # 项目文档
 ├── config/                      # 构建配置
@@ -83,9 +100,16 @@ infor_platform/
 
 | 文件 | 说明 |
 |------|------|
-| `scripts/ingest_multimodal.py` | AI 多模态信息采集 |
+| `scripts/ingest_multimodal.py` | AI 多模态信息采集（核心引擎） |
+| `scripts/api_server.py` | AI 采集 API 服务器（Flask） |
+| `scripts/import_excel_bilingual.py` | Excel 批量导入（支持双语输出） |
+| `scripts/import_excel_data.py` | Excel 批量导入（基础版） |
+| `scripts/generate_verification_report.py` | 数据核验报告生成（Markdown） |
+| `scripts/clear_all_data.py` | 清空所有数据 |
 | `scripts/cleanup_duplicates.py` | 清理重复数据 |
+| `scripts/init_sample_data.py` | 示例数据初始化 |
 | `scripts/check_data.py` | 数据检查工具 |
+| `scripts/start_api.sh` | API 服务启动脚本 |
 
 ---
 
@@ -113,7 +137,31 @@ infor_platform/
 
 ---
 
-**最后更新**：2025年12月12日
+## 📝 V1.1.0 更新内容
+
+### 新增文件/目录
+
+- `src/assets/tabbar/` - TabBar 图标资源目录
+- `scripts/import_excel_bilingual.py` - Excel 批量导入（双语）
+- `scripts/import_excel_data.py` - Excel 批量导入（基础）
+- `scripts/generate_verification_report.py` - 数据核验报告生成
+- `scripts/clear_all_data.py` - 数据清空工具
+- `scripts/init_sample_data.py` - 示例数据初始化
+
+### 删除文件
+
+- 临时测试脚本（9 个一次性修复脚本）
+- 临时测试文档（2 个 API 测试文档）
+
+### 更新的 .gitignore
+
+新增排除规则：
+- `*.xlsx`, `*.xls` - Excel 源文件
+- `数据核验报告.md` - 临时报告
+
+---
+
+**最后更新**：2025年12月18日
 
 
 
