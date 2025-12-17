@@ -40,6 +40,16 @@ ENV/
 *.temp
 微信图片_*.jpg
 
+# Excel files (source data with sensitive info)
+*.xlsx
+*.xls
+.~*.xlsx
+.~*.xls
+
+# Temporary reports
+数据核验报告.md
+*核验报告*.md
+
 # WeChat Mini Program
 project.config.json
 project.private.config.json
