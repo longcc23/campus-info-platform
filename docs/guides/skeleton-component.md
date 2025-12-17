@@ -494,4 +494,4 @@ export default class History extends Component {
 ---
 
 **文档版本**：v1.0.0  
-**最后更新**：2025年12月12日
+**最后更新**：2025年12月18日

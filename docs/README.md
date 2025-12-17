@@ -19,7 +19,7 @@
 | [前端设计规范](./architecture/frontend-design.md) | UI/UX 设计规范和组件规范 |
 | [架构快速参考](./architecture/quick-reference.md) | 架构关键信息速查 |
 | [管理后台 PRD](./architecture/admin-prd.md) | 管理后台产品需求文档 |
-| [V3.0 架构重设计](./architecture/v3-redesign.md) | V3.0 架构重构说明 |
+| [V1.1.0 架构重设计](./architecture/v3-redesign.md) | V1.1.0 架构重构说明 |
 | [前端重设计指南](./architecture/frontend-redesign.md) | 前端架构优化方案 |
 
 ### 📖 [开发指南](./guides/)
