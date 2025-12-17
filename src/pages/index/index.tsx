@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { View, Text, Input, Button, ScrollView } from '@tarojs/components'
+import { View, Text, Input, Button, ScrollView, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { 
   getEvents, 
@@ -48,6 +48,7 @@ interface FeedItem {
   keyInfo: KeyInfo
   summary: string
   rawContent: string
+  imageUrl?: string  // 图片海报 URL
   isTop: boolean
   isSaved: boolean
   posterColor: string
@@ -66,6 +67,7 @@ interface IndexState {
   loading: boolean
   isFirstLoad: boolean
   hideExpired: boolean
+  showPoster: boolean  // 是否显示海报图片
 }
 
 export default class Index extends Component<{}, IndexState> {
@@ -81,7 +83,8 @@ export default class Index extends Component<{}, IndexState> {
       searchKeyword: '',
       loading: true,
       isFirstLoad: true,
-      hideExpired: false
+      hideExpired: false,
+      showPoster: false  // 默认不显示海报
     }
   }
 
@@ -188,6 +191,7 @@ export default class Index extends Component<{}, IndexState> {
       keyInfo: event.key_info,
       summary: event.summary || '',
       rawContent: event.raw_content || '',
+      imageUrl: (event as any).image_url || '',  // 图片海报 URL
       isTop: event.is_top,
       isSaved: false,
       posterColor: event.poster_color
@@ -220,6 +224,58 @@ export default class Index extends Component<{}, IndexState> {
     if (userId) {
       await recordViewHistory(userId, item.id)
     }
+  }
+
+  // 格式化日期为 2025.12.30 格式
+  formatDate = (dateStr: string): string => {
+    if (!dateStr) return ''
+    
+    // 移除中英文描述，提取日期部分
+    let cleanDate = dateStr
+      .replace(/年|月|日|Year|Month|Day|Dec|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov/gi, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    
+    // 尝试解析各种格式
+    // 格式1: 2025年12月30日 -> 2025.12.30
+    const match1 = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
+    if (match1) {
+      const year = match1[1]
+      const month = match1[2].padStart(2, '0')
+      const day = match1[3].padStart(2, '0')
+      return `${year}.${month}.${day}`
+    }
+    
+    // 格式2: 12月30日 -> 当前年份.12.30
+    const match2 = dateStr.match(/(\d{1,2})月(\d{1,2})日/)
+    if (match2) {
+      const currentYear = new Date().getFullYear()
+      const month = match2[1].padStart(2, '0')
+      const day = match2[2].padStart(2, '0')
+      return `${currentYear}.${month}.${day}`
+    }
+    
+    // 格式3: December 30, 2025 或 Dec 30, 2025
+    const match3 = dateStr.match(/(\d{1,2})[,\s]+(\d{4})/i)
+    if (match3) {
+      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+      const monthMatch = dateStr.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i)
+      if (monthMatch) {
+        const month = (monthNames.indexOf(monthMatch[1].toLowerCase()) + 1).toString().padStart(2, '0')
+        const day = match3[1].padStart(2, '0')
+        const year = match3[2]
+        return `${year}.${month}.${day}`
+      }
+    }
+    
+    // 格式4: 已经是 2025.12.30 格式
+    if (/^\d{4}\.\d{1,2}\.\d{1,2}$/.test(dateStr)) {
+      const parts = dateStr.split('.')
+      return `${parts[0]}.${parts[1].padStart(2, '0')}.${parts[2].padStart(2, '0')}`
+    }
+    
+    // 如果无法解析，返回原字符串
+    return dateStr
   }
 
   handleCopyLink = (link: string) => {
@@ -342,6 +398,13 @@ export default class Index extends Component<{}, IndexState> {
       )
     })
     
+    // 排序：置顶的在前，然后按创建时间倒序
+    filteredItems.sort((a, b) => {
+      if (a.isTop && !b.isTop) return -1
+      if (!a.isTop && b.isTop) return 1
+      return 0 // 如果都置顶或都不置顶，保持原有顺序（后端已排序）
+    })
+    
     return filteredItems
   }
 
@@ -436,6 +499,9 @@ export default class Index extends Component<{}, IndexState> {
                         <View className="card-content">
                           <View className="card-header">
                             <View className="card-header-left">
+                              {item.isTop && (
+                                <Text className="top-tag">置顶</Text>
+                              )}
                               <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : item.type === 'lecture' ? 'lecture' : 'activity'}`}>
                                 {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
                               </Text>
@@ -464,8 +530,8 @@ export default class Index extends Component<{}, IndexState> {
                               <Text className="info-icon">{item.type === 'recruit' ? '⏰' : '📅'}</Text>
                               <Text className={`info-text ${expired ? 'expired-text' : ''}`}>
                                 {item.type === 'recruit' && item.keyInfo.deadline 
-                                  ? item.keyInfo.deadline 
-                                  : item.keyInfo.date || '-'}
+                                  ? this.formatDate(item.keyInfo.deadline)
+                                  : item.keyInfo.date ? this.formatDate(item.keyInfo.date) : '-'}
                               </Text>
                             </View>
                             {item.keyInfo.location && (
@@ -491,7 +557,7 @@ export default class Index extends Component<{}, IndexState> {
             <View className="detail-header">
               <Button 
                 className="detail-back-btn"
-                onClick={() => this.setState({ selectedItem: null })} 
+                onClick={() => this.setState({ selectedItem: null, showPoster: false })} 
               >
                 <Text>←</Text>
               </Button>
@@ -586,7 +652,7 @@ export default class Index extends Component<{}, IndexState> {
                                   this.handleCopyLink(selectedItem.keyInfo.contact || '')
                                 }}
                               >
-                                <Text>复制 | Copy</Text>
+                                <Text>Copy</Text>
                               </View>
                             </View>
                           </View>
@@ -612,7 +678,7 @@ export default class Index extends Component<{}, IndexState> {
                           </View>
                           <View className="detail-info-content">
                             <Text className="detail-info-label">截止时间 | Deadline:</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.deadline}</Text>
+                            <Text className="detail-info-value">{this.formatDate(selectedItem.keyInfo.deadline)}</Text>
                           </View>
                         </View>
                       )}
@@ -635,7 +701,7 @@ export default class Index extends Component<{}, IndexState> {
                                   this.handleCopyLink((selectedItem.keyInfo.link || '').replace(/^mailto:/i, ''))
                                 }}
                               >
-                                <Text>复制 | Copy</Text>
+                                <Text>Copy</Text>
                               </View>
                             </View>
                           </View>
@@ -654,7 +720,7 @@ export default class Index extends Component<{}, IndexState> {
                           </View>
                           <View className="detail-info-content">
                             <Text className="detail-info-label">日期 | Date:</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.date}</Text>
+                            <Text className="detail-info-value">{this.formatDate(selectedItem.keyInfo.date)}</Text>
                           </View>
                         </View>
                       )}
@@ -690,7 +756,7 @@ export default class Index extends Component<{}, IndexState> {
                           </View>
                           <View className="detail-info-content">
                             <Text className="detail-info-label">截止时间 | Deadline:</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.deadline}</Text>
+                            <Text className="detail-info-value">{this.formatDate(selectedItem.keyInfo.deadline)}</Text>
                           </View>
                         </View>
                       )}
@@ -713,7 +779,7 @@ export default class Index extends Component<{}, IndexState> {
                                   this.handleCopyLink(selectedItem.keyInfo.registration_link || '')
                                 }}
                               >
-                                <Text>复制 | Copy</Text>
+                                <Text>Copy</Text>
                               </View>
                             </View>
                           </View>
@@ -727,11 +793,12 @@ export default class Index extends Component<{}, IndexState> {
                 <View className="detail-body">
                   {selectedItem.summary && selectedItem.rawContent && 
                    selectedItem.rawContent.trim() && 
+                   !selectedItem.rawContent.startsWith('📷') &&  // 排除图片占位文字
                    selectedItem.summary.trim() !== selectedItem.rawContent.trim().substring(0, Math.min(selectedItem.summary.length, selectedItem.rawContent.length)).trim() ? (
                     <>
                       <Text className="detail-body-title">活动详情 | Details</Text>
                       <Text className="detail-summary">{selectedItem.summary}</Text>
-                      {selectedItem.rawContent && selectedItem.rawContent.trim() && (
+                      {selectedItem.rawContent && selectedItem.rawContent.trim() && !selectedItem.rawContent.startsWith('📷') && (
                         <View className="detail-raw-content">
                           <Text style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{selectedItem.rawContent}</Text>
                         </View>
@@ -741,9 +808,33 @@ export default class Index extends Component<{}, IndexState> {
                     <>
                       <Text className="detail-body-title">活动详情 | Details</Text>
                       <Text className="detail-summary" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                        {selectedItem.rawContent?.trim() || selectedItem.summary || ''}
+                        {selectedItem.rawContent?.trim() && !selectedItem.rawContent.startsWith('📷') 
+                          ? selectedItem.rawContent 
+                          : selectedItem.summary || '暂无详情'}
                       </Text>
                     </>
+                  )}
+
+                  {/* 如果有图片海报，显示在详情下面 */}
+                  {selectedItem.imageUrl && (
+                    <View className="detail-poster">
+                      {this.state.showPoster ? (
+                        <Image 
+                          src={selectedItem.imageUrl} 
+                          mode="widthFix" 
+                          className="detail-poster-image"
+                          showMenuByLongpress
+                          lazyLoad
+                        />
+                      ) : (
+                        <Button 
+                          className="load-poster-btn"
+                          onClick={() => this.setState({ showPoster: true })}
+                        >
+                          <Text>点击查看海报 | view poster</Text>
+                        </Button>
+                      )}
+                    </View>
                   )}
                 </View>
               </View>

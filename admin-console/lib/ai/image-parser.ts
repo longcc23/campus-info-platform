@@ -24,17 +24,61 @@ function getOpenAIClient() {
 
 /**
  * 从图片提取文字（OCR）
- * 这里使用占位实现，实际需要使用 OCR 服务
- * 可选方案：
- * 1. 百度 OCR API
- * 2. 腾讯 OCR API
- * 3. 阿里云 OCR API
- * 4. Tesseract.js (客户端)
+ * 调用后端 Flask API 的 OCR 服务
  */
 async function extractTextFromImage(imageData: string | File): Promise<string> {
-  // TODO: 实现 OCR 功能
-  // 当前返回提示信息
-  throw new Error('图片 OCR 功能尚未实现。请先将图片中的文字手动输入，或使用文本输入方式。')
+  try {
+    const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+    
+    let formData: FormData | { image: string }
+    
+    if (imageData instanceof File) {
+      // 文件对象：使用 FormData
+      formData = new FormData()
+      formData.append('file', imageData)
+    } else {
+      // Base64 字符串：使用 JSON
+      formData = { image: imageData }
+    }
+    
+    const response = await fetch(`${API_URL}/api/ocr`, {
+      method: 'POST',
+      headers: imageData instanceof File ? {} : { 'Content-Type': 'application/json' },
+      body: imageData instanceof File ? formData as FormData : JSON.stringify(formData),
+    })
+    
+    if (!response.ok) {
+      const error = await response.json()
+      throw new Error(error.error || 'OCR 服务调用失败')
+    }
+    
+    const result = await response.json()
+    
+    if (result.success && result.text) {
+      return result.text
+    } else {
+      throw new Error(result.error || '未能从图片中提取到文字')
+    }
+  } catch (error) {
+    console.error('OCR 调用失败:', error)
+    throw new Error(
+      error instanceof Error 
+        ? `OCR 提取失败: ${error.message}` 
+        : 'OCR 提取失败，请检查后端服务是否运行（http://localhost:5001）'
+    )
+  }
+}
+
+/**
+ * 检测是否包含二维码相关关键词
+ */
+function detectQRCode(text: string): boolean {
+  const qrKeywords = [
+    '扫码', '二维码', 'QR', 'qr code', 'scan', 'Scan',
+    '扫一扫', '扫描', 'Registration', 'registration',
+    '报名二维码', '扫码报名', '扫码注册'
+  ]
+  return qrKeywords.some(keyword => text.includes(keyword))
 }
 
 /**
@@ -44,15 +88,26 @@ export async function parseImage(imageData: string | File, language: OutputLangu
   try {
     // 1. OCR 提取文字
     const textContent = await extractTextFromImage(imageData)
+    
+    // 2. 检测是否有二维码
+    const hasQRCode = detectQRCode(textContent)
+    console.log(`🔍 二维码检测: ${hasQRCode ? '检测到二维码相关文字' : '未检测到二维码'}`)
 
-    // 2. 调用 AI 解析
+    // 3. 调用 AI 解析，添加二维码提示
     const openai = getOpenAIClient()
     const systemPrompt = getSystemPrompt(language)
+    
+    // 构建用户消息，如果检测到二维码，添加提示
+    let userMessage = `海报图片中的文字内容：\n${textContent}\n\n请从以上文字中提取活动信息。`
+    if (hasQRCode) {
+      userMessage += `\n\n【重要提示】：检测到海报中包含二维码报名方式，请在 key_info.link 字段填写"二维码报名"（如果是中英双语模式则填写"二维码报名 | QR Code Registration"）。`
+    }
+    
     const response = await openai.chat.completions.create({
       model: 'deepseek-chat',
       messages: [
         { role: 'system', content: systemPrompt },
-        { role: 'user', content: `海报图片中的文字内容：\n${textContent}\n\n请从以上文字中提取活动信息：` },
+        { role: 'user', content: userMessage },
       ],
       response_format: { type: 'json_object' },
       temperature: 0.1,
@@ -64,10 +119,17 @@ export async function parseImage(imageData: string | File, language: OutputLangu
       throw new Error('内容被判定为无效信息')
     }
 
+    // 4. 后处理：如果检测到二维码但 AI 没有填写，手动补充
+    const keyInfo = result.key_info || {}
+    if (hasQRCode && !keyInfo.link) {
+      keyInfo.link = language === 'zh-en' ? '二维码报名 | QR Code Registration' : '二维码报名'
+      console.log('📝 自动补充二维码报名信息')
+    }
+
     return {
       title: result.title || '',
       type: result.type || 'activity',
-      key_info: result.key_info || {},
+      key_info: keyInfo,
       summary: result.summary || '',
       raw_content: '📷 图片海报（已通过 OCR 提取信息）',
       tags: result.tags || [],

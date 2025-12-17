@@ -24,9 +24,37 @@ function getOpenAIClient() {
 
 /**
  * 提取网页正文内容
+ * 对于微信公众号链接，优先使用后端API（支持OCR图片文字提取）
  */
 async function extractWebContent(url: string): Promise<string> {
   try {
+    // 微信公众号链接：优先使用后端API（支持OCR）
+    if (url.includes('mp.weixin.qq.com')) {
+      const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5001'
+      
+      try {
+        // 调用后端API提取内容（包括OCR）
+        const response = await fetch(`${API_URL}/api/extract-content`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ url }),
+          signal: AbortSignal.timeout(120000), // 120秒超时（OCR需要时间）
+        })
+
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.content && result.content.length > 100) {
+            console.log('✅ 使用后端API提取内容（包含OCR）')
+            return result.content.substring(0, 10000) // 限制长度
+          }
+        }
+      } catch (error) {
+        console.log('后端API调用失败，使用备选方案:', error)
+      }
+    }
+
     // 优先尝试 Jina Reader API（最可靠，支持微信公众号）
     try {
       const jinaUrl = `https://r.jina.ai/${url}`
@@ -39,7 +67,7 @@ async function extractWebContent(url: string): Promise<string> {
 
       if (response.ok) {
         const content = await response.text()
-        if (content.length > 100 && !content.includes('环境异常') && !content.includes('完成验证后即可继续访问')) {
+        if (content.length > 100 && !content.includes('环境异常') && !content.includes('完成验证后即可继续访问') && !content.includes('去验证')) {
           return content.substring(0, 5000) // 限制长度
         }
       }
@@ -65,7 +93,7 @@ async function extractWebContent(url: string): Promise<string> {
 
     // 检查是否是验证页面
     if (html.includes('环境异常') || html.includes('完成验证后即可继续访问')) {
-      throw new Error('需要验证才能访问，请手动复制内容')
+      throw new Error('该微信公众号文章需要验证才能访问。请手动复制文章内容，然后使用「文本」输入方式进行识别')
     }
 
     // 解析 HTML

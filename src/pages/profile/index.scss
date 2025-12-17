@@ -289,41 +289,52 @@
 
   // 底部信息 - 参考图片版式
   .footer {
-    margin-top: 60rpx;
-    padding: 32rpx;
+    margin-top: 30rpx;
+    padding: 40rpx 32rpx;
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: flex-start; // 改为从顶部开始
     gap: 12rpx;
     position: relative;
+    text-align: center;
     
+    // 浅紫色框只框住主标题
     &::before {
       content: '';
       position: absolute;
-      top: 0;
+      top: 40rpx; // 与 padding-top 对齐，框住主标题
       left: 50%;
       transform: translateX(-50%);
-      width: 200rpx;
-      padding: 48rpx 64rpx;
-      background: linear-gradient(135deg, rgba($primary, 0.03) 0%, rgba($primary, 0.08) 100%);
-      border-radius: 40rpx;
+      width: 280rpx;
+      height: 64rpx; // 包裹主标题的高度（26rpx字体 + 上下padding）
+      box-sizing: border-box;
+      background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($primary, 0.1) 100%);
+      border-radius: 32rpx;
       z-index: 0;
     }
 
     .footer-text {
-      font-size: 26rpx;
+      font-size: 26rpx; // 恢复原始大小
       font-weight: 600;
       color: $primary;
       position: relative;
       z-index: 1;
+      text-align: center;
+      line-height: 1.4;
+      letter-spacing: 0.5rpx;
+      padding: 16rpx 0; // 添加上下内边距，让框更好地包裹文字
+      margin-top: 0; // 确保从顶部开始
     }
 
     .footer-slogan {
-      font-size: 22rpx;
+      font-size: 22rpx; // 恢复原始大小
       color: $text-secondary;
       position: relative;
       z-index: 1;
-      letter-spacing: 1rpx;
+      letter-spacing: 1rpx; // 恢复原始字间距
+      text-align: center;
+      margin-top: 0; // 确保副标题在框外
     }
   }
 }

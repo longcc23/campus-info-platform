@@ -36,20 +36,8 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // 处理图片：如果是 base64 字符串，需要转换
+    // 处理图片：base64 字符串直接传递给解析器
     let processedContent: string | File = content
-
-    if (type === 'image' && typeof content === 'string') {
-      // Base64 图片数据：data:image/jpeg;base64,/9j/4AAQ...
-      // 暂时不支持，返回错误提示
-      return NextResponse.json(
-        {
-          success: false,
-          error: '图片上传功能尚未实现，请使用文本或链接输入',
-        } as AIParseResponse,
-        { status: 400 }
-      )
-    }
 
     // 调用解析器
     const result = await parseContent(type, processedContent, language)

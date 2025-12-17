@@ -2,7 +2,7 @@
  * 浏览历史页面
  */
 
-import { View, Text, ScrollView, Button } from '@tarojs/components'
+import { View, Text, ScrollView, Button, Image } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
 import { getViewHistory, type Event, recordViewHistory, clearViewHistory } from '../../utils/supabase-rest'
@@ -26,6 +26,7 @@ export default function History() {
   const [selectedItem, setSelectedItem] = useState<Event | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set())
   const [hideExpired, setHideExpired] = useState(false)
+  const [showPoster, setShowPoster] = useState(false) // 控制海报显示状态
 
   useEffect(() => {
     loadHistory()
@@ -77,6 +78,7 @@ export default function History() {
 
   const handleEventClick = async (item: Event) => {
     setSelectedItem(item)
+    setShowPoster(false) // 重置海报显示状态
     
     // 记录浏览历史
     try {
@@ -87,6 +89,51 @@ export default function History() {
     } catch (error) {
       console.error('记录浏览历史失败:', error)
     }
+  }
+
+  // 格式化日期为 2025.12.30 格式
+  const formatDate = (dateStr: string): string => {
+    if (!dateStr) return ''
+    
+    // 格式1: 2025年12月30日 -> 2025.12.30
+    const match1 = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
+    if (match1) {
+      const year = match1[1]
+      const month = match1[2].padStart(2, '0')
+      const day = match1[3].padStart(2, '0')
+      return `${year}.${month}.${day}`
+    }
+    
+    // 格式2: 12月30日 -> 当前年份.12.30
+    const match2 = dateStr.match(/(\d{1,2})月(\d{1,2})日/)
+    if (match2) {
+      const currentYear = new Date().getFullYear()
+      const month = match2[1].padStart(2, '0')
+      const day = match2[2].padStart(2, '0')
+      return `${currentYear}.${month}.${day}`
+    }
+    
+    // 格式3: December 30, 2025 或 Dec 30, 2025
+    const match3 = dateStr.match(/(\d{1,2})[,\s]+(\d{4})/i)
+    if (match3) {
+      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+      const monthMatch = dateStr.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i)
+      if (monthMatch) {
+        const month = (monthNames.indexOf(monthMatch[1].toLowerCase()) + 1).toString().padStart(2, '0')
+        const day = match3[1].padStart(2, '0')
+        const year = match3[2]
+        return `${year}.${month}.${day}`
+      }
+    }
+    
+    // 格式4: 已经是 2025.12.30 格式
+    if (/^\d{4}\.\d{1,2}\.\d{1,2}$/.test(dateStr)) {
+      const parts = dateStr.split('.')
+      return `${parts[0]}.${parts[1].padStart(2, '0')}.${parts[2].padStart(2, '0')}`
+    }
+    
+    // 如果无法解析，返回原字符串
+    return dateStr
   }
 
   const handleAddToCalendar = async (item: Event) => {
@@ -292,11 +339,13 @@ export default function History() {
                 {/* 头部：类型标签和收藏按钮 */}
                 <View className="card-header">
                   <View className="card-tags">
+                    {item.is_top && (
+                      <Text className="top-tag">置顶</Text>
+                    )}
                     <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : item.type === 'lecture' ? 'lecture' : 'activity'}`}>
                       {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
                     </Text>
                     {expired && <Text className="expired-tag">已过期</Text>}
-                    <Text className="source-tag">{item.source_group}</Text>
                   </View>
                   <FavoriteButton
                     eventId={item.id}
@@ -324,7 +373,7 @@ export default function History() {
                     item.key_info.deadline && (
                       <View className="info-item">
                         <Text className="info-icon">⏰</Text>
-                        <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.key_info.deadline}</Text>
+                        <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{formatDate(item.key_info.deadline)}</Text>
                       </View>
                     )
                   ) : (
@@ -333,7 +382,7 @@ export default function History() {
                       {item.key_info.date && (
                         <View className="info-item">
                           <Text className="info-icon">📅</Text>
-                          <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.key_info.date}</Text>
+                          <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{formatDate(item.key_info.date)}</Text>
                         </View>
                       )}
                       {item.key_info.time && (
@@ -371,7 +420,10 @@ export default function History() {
           <View className="detail-header">
             <Button 
               className="detail-back-btn"
-              onClick={() => setSelectedItem(null)}
+              onClick={() => {
+                setSelectedItem(null)
+                setShowPoster(false)
+              }}
             >
               <Text>←</Text>
             </Button>
@@ -466,7 +518,7 @@ export default function History() {
                                   handleCopyLink(selectedItem.key_info.contact || '')
                                 }}
                               >
-                                <Text>复制 | Copy</Text>
+                                <Text>Copy</Text>
                               </View>
                             </View>
                           </View>
@@ -492,7 +544,7 @@ export default function History() {
                           </View>
                           <View className="detail-info-content">
                             <Text className="detail-info-label">截止时间 | Deadline:</Text>
-                            <Text className="detail-info-value">{selectedItem.key_info.deadline}</Text>
+                            <Text className="detail-info-value">{formatDate(selectedItem.key_info.deadline)}</Text>
                           </View>
                         </View>
                       )}
@@ -515,7 +567,7 @@ export default function History() {
                                   handleCopyLink((selectedItem.key_info.link || '').replace(/^mailto:/i, ''))
                                 }}
                               >
-                                <Text>复制 | Copy</Text>
+                                <Text>Copy</Text>
                               </View>
                             </View>
                           </View>
@@ -534,7 +586,7 @@ export default function History() {
                           </View>
                           <View className="detail-info-content">
                             <Text className="detail-info-label">日期 | Date:</Text>
-                            <Text className="detail-info-value">{selectedItem.key_info.date}</Text>
+                            <Text className="detail-info-value">{formatDate(selectedItem.key_info.date)}</Text>
                           </View>
                         </View>
                       )}
@@ -570,7 +622,7 @@ export default function History() {
                           </View>
                           <View className="detail-info-content">
                             <Text className="detail-info-label">截止时间 | Deadline:</Text>
-                            <Text className="detail-info-value">{selectedItem.key_info.deadline}</Text>
+                            <Text className="detail-info-value">{formatDate(selectedItem.key_info.deadline)}</Text>
                           </View>
                         </View>
                       )}
@@ -593,7 +645,7 @@ export default function History() {
                                   handleCopyLink(selectedItem.key_info.registration_link || '')
                                 }}
                               >
-                                <Text>复制 | Copy</Text>
+                                <Text>Copy</Text>
                               </View>
                             </View>
                           </View>
@@ -611,7 +663,7 @@ export default function History() {
                     <>
                       <Text className="detail-body-title">活动详情 | Details</Text>
                       <Text className="detail-summary">{selectedItem.summary}</Text>
-                      {selectedItem.raw_content && selectedItem.raw_content.trim() && (
+                      {selectedItem.raw_content && selectedItem.raw_content.trim() && !selectedItem.raw_content.startsWith('📷') && (
                         <View className="detail-raw-content">
                           <Text style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{selectedItem.raw_content}</Text>
                         </View>
@@ -621,9 +673,33 @@ export default function History() {
                     <>
                       <Text className="detail-body-title">活动详情 | Details</Text>
                       <Text className="detail-summary" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                        {selectedItem.raw_content?.trim() || selectedItem.summary || ''}
+                        {selectedItem.raw_content?.trim() && !selectedItem.raw_content.startsWith('📷')
+                          ? selectedItem.raw_content 
+                          : selectedItem.summary || '暂无详情'}
                       </Text>
                     </>
+                  )}
+
+                  {/* 如果有图片海报，显示查看按钮或图片 */}
+                  {selectedItem.image_url && (
+                    <View className="detail-poster">
+                      {showPoster ? (
+                        <Image 
+                          src={selectedItem.image_url} 
+                          mode="widthFix" 
+                          className="detail-poster-image"
+                          showMenuByLongpress
+                          lazyLoad
+                        />
+                      ) : (
+                        <Button 
+                          className="load-poster-btn"
+                          onClick={() => setShowPoster(true)}
+                        >
+                          <Text>点击查看海报 | view poster</Text>
+                        </Button>
+                      )}
+                    </View>
                   )}
                 </View>
               </View>

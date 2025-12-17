@@ -15,6 +15,7 @@ export default function IngestView() {
   const [logs, setLogs] = useState<string[]>([])
   const [originalContent, setOriginalContent] = useState('')
   const [outputLanguage, setOutputLanguage] = useState<OutputLanguage>('zh')
+  const [imageUrl, setImageUrl] = useState<string | null>(null)  // 存储上传后的图片 URL
 
   const handleParse = async () => {
     if (!inputContent.trim()) {
@@ -25,6 +26,35 @@ export default function IngestView() {
     setIsLoading(true)
     setLogs([`🔄 开始 AI 识别...`])
     setOriginalContent(inputContent)
+    setImageUrl(null)  // 重置图片 URL
+
+    // 如果是图片类型，先上传图片
+    let uploadedImageUrl: string | null = null
+    if (inputType === 'image' && inputContent.startsWith('data:image')) {
+      setLogs(prev => [...prev, '📤 正在上传图片...'])
+      try {
+        const formData = new FormData()
+        formData.append('base64', inputContent)
+        
+        const uploadResponse = await fetch('/api/upload', {
+          method: 'POST',
+          body: formData,
+        })
+        
+        const uploadResult = await uploadResponse.json()
+        
+        if (uploadResult.success && uploadResult.url) {
+          uploadedImageUrl = uploadResult.url
+          setImageUrl(uploadedImageUrl)
+          setLogs(prev => [...prev, '✅ 图片上传成功'])
+        } else {
+          // 上传失败不阻止解析，只记录日志
+          setLogs(prev => [...prev, `⚠️ 图片上传失败: ${uploadResult.error || '未知错误'}，将不保存原图`])
+        }
+      } catch (uploadError) {
+        setLogs(prev => [...prev, `⚠️ 图片上传异常: ${uploadError instanceof Error ? uploadError.message : '未知错误'}，将不保存原图`])
+      }
+    }
 
     try {
       const response = await fetch('/api/ai/parse', {
@@ -74,8 +104,13 @@ export default function IngestView() {
       const result = await response.json()
 
       if (result.success && result.data) {
-        setParsedData(result.data)
-        setLogs(result.logs || [`✅ AI 识别成功`])
+        // 如果有上传的图片 URL，添加到解析结果中
+        const dataWithImage = {
+          ...result.data,
+          image_url: uploadedImageUrl || undefined,
+        }
+        setParsedData(dataWithImage)
+        setLogs(prev => [...(result.logs || []), `✅ AI 识别成功`])
       } else {
         setLogs([`❌ ${result.error || '识别失败'}`])
         alert(result.error || '识别失败，请重试')
@@ -102,6 +137,13 @@ export default function IngestView() {
       return
     }
 
+    // 处理 raw_content：图片类型不存储 base64 数据
+    let rawContentToSave = originalContent || parsedData.raw_content || ''
+    if (inputType === 'image' && rawContentToSave.startsWith('data:image')) {
+      // 图片类型：不存储 base64 数据，使用占位文字
+      rawContentToSave = '📷 图片海报（已通过 OCR 提取信息）'
+    }
+
     try {
       const response = await fetch('/api/events', {
         method: 'POST',
@@ -116,7 +158,8 @@ export default function IngestView() {
           tags: parsedData.tags || [],
           key_info: parsedData.key_info || {},
           summary: parsedData.summary || '',
-          raw_content: originalContent || parsedData.raw_content || '',
+          raw_content: rawContentToSave,
+          image_url: parsedData.image_url || imageUrl || undefined,
         }),
       })
 
@@ -157,6 +200,13 @@ export default function IngestView() {
       return
     }
 
+    // 处理 raw_content：图片类型不存储 base64 数据
+    let rawContentToPublish = originalContent || parsedData.raw_content || ''
+    if (inputType === 'image' && rawContentToPublish.startsWith('data:image')) {
+      // 图片类型：不存储 base64 数据，使用占位文字
+      rawContentToPublish = '📷 图片海报（已通过 OCR 提取信息）'
+    }
+
     try {
       const response = await fetch('/api/events', {
         method: 'POST',
@@ -171,7 +221,8 @@ export default function IngestView() {
           tags: parsedData.tags || [],
           key_info: parsedData.key_info || {},
           summary: parsedData.summary || '',
-          raw_content: originalContent || parsedData.raw_content || '',
+          raw_content: rawContentToPublish,
+          image_url: parsedData.image_url || imageUrl || undefined,
         }),
       })
 

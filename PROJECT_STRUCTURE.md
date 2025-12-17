@@ -62,8 +62,6 @@ infor_platform/
 │   ├── generate_verification_report.py # 数据核验报告生成
 │   ├── clear_all_data.py        # 清空所有数据
 │   ├── cleanup_duplicates.py    # 清理重复数据
-│   ├── init_sample_data.py      # 示例数据初始化
-│   ├── check_data.py            # 数据检查工具
 │   ├── start_api.sh             # API 服务启动脚本
 │   └── requirements.txt         # Python 依赖
 ├── docs/                        # 项目文档
@@ -107,8 +105,6 @@ infor_platform/
 | `scripts/generate_verification_report.py` | 数据核验报告生成（Markdown） |
 | `scripts/clear_all_data.py` | 清空所有数据 |
 | `scripts/cleanup_duplicates.py` | 清理重复数据 |
-| `scripts/init_sample_data.py` | 示例数据初始化 |
-| `scripts/check_data.py` | 数据检查工具 |
 | `scripts/start_api.sh` | API 服务启动脚本 |
 
 ---
@@ -146,11 +142,10 @@ infor_platform/
 - `scripts/import_excel_data.py` - Excel 批量导入（基础）
 - `scripts/generate_verification_report.py` - 数据核验报告生成
 - `scripts/clear_all_data.py` - 数据清空工具
-- `scripts/init_sample_data.py` - 示例数据初始化
 
 ### 删除文件
 
-- 临时测试脚本（9 个一次性修复脚本）
+- 临时测试脚本（13 个冗余或一次性修复脚本）
 - 临时测试文档（2 个 API 测试文档）
 
 ### 更新的 .gitignore
@@ -162,6 +157,3 @@ infor_platform/
 ---
 
 **最后更新**：2025年12月18日
-
-
-

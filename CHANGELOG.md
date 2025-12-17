@@ -86,8 +86,10 @@
 ### 📚 文档更新
 - 更新 VERSION.md（V1.1.0）
 - 更新 CHANGELOG.md
-- 更新 README.md（新增标签系统说明）
+- 重构 README.md（优化结构顺序、表达方式，新增核心价值、设计初衷、用户画像等章节）
 - 更新 PROJECT_STRUCTURE.md
+- 更新 FEATURE_COMPLETION_REPORT.md（标记 OCR 功能已完成）
+- 更新 scripts/README.md（移除已删除文件引用）
 
 ---
 

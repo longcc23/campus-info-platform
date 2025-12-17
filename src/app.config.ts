@@ -21,13 +21,13 @@ export default {
     list: [
       {
         pagePath: 'pages/index/index',
-        text: '首页 | Home',
+        text: 'Home',
         iconPath: 'assets/tabbar/home.png',
         selectedIconPath: 'assets/tabbar/home-active.png'
       },
       {
         pagePath: 'pages/profile/index',
-        text: '我的 | My',
+        text: 'My',
         iconPath: 'assets/tabbar/profile.png',
         selectedIconPath: 'assets/tabbar/profile-active.png'
       }

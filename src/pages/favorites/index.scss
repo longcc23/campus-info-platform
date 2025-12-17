@@ -75,6 +75,16 @@
           gap: $spacing-1;
           flex: 1;
 
+          .top-tag {
+            @include text-caption;
+            padding: 4rpx $spacing-1;
+            border-radius: $radius-sm;
+            font-weight: $font-weight-semibold;
+            background-color: rgba(#EF4444, 0.1);
+            color: #EF4444;
+            border: 1rpx solid rgba(#EF4444, 0.3);
+          }
+
           .type-tag {
             @include text-caption;
             padding: 4rpx $spacing-1;
@@ -500,4 +510,32 @@
 
 .expired-text {
   color: $text-tertiary !important;
+}
+
+.detail-poster {
+  margin-bottom: $spacing-5;
+  
+  .detail-poster-image {
+    width: 100%;
+    border-radius: $radius-lg;
+    margin-top: $spacing-3;
+  }
+  
+  .load-poster-btn {
+    width: 100%;
+    margin-top: $spacing-3;
+    padding: $spacing-4 $spacing-5;
+    background: linear-gradient(135deg, #F3E8FF 0%, #EDE9FE 100%);
+    border: 2rpx dashed $primary;
+    border-radius: $radius-lg;
+    color: $primary;
+    font-size: $font-size-base;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    &:active {
+      background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
+    }
+  }
 }

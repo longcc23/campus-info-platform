@@ -39,6 +39,10 @@ ENV/
 *.tmp
 *.temp
 微信图片_*.jpg
+WPS图片*.png
+
+# Upload directories
+uploads/
 
 # Excel files (source data with sensitive info)
 *.xlsx

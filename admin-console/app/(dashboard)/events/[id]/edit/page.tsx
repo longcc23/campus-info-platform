@@ -243,16 +243,16 @@ export default function EditEventPage() {
               <span className="font-medium">状态：</span>
               <span
                 className={`ml-2 px-2 py-1 text-xs font-medium rounded-full ${
-                  eventData.status === 'published'
+                  eventData.status === 'active' || eventData.status === 'published'
                     ? 'bg-green-100 text-green-800'
-                    : eventData.status === 'draft'
+                    : eventData.status === 'inactive' || eventData.status === 'draft'
                     ? 'bg-gray-100 text-gray-800'
                     : 'bg-orange-100 text-orange-800'
                 }`}
               >
-                {eventData.status === 'published'
+                {eventData.status === 'active' || eventData.status === 'published'
                   ? '已发布'
-                  : eventData.status === 'draft'
+                  : eventData.status === 'inactive' || eventData.status === 'draft'
                   ? '草稿'
                   : '已下架'}
               </span>

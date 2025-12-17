@@ -57,14 +57,14 @@ SYSTEM_PROMPT = """
     "type": "recruit" (如果是招聘/实习) 或 "activity" (如果是讲座/比赛/活动) 或 "lecture" (如果是讲座),
     "source_group": "信息发布来源 (注意：不是公司名！只能填以下之一：CDC, 学院官方, 内推, 校友推荐, 公司官方, 其他)",
     "key_info": {
-        "date": "活动日期 (格式如 12月4日，如果没有则为空字符串)",
-        "time": "具体时间 (如 14:00-16:00，如果没有则为空字符串)",
+        "date": "活动日期 (格式如 2025年12月23日 或 12月23日，必须包含年份！如果海报上写了年份如'Dec. 23rd, 2025'，必须提取为'2025年12月23日'，如果没有则为空字符串)",
+        "time": "具体时间 (如 14:00-15:30，如果没有则为空字符串)",
         "location": "地点 (如 北京、上海，如果没有则为空字符串)",
         "deadline": "截止日期和时间 (格式如 2025年12月5日中午12:00 或 12月5日12:00，必须精确提取完整的时间信息，包括日期和时间部分，如果没有则为空字符串)",
         "company": "公司名称 (如果是招聘/实习，必须提取公司名称，如：度小满、美团等，如果没有则为空字符串)",
         "position": "岗位名称 (可以是字符串，如果有多个岗位用'与'或'、'连接，如：组织发展岗与AI产品经理岗，如果没有则为空字符串)",
         "education": "学历要求 (如：2026届全日制硕士及以上学历毕业生，如果没有则为空字符串)",
-        "link": "投递链接/问卷链接 (完整的URL，如：https://career.wjx.cn/vm/eCMU7Q0.aspx，如果没有则为空字符串)",
+        "link": "投递链接/问卷链接/报名方式 (完整的URL或邮箱，如：https://career.wjx.cn/vm/eCMU7Q0.aspx 或 email@example.com。如果是二维码报名，填写'二维码报名'或'扫码报名'，如果没有则为空字符串)",
         "referral": "是否内推 (true 或 false，根据内容中是否包含'内推'等信息判断)"
     },
     "tags": ["标签1", "标签2", "标签3"],
@@ -77,6 +77,9 @@ SYSTEM_PROMPT = """
 2. **岗位名称**：如果有多个岗位，必须全部提取，用"与"或"、"连接
 3. **学历要求**：必须提取明确的学历要求（如：2026届、硕士及以上等）
 4. **链接信息**：必须提取所有URL链接（问卷链接、投递链接等）
+   - 如果海报上有二维码（如"扫码报名"、"Scan code to register"），link 字段填写"二维码报名"或"扫码报名"
+   - 如果海报上既有二维码又有URL链接，优先填写URL链接
+   - 如果只有二维码没有URL，必须填写"二维码报名"标识
 5. **内推标识**：如果内容中包含"内推"、"内推群"等关键词，referral 设为 true
 6. **标题优化**：标题应该包含"公司名称-岗位名称"或"公司名称-活动名称"的格式，确保信息完整
 7. **标签生成**：根据公司、岗位类型、地点等生成3-5个相关标签
@@ -88,12 +91,16 @@ SYSTEM_PROMPT = """
    - 如果是公司自己发布的官方招聘 → 公司官方
    - 如果来源不明确 → 其他
    - ⚠️ 注意：公司名称（如"亚投行"、"腾讯"）应该放在 key_info.company 字段，不是 source_group！
-9. **时间信息提取（重要）**：
+9. **时间信息提取（重要！必须包含年份！）**：
+   - date：如果是活动，提取活动日期，**必须包含年份**（格式如"2025年12月23日"）
+     - 如果海报上明确写了年份（如"Dec. 23rd, 2025"、"2025年12月23日"），必须提取完整日期包含年份
+     - 如果只有月日（如"12月23日"），且海报上有年份信息（如"2025"），必须组合为"2025年12月23日"
+     - 如果海报上完全没有年份信息，才可以使用"12月23日"格式
+   - time：如果是活动，提取具体时间（格式如"14:00-15:30"），必须精确匹配海报上的时间
    - deadline：必须精确提取截止日期和时间，格式如"2025年12月5日中午12:00"或"12月5日12:00"
-   - date：如果是活动，提取活动日期（格式如"12月4日"或"2025年12月4日"）
-   - time：如果是活动，提取具体时间（格式如"14:00-16:00"）
    - 如果文档中有"截止时间"、"截止日期"、"报名截止"、"活动时间"、"活动日期"等关键词，必须提取完整的时间信息
    - 不要遗漏时间部分（如"中午12:00"、"下午3点"等）
+   - **特别注意**：海报上的日期格式可能是英文（如"Dec. 23rd, 2025"），必须转换为中文格式"2025年12月23日"
 10. **内容质量处理**：
    - 如果输入内容包含大量UI元素、按钮文字、干扰信息，请忽略这些干扰内容
    - 专注于提取实际的活动/招聘信息，忽略"微信扫一扫"、"关注公众号"等无关文字
@@ -185,7 +192,7 @@ def _clean_html_content(html):
     return html
 
 def _extract_wechat_content(html):
-    """从微信公众号 HTML 中提取正文内容"""
+    """从微信公众号 HTML 中提取正文内容，包括图片中的文字（OCR）"""
     soup = BeautifulSoup(html, 'html.parser')
     
     # 检查是否是验证页面
@@ -209,25 +216,119 @@ def _extract_wechat_content(html):
             if text and len(text) > 20:  # 过滤太短的内容
                 article_parts.append(text)
     
-    # 如果没有找到特定选择器的内容，说明可能是验证页面或动态加载
+    # 如果没有找到特定选择器的内容，尝试从 body 提取
+    # 注意：不要在这里返回 None，因为后面还有 OCR 处理
     if not article_parts:
-        # 检查是否有明显的验证提示
         body = soup.find('body')
         if body:
             body_text = body.get_text(separator='\n', strip=True)
-            # 如果 body 中包含大量干扰信息，可能是验证页面
-            noise_keywords = ['微信扫一扫', '关注该公众号', '取消', '允许', '知道了', '使用小程序']
-            noise_count = sum(1 for keyword in noise_keywords if keyword in body_text)
-            if noise_count > 5:  # 干扰关键词过多，可能是验证页面
-                return None
-            # 如果内容长度足够，尝试提取
+            # 如果内容长度足够，尝试提取（即使有干扰信息，也先提取，后面会清理）
             if len(body_text) > 100:
                 article_parts.append(body_text)
+    
+    # 提取文章中的图片并OCR识别文字（即使正文为空也要执行）
+    if OCR_AVAILABLE:
+        try:
+            # 查找文章内容区域中的所有图片
+            content_area = soup.select_one('#js_content, .rich_media_content')
+            if content_area:
+                images = content_area.find_all('img')
+                print(f"📷 发现 {len(images)} 张图片，尝试OCR提取文字...")
+                
+                ocr_texts = []  # 单独收集OCR文字，避免被清理
+                
+                for idx, img in enumerate(images):
+                    # 微信公众号图片通常使用 data-src 懒加载
+                    img_url = img.get('data-src') or img.get('src') or img.get('data-original')
+                    if not img_url:
+                        print(f"  ⚠️ 图片 {idx+1} 没有找到URL")
+                        continue
+                    
+                    print(f"  🔍 图片 {idx+1} URL: {img_url[:100]}...")
+                    
+                    # 处理相对URL
+                    if img_url.startswith('//'):
+                        img_url = 'https:' + img_url
+                    elif img_url.startswith('/'):
+                        img_url = 'https://mp.weixin.qq.com' + img_url
+                    elif not img_url.startswith('http'):
+                        # 可能是相对路径
+                        img_url = 'https://mp.weixin.qq.com/' + img_url.lstrip('/')
+                    
+                    # 跳过小图标和表情，但保留可能的正文图片
+                    # 微信公众号正文图片通常包含 mmbiz、mmecoa 或 wx_fmt
+                    if 'mmbiz' not in img_url and 'mmecoa' not in img_url and 'wx_fmt' not in img_url and 'qpic.cn' not in img_url:
+                        # 检查图片尺寸，如果太小可能是图标
+                        img_width = img.get('width') or img.get('data-width')
+                        img_height = img.get('height') or img.get('data-height')
+                        if img_width and img_height:
+                            try:
+                                if int(img_width) < 100 or int(img_height) < 100:
+                                    print(f"  ⏭️ 图片 {idx+1} 尺寸太小，跳过")
+                                    continue
+                            except:
+                                pass
+                        # 如果无法判断尺寸，也尝试OCR（可能是正文图片）
+                    
+                    try:
+                        # 下载图片
+                        print(f"  📥 下载图片 {idx+1}...")
+                        resp = requests.get(img_url, timeout=15, headers={
+                            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36',
+                            'Referer': 'https://mp.weixin.qq.com/'
+                        })
+                        if resp.status_code == 200:
+                            # 保存临时文件
+                            import tempfile
+                            with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+                                tmp_file.write(resp.content)
+                                tmp_path = tmp_file.name
+                            
+                            print(f"  🔍 开始OCR识别图片 {idx+1}...")
+                            # OCR提取文字
+                            ocr_text = extract_text_from_image(tmp_path)
+                            if ocr_text and len(ocr_text.strip()) > 10:
+                                print(f"  ✅ 图片 {idx+1} OCR成功: {len(ocr_text)} 字符")
+                                print(f"  📝 OCR内容预览: {ocr_text[:200]}...")
+                                ocr_texts.append(f"[图片{idx+1}文字]: {ocr_text}")
+                            else:
+                                print(f"  ⚠️ 图片 {idx+1} OCR未提取到有效文字")
+                            
+                            # 清理临时文件
+                            os.unlink(tmp_path)
+                        else:
+                            print(f"  ⚠️ 图片 {idx+1} 下载失败: HTTP {resp.status_code}")
+                    except Exception as e:
+                        print(f"  ⚠️ 图片 {idx+1} OCR失败: {e}")
+                        import traceback
+                        traceback.print_exc()
+                        continue
+                
+                # 将OCR文字添加到内容中（在清理之前）
+                if ocr_texts:
+                    print(f"📝 共提取 {len(ocr_texts)} 张图片的文字，合并到正文...")
+                    article_parts.extend(ocr_texts)
+        except Exception as e:
+            print(f"⚠️ 图片OCR处理出错: {e}")
+            import traceback
+            traceback.print_exc()
     
     if article_parts:
         content = '\n\n'.join(article_parts)
         
-        # 清理干扰文本（更全面的模式）
+        # 分离OCR文字和正文，保护OCR文字不被清理
+        lines = content.split('\n')
+        ocr_lines = []
+        text_lines = []
+        
+        for line in lines:
+            if line.strip().startswith('[图片') and '文字]:' in line:
+                ocr_lines.append(line)  # 保留OCR文字
+            else:
+                text_lines.append(line)
+        
+        # 只清理正文部分
+        text_content = '\n'.join(text_lines)
         noise_patterns = [
             r'在小说阅读器中沉浸阅读',
             r'预览时标签不可点',
@@ -257,12 +358,18 @@ def _extract_wechat_content(html):
             r'^\s*TIANYAN\s*$',
         ]
         for pattern in noise_patterns:
-            content = re.sub(pattern, '', content, flags=re.IGNORECASE | re.MULTILINE)
+            text_content = re.sub(pattern, '', text_content, flags=re.IGNORECASE | re.MULTILINE)
         
         # 清理多余空行和标点
-        content = re.sub(r'\n{3,}', '\n\n', content)
-        content = re.sub(r'[，。]{2,}', '。', content)
-        content = content.strip()
+        text_content = re.sub(r'\n{3,}', '\n\n', text_content)
+        text_content = re.sub(r'[，。]{2,}', '。', text_content)
+        text_content = text_content.strip()
+        
+        # 合并清理后的正文和OCR文字
+        if ocr_lines:
+            content = text_content + '\n\n' + '\n\n'.join(ocr_lines)
+        else:
+            content = text_content
         
         # 检查清理后的内容质量
         # 如果干扰信息占比过高，返回 None
@@ -300,7 +407,7 @@ def _fetch_url_content_http(url, is_wechat=False):
             return False, None
         
         # 先检查是否需要验证（在清理 HTML 前检查，更快）
-        if '环境异常' in resp.text or '完成验证后即可继续访问' in resp.text:
+        if '环境异常' in resp.text or '完成验证后即可继续访问' in resp.text or '去验证' in resp.text:
             print(f"⚠️ 检测到验证页面，HTTP 抓取失败")
             return False, None
         
@@ -379,11 +486,56 @@ def _fetch_wechat_with_playwright(url):
             # 尝试多种方式获取内容
             content = None
             
-            # 方法 1: 尝试获取 #js_content
+            # 方法 1: 尝试获取 #js_content（包括图片OCR）
             try:
                 js_content_elem = page.query_selector('#js_content')
                 if js_content_elem:
                     content = js_content_elem.inner_text()
+                    
+                    # 提取图片并OCR
+                    if OCR_AVAILABLE:
+                        try:
+                            images = js_content_elem.query_selector_all('img')
+                            print(f"📷 Playwright 发现 {len(images)} 张图片，尝试OCR提取文字...")
+                            image_texts = []
+                            
+                            for idx, img in enumerate(images):
+                                try:
+                                    img_src = img.get_attribute('data-src') or img.get_attribute('src')
+                                    if not img_src or 'mmbiz' not in img_src and 'wx_fmt' not in img_src:
+                                        continue
+                                    
+                                    # 处理URL
+                                    if img_src.startswith('//'):
+                                        img_src = 'https:' + img_src
+                                    elif img_src.startswith('/'):
+                                        img_src = 'https://mp.weixin.qq.com' + img_src
+                                    
+                                    # 下载图片
+                                    resp = requests.get(img_src, timeout=10, headers={
+                                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+                                    })
+                                    if resp.status_code == 200:
+                                        import tempfile
+                                        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+                                            tmp_file.write(resp.content)
+                                            tmp_path = tmp_file.name
+                                        
+                                        ocr_text = extract_text_from_image(tmp_path)
+                                        if ocr_text and len(ocr_text.strip()) > 10:
+                                            print(f"  ✅ 图片 {idx+1} OCR成功: {len(ocr_text)} 字符")
+                                            image_texts.append(f"[图片{idx+1}文字]: {ocr_text}")
+                                        
+                                        os.unlink(tmp_path)
+                                except Exception as e:
+                                    print(f"  ⚠️ 图片 {idx+1} OCR失败: {e}")
+                                    continue
+                            
+                            if image_texts:
+                                content = content + '\n\n' + '\n\n'.join(image_texts)
+                        except Exception as e:
+                            print(f"⚠️ 图片OCR处理出错: {e}")
+                    
                     if content and len(content) > 100:
                         print(f"✅ Playwright 通过 #js_content 获取内容 {len(content)} 字符")
                         browser.close()
@@ -391,11 +543,54 @@ def _fetch_wechat_with_playwright(url):
             except:
                 pass
             
-            # 方法 2: 尝试获取 .rich_media_content
+            # 方法 2: 尝试获取 .rich_media_content（包括图片OCR）
             try:
                 rich_content_elem = page.query_selector('.rich_media_content')
                 if rich_content_elem:
                     content = rich_content_elem.inner_text()
+                    
+                    # 提取图片并OCR（与方法1相同的逻辑）
+                    if OCR_AVAILABLE:
+                        try:
+                            images = rich_content_elem.query_selector_all('img')
+                            print(f"📷 Playwright 发现 {len(images)} 张图片，尝试OCR提取文字...")
+                            image_texts = []
+                            
+                            for idx, img in enumerate(images):
+                                try:
+                                    img_src = img.get_attribute('data-src') or img.get_attribute('src')
+                                    if not img_src or 'mmbiz' not in img_src and 'wx_fmt' not in img_src:
+                                        continue
+                                    
+                                    if img_src.startswith('//'):
+                                        img_src = 'https:' + img_src
+                                    elif img_src.startswith('/'):
+                                        img_src = 'https://mp.weixin.qq.com' + img_src
+                                    
+                                    resp = requests.get(img_src, timeout=10, headers={
+                                        'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36'
+                                    })
+                                    if resp.status_code == 200:
+                                        import tempfile
+                                        with tempfile.NamedTemporaryFile(delete=False, suffix='.jpg') as tmp_file:
+                                            tmp_file.write(resp.content)
+                                            tmp_path = tmp_file.name
+                                        
+                                        ocr_text = extract_text_from_image(tmp_path)
+                                        if ocr_text and len(ocr_text.strip()) > 10:
+                                            print(f"  ✅ 图片 {idx+1} OCR成功: {len(ocr_text)} 字符")
+                                            image_texts.append(f"[图片{idx+1}文字]: {ocr_text}")
+                                        
+                                        os.unlink(tmp_path)
+                                except Exception as e:
+                                    print(f"  ⚠️ 图片 {idx+1} OCR失败: {e}")
+                                    continue
+                            
+                            if image_texts:
+                                content = content + '\n\n' + '\n\n'.join(image_texts)
+                        except Exception as e:
+                            print(f"⚠️ 图片OCR处理出错: {e}")
+                    
                     if content and len(content) > 100:
                         print(f"✅ Playwright 通过 .rich_media_content 获取内容 {len(content)} 字符")
                         browser.close()
@@ -476,7 +671,9 @@ def extract_content_from_url(url):
     
     print(f"❌ 无法抓取该链接内容")
     if is_wechat:
-        print(f"💡 建议：对于需要验证的微信公众号文章，请手动复制文章内容作为文本输入")
+        print(f"💡 该微信公众号文章可能需要验证才能访问")
+        print(f"💡 建议：请手动复制文章内容，然后使用「文本」输入方式进行识别")
+        print(f"💡 或者：在浏览器中打开链接，完成验证后，再复制内容进行识别")
     return None
 
 def extract_text_from_image(image_path):

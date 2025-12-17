@@ -36,6 +36,7 @@ export interface Event {
   }
   summary?: string
   raw_content?: string
+  image_url?: string  // 图片海报 URL
   is_top: boolean
   status: 'active' | 'inactive' | 'archived' | 'new' | 'urgent'
   poster_color: string

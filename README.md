@@ -1,8 +1,29 @@
 # UniFlow (智汇流) - 基于 AI 的校园信息智能聚合平台
 
-## 📋 项目概述
+> "在混乱的社交媒体噪音中，为追求效率的师生，构建一条清爽、结构化、且具备行动力的信息快车道。"
 
-**UniFlow (智汇流)** 是一个基于微信小程序的校园信息智能聚合平台，通过 AI 多模态解析技术，自动采集、结构化并展示校园招聘、讲座、活动等信息。
+UniFlow 是一个通过 AI 将零散的校园碎片信息转化为"双语、可搜索、可订阅"的标准化校园服务平台。
+
+---
+
+## 🎯 核心价值
+
+- 🤖 AI 智能采集：多模态解析（文本/链接/图片），自动提取结构化信息
+- 🌐 原生双语：中英双语自动生成，打破语言壁垒
+- 📅 一键行动：直接添加到系统日历，形成完整闭环
+- 🧹 动态清洗：自动隐藏过期内容，只看有效机会
+- 🛠️ 工具思维：即用即走，不打扰，专注效率
+
+---
+
+## 💡 设计初衷
+
+UniFlow 诞生于对"信息焦虑"和"低效获取"的对抗：
+
+1. **对抗碎片化**：校园信息散落在无数微信群、朋友圈、公众号和海报里。我们建立了一个"信息漏斗"，把这些无序碎片通过 AI 提纯成结构化数据。
+2. **工具性优于平台性**：我们不追求留存时长，希望用户"即用即走"。点一下"添加到日历"，工具的价值就实现了。
+3. **降本增效**：让"一个人就能运营一个学校的信息流"，把人力从繁琐的复制粘贴中解放出来。
+4. **跨越语言鸿沟**：提供国际化视角，让留学生也能无障碍获取校园机会，实现"信息平权"。
 
 ### 核心理念
 
@@ -10,42 +31,69 @@
 
 **让校园信息不再流失，让每一个机会触手可及。**
 
-### 核心价值
+---
 
-- 🤖 **AI 智能采集**：自动从文本、链接、图片中提取结构化信息
-- 📱 **微信小程序**：轻量级、易用的移动端体验
-- 🌐 **多语言支持**：中文/英文/中英双语输出
-- 🔄 **实时同步**：与 Supabase 数据库实时同步
-- 🎯 **智能去重**：自动识别并过滤重复信息
-- 🎨 **现代化 UI**：基于 Tailwind CSS 的响应式设计
-- 🔒 **隐私友好**：不强制注册、不收集隐私、纯自动化运行
+## 👤 核心用户
+
+### A类：重度信息获取者（学生端）
+- 目标群体：大三/大四找工作、MBA 同学、活跃社团骨干
+- 核心痛点：每天被成百上千条群消息淹没，最怕漏掉申请截止时间
+- 核心需求：一个"干净的收件箱"，能快速同步日程到日历
+
+### B类：校园信息的"策展人"（管理/运营端）
+- 目标群体：CDC 老师、学生组织干事、希望整理校园动态的博主
+- 核心痛点：手里有大量素材（文档、截图、链接），但没精力整理
+- 核心需求：一个能"秒级处理"素材的后台，低成本生产高质量双语内容
+
+---
+
+## 🚀 核心功能
+
+### 1. 智能信息采集引擎
+**技术核心**：从零散信息到结构化数据的全自动转化
+
+- 多模态解析：支持纯文本、网页链接 (URL)、图片 (OCR) 三类输入的智能识别
+- 深度内容提取：利用 AI 自动区分"招聘"、"活动"、"讲座"三大类型，并精准提取公司、岗位、截止日期、报名链接、联系方式等关键字段
+- 中英双语自动化：在采集阶段自动生成中英双语对照的标题、摘要、标签及关键信息
+- 微信深度适配：内置针对微信公众号文章的特殊抓取策略（Jina Reader & HTTP），解决反爬与内容提取问题
+
+### 2. 现代化校园信息流
+**C 端闭环体验**：高效、结构化、可行动
+
+- 高效信息流：支持关键词全文搜索、分类筛选（招聘/活动/讲座）以及"隐藏已过期"逻辑
+- 结构化详情：详情页不再是简单的长文本，而是分块展示的"关键信息卡片"，支持一键复制链接/微信号
+- 原生系统集成：深度调用微信原生 API，实现一键将活动或招聘截止日期"添加到系统日历"
+- 个人中心体系：包含收藏夹、浏览历史、以及基于现代化 UI 的仪表盘界面
+
+### 3. 管理员控制台
+**完整的 CMS**：为运营者提供全生命周期管理
+
+- AI 采集工作台：管理员只需输入一段文字或链接，AI 即可给出预览结果，支持人工微调后一键发布
+- 全生命周期管理：支持内容的发布、下线、置顶、编辑以及删除操作
+- 实时数据看板：监控今日访问量、总收藏数、活跃用户分布、热门活动排行等核心运营指标
+
+### 4. 自动化数据运维
+**高级数据处理能力**：通过 Python 脚本实现规模化运营
+
+- 批量导入系统：支持从 Excel 文件批量读取原始信息，并调用 AI 集群进行大规模双语结构化导入
+- 智能去重机制：基于标题规范化和相似度算法，自动识别并过滤内容重叠的重复投稿
+- 核验与审计：自动生成 Markdown 格式的"数据核验报告"，对比原始内容与解析结果，确保 AI 提取的准确率
 
 ---
 
 ## 🏗️ 技术架构
 
-### 小程序端技术栈
+### 前端
+- 小程序：Taro 4 + React 18 + TypeScript + Tailwind CSS
+- 管理后台：Next.js 14 (App Router) + TypeScript + Tailwind CSS
 
-- **框架**：Taro 4.x + React 18
-- **语言**：TypeScript
-- **样式**：Tailwind CSS + Sass
-- **状态管理**：React Hooks
-- **数据获取**：Supabase REST API
+### 后端
+- AI 服务：Python Flask + DeepSeek API + Pytesseract (OCR)
+- 数据库：Supabase (PostgreSQL) + REST API
 
-### 管理后台技术栈
-
-- **框架**：Next.js 14 (App Router)
-- **语言**：TypeScript
-- **样式**：Tailwind CSS
-- **认证**：Supabase Auth
-- **数据库**：Supabase (PostgreSQL)
-
-### 后端技术栈
-
-- **数据库**：Supabase (PostgreSQL)
-- **AI 服务**：DeepSeek API
-- **OCR**：pytesseract (图片文字识别)
-- **网页抓取**：BeautifulSoup + Jina Reader API
+### 核心特性
+- 数据驱动：以 Supabase 为核心，实现前后台数据的实时无缝同步
+- AI 导向：非传统的规则匹配，而是基于 LLM (大模型) 的语义理解进行数据抽取
 
 ---
 
@@ -53,74 +101,21 @@
 
 ```
 uniflow-campus/
-├── src/                          # 小程序源代码目录
-│   ├── app.tsx                   # 应用入口
-│   ├── app.config.ts             # 小程序配置
-│   ├── app.scss                  # 全局样式
-│   ├── components/               # 可复用组件
-│   │   ├── FavoriteButton/       # 收藏按钮组件
-│   │   ├── ShareButton/          # 分享按钮组件
-│   │   ├── ExpiredFilter/        # 过期筛选组件
-│   │   ├── Skeleton/             # 骨架屏组件
-│   │   └── index.ts              # 组件导出
-│   ├── contexts/                 # React Context
-│   │   └── FilterContext.tsx     # 筛选状态上下文
-│   ├── custom-tab-bar/           # 自定义底部导航
-│   ├── pages/                    # 页面目录
-│   │   ├── index/                # 首页
-│   │   ├── profile/              # 个人中心
-│   │   ├── favorites/            # 收藏页
-│   │   ├── history/              # 浏览历史
-│   │   ├── about/                # 关于页面
-│   │   └── feedback/             # 意见反馈
-│   ├── services/                 # 业务服务
-│   │   ├── auth.ts               # 认证服务
-│   │   ├── favorites.ts          # 收藏服务
-│   │   ├── share.ts              # 分享服务
-│   │   └── expiration.ts         # 过期判断服务
-│   ├── styles/                   # 样式文件
-│   │   ├── theme.scss            # 主题变量
-│   │   └── mixins.scss           # SCSS Mixins
-│   └── utils/                    # 工具函数
-│       ├── supabase-rest.ts      # Supabase REST API 客户端
-│       ├── ics-generator.ts      # 日历文件生成
-│       ├── polyfill.ts           # Polyfill 补丁
-│       └── system-info.ts        # 系统信息工具
-│
+├── src/                          # 小程序源代码
 ├── admin-console/                # 管理后台 (Next.js)
-│   ├── app/                      # Next.js App Router
-│   │   ├── (auth)/               # 认证相关页面
-│   │   ├── (dashboard)/          # 管理面板页面
-│   │   └── api/                  # API 路由
-│   ├── components/               # React 组件
-│   └── lib/                      # 工具库
-│
-├── scripts/                      # Python 脚本目录
-│   ├── ingest_multimodal.py      # 核心：多模态信息采集脚本
-│   ├── cleanup_duplicates.py     # 清理重复数据脚本
-│   ├── check_data.py             # 数据检查脚本
-│   ├── requirements.txt          # Python 依赖
-│   └── *.sql                     # 数据库脚本
-│
-├── docs/                         # 项目文档
-│   ├── README.md                 # 文档索引
-│   ├── project-management/       # 项目管理文档
-│   └── *.md                      # 各类技术文档
-│
+├── scripts/                      # Python AI 脚本 & 自动化工具
+├── docs/                         # 项目文档索引
 ├── config/                       # 构建配置
-├── .env                          # 环境变量（需自行创建）
-├── package.json                  # Node.js 依赖
-├── tsconfig.json                 # TypeScript 配置
-├── tailwind.config.js            # Tailwind CSS 配置
-└── README.md                     # 项目文档（本文件）
+└── VERSION.md                    # 版本信息
 ```
+
+详细结构说明请查看 [PROJECT_STRUCTURE.md](./PROJECT_STRUCTURE.md)
 
 ---
 
 ## 🚀 快速开始
 
 ### 前置要求
-
 - Node.js >= 16.x
 - Python >= 3.8
 - 微信开发者工具
@@ -129,259 +124,57 @@ uniflow-campus/
 
 ### 1. 环境配置
 
-#### 1.1 安装 Node.js 依赖
-
 ```bash
+# 安装 Node.js 依赖
 npm install
-```
 
-#### 1.2 安装 Python 依赖
-
-```bash
+# 安装 Python 依赖
 cd scripts
 pip3 install -r requirements.txt
-```
 
-#### 1.3 配置环境变量
-
-在项目根目录创建 `.env` 文件：
-
-```env
-# DeepSeek API
-deepseek_API_KEY=your_deepseek_api_key_here
-
-# Supabase 配置
-SUPABASE_URL=https://your-project.supabase.co
-SUPABASE_KEY=your_supabase_anon_key_here
+# 配置环境变量（创建 .env 文件）
+# DEEPSEEK_API_KEY=your_key_here
+# SUPABASE_URL=https://your-project.supabase.co
+# SUPABASE_KEY=your_key_here
 ```
 
 ### 2. 开发运行
 
-#### 2.1 启动小程序开发
-
 ```bash
+# 启动小程序开发
 npm run dev:weapp
-```
 
-#### 2.2 在微信开发者工具中打开
-
-1. 打开微信开发者工具
-2. 选择项目目录：`dist/`
-3. 开始调试
-
-### 3. 管理后台开发
-
-```bash
+# 启动管理后台
 cd admin-console
 npm install
 npm run dev
+
+# 启动 AI API 服务
+cd scripts
+python3 api_server.py
 ```
 
----
-
-## 🎯 核心功能
-
-### 小程序端功能
-
-| 功能模块 | 状态 | 说明 |
-|---------|------|------|
-| 首页信息流 | ✅ | 活动列表、搜索、筛选 |
-| 详情页 | ✅ | 结构化信息展示、添加到日历 |
-| 收藏功能 | ✅ | 收藏/取消收藏、收藏列表 |
-| 浏览历史 | ✅ | 自动记录、历史列表 |
-| 个人中心 | ✅ | 用户信息、快捷入口 |
-| 分享功能 | ✅ | 一键复制分享内容 |
-| 过期筛选 | ✅ | 隐藏已过期活动 |
-| Skeleton 加载 | ✅ | 骨架屏加载动画 |
-| 意见反馈 | ✅ | 结构化反馈收集 |
-
-### 管理后台功能
-
-| 功能模块 | 状态 | 说明 |
-|---------|------|------|
-| 登录认证 | ✅ | Supabase Auth |
-| AI 智能采集 | ✅ | 文本/URL/图片解析 |
-| 内容管理 | ✅ | 列表、编辑、发布、删除 |
-| 数据看板 | ✅ | 统计、图表、热门活动 |
-
----
-
-## 🏷️ 标签系统
-
-UniFlow 采用标准化的来源标签体系，确保信息来源清晰、准确。
-
-### 标准来源标签
-
-| 标签 | 中英文 | 适用场景 |
-|------|--------|---------|
-| CDC | CDC \| CDC | CDC 发布或内推的信息 |
-| 内推 | 内推 \| Referral | 通过内推渠道获得的信息 |
-| 校友推荐 | 校友推荐 \| Alumni Referral | 校友或学长学姐推荐的信息 |
-| 学院官方 | 学院官方 \| College Official | 学院官方发布的信息 |
-| 公司官方 | 公司官方 \| Company Official | 公司自己发布的官方招聘信息 |
-| 其他 | 其他 \| Other | 来源不明确或其他渠道的信息 |
-
-### 标签与公司名称的区分
-
-**重要**：标签系统的 `source_group` 字段表示**信息发布来源**，而非公司名称。
-
-- ✅ **正确示例**：
-  - `source_group`: "公司官方 | Company Official"
-  - `key_info.company`: "亚投行 | AIIB"
-
-- ❌ **错误示例**：
-  - `source_group`: "亚投行 | AIIB"（这是公司名，不是来源）
-
-### AI 自动识别规则
-
-AI 会根据原始文本自动判断来源标签：
-
-- 提到"CDC"、"职业发展中心" → `CDC | CDC`
-- 提到"内推"、"推荐" → `内推 | Referral`
-- 提到"校友"、"学长学姐" → `校友推荐 | Alumni Referral`
-- 提到"学院"、"官方" → `学院官方 | College Official`
-- 公司自己发布 → `公司官方 | Company Official`
-- 来源不明确 → `其他 | Other`
-
----
-
-## 🛠️ 数据管理工具
-
-### Excel 批量导入
-
-支持从 Excel 文件批量导入数据，自动进行 AI 解析和结构化处理。
-
-```bash
-# 双语版本（推荐）
-python3 scripts/import_excel_bilingual.py
-
-# 基础版本
-python3 scripts/import_excel_data.py
-```
-
-**功能特点**：
-- ✅ 自动 AI 解析：提取标题、类型、关键信息
-- ✅ 双语输出：中文 | English 格式
-- ✅ 自动去重：识别重复内容
-- ✅ 字段规范：link（投递链接/邮箱）vs contact（微信/电话）
-- ✅ 时间提取：精确提取截止时间、活动时间
-- ✅ 标签识别：自动识别来源标签
-
-### 数据核验报告
-
-生成详细的数据核验报告，用于人工检查 AI 解析结果。
-
-```bash
-python3 scripts/generate_verification_report.py
-```
-
-**报告内容**：
-- 📝 原始内容
-- 💾 数据库存储字段
-- 📱 小程序显示效果
-- ✅ 便于人工核验
-
-### 数据清理工具
-
-```bash
-# 清空所有数据
-python3 scripts/clear_all_data.py
-
-# 清理重复数据
-python3 scripts/cleanup_duplicates.py
-```
-
----
-
-## 📊 数据库设计
-
-### 核心表结构
-
-| 表名 | 说明 |
-|------|------|
-| events | 活动主表（招聘、讲座、活动） |
-| users | 用户表（OpenID 标识） |
-| favorites | 收藏关系表 |
-| view_history | 浏览历史表 |
-
-详细数据库设计请参考：[数据库初始化指南](./docs/数据库初始化指南.md)
-
----
-
-## 📚 文档索引
-
-- **[文档总索引](./docs/README.md)** - 所有文档的导航入口
-- **[项目结构说明](./PROJECT_STRUCTURE.md)** - 详细的目录结构说明
-- **[更新日志](./CHANGELOG.md)** - 版本更新记录
-- **[版本信息](./VERSION.md)** - 当前版本详情
-- **[功能完成报告](./FEATURE_COMPLETION_REPORT.md)** - 功能实现状态
-
-### 开发指南
-
-- [AuthService 使用指南](./docs/AuthService使用指南.md)
-- [FavoritesService 使用指南](./docs/FavoritesService使用指南.md)
-- [Skeleton 组件集成指南](./docs/Skeleton组件集成指南.md)
-- [收藏功能数据库设置指南](./docs/收藏功能数据库设置指南.md)
-
----
-
-## 🐛 常见问题
-
-### 1. Supabase 连接失败
-
-**问题**：小程序中显示 "url not in domain list"
-
-**解决**：在微信公众平台配置服务器域名，添加 Supabase 域名到 request 合法域名列表。
-
-### 2. 编译错误
-
-**问题**：模块未定义错误
-
-**解决**：确保使用 `supabase-rest.ts` 而非 SDK 直接导入。
-
-### 3. Python 脚本无法连接数据库
-
-**问题**：RLS 策略阻止操作
-
-**解决**：检查 `.env` 配置，确保 RLS 策略已正确配置。
-
----
-
-## 📝 开发规范
-
-### 代码风格
-
-- 使用 TypeScript 严格模式
-- 遵循 ESLint 规则
-- 组件使用函数式组件 + Hooks
-- 样式使用 Tailwind CSS 工具类
-
-### 提交规范
-
-- `feat`: 新功能
-- `fix`: 修复 bug
-- `docs`: 文档更新
-- `style`: 代码格式
-- `refactor`: 重构
-- `test`: 测试
-- `chore`: 构建/工具
+### 3. 在微信开发者工具中打开
+1. 打开微信开发者工具
+2. 选择项目目录：`dist/`
+3. 开始调试
 
 ---
 
 ## 📈 版本信息
 
-**当前版本**：V1.1.0  
-**发布日期**：2025年12月18日
+当前版本：V1.1.0  
+发布日期：2025年12月18日
 
-详细版本信息请查看 [VERSION.md](./VERSION.md)
+详细版本信息请查看 [VERSION.md](./VERSION.md) 和 [CHANGELOG.md](./CHANGELOG.md)
 
-### 最新更新 (V1.1.0)
+---
 
-- 🏷️ 标签系统优化：统一来源标签体系
-- 🎨 UI/UX 改进：详情页重设计、TabBar 双语化
-- 📊 数据管理增强：Excel 批量导入、核验报告
-- ⚙️ Admin Console 优化：品牌统一、表格优化
-- 🗑️ 项目整理：删除临时文件、更新 .gitignore
+## 📚 文档索引
+
+- [项目结构说明](./PROJECT_STRUCTURE.md) - 详细的目录结构说明
+- [功能完成报告](./FEATURE_COMPLETION_REPORT.md) - 功能实现状态
+- [文档总索引](./docs/README.md) - 所有技术文档的导航入口
 
 ---
 
@@ -389,29 +182,4 @@ python3 scripts/cleanup_duplicates.py
 
 本项目为内部项目，仅供学习和研究使用。
 
----
-
-## 🙏 致谢
-
-感谢以下开源项目：
-
-- [Taro](https://taro.jd.com/) - 多端统一开发框架
-- [Supabase](https://supabase.com/) - 开源 Firebase 替代方案
-- [DeepSeek](https://www.deepseek.com/) - AI 大模型服务
-- [Tailwind CSS](https://tailwindcss.com/) - 实用优先的 CSS 框架
-- [Next.js](https://nextjs.org/) - React 全栈框架
-
----
-
-**最后更新**：2025年12月18日
-
----
-
-## 🎨 品牌说明
-
-**UniFlow** = University + Information Flow
-
-- **Uni**: 代表 University（高校）和 Unified（统一）
-- **Flow**: 代表信息流动，契合产品的"信息聚合"核心价值
-
-Logo 设计建议：将"U"字母与波浪/水流线条结合，既代表高校，也代表信息流。
+最后更新：2025年12月18日

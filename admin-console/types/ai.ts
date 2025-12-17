@@ -24,6 +24,7 @@ export interface ParsedEvent {
   }
   summary?: string
   raw_content?: string
+  image_url?: string  // 图片海报 URL（用于显示原图）
   tags?: string[]
 }
 

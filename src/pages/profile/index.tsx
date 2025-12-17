@@ -160,8 +160,8 @@ export default function Profile() {
 
       {/* 底部信息 */}
       <View className="footer">
-        <Text className="footer-text">UniFlow v1.0.0</Text>
-        <Text className="footer-slogan">智汇流 · 让信息触手可及</Text>
+        <Text className="footer-text">UniFlow - 智汇流</Text>
+        <Text className="footer-slogan">让信息触手可及</Text>
       </View>
     </View>
   )

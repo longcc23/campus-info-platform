@@ -42,51 +42,39 @@ export default function About() {
 
       {/* 项目介绍 */}
       <View className="content-section">
-        <Text className="section-title">📖 项目简介</Text>
+        <Text className="section-title">项目简介</Text>
         <View className="section-content">
           <Text className="description">
-            UniFlow (智汇流) 是一个基于 AI 的校园信息智能聚合平台，通过多模态解析技术，自动采集、结构化并展示校园招聘、讲座、活动等信息。
+            UniFlow 是一台对抗校园信息熵增的 AI 引擎。
           </Text>
           <Text className="description">
-            我们的理念是"做工具而非平台"——随手存、随手查、不打扰。让每一个有价值的机会都能被需要的人看到。
+            我们利用多模态技术，将散落在群聊、海报中的碎片，重塑为结构化、多语言的数据资产。我们坚持 "做工具而非平台" —— 随手存、随手查、不打扰。在这里，我们帮你过滤噪音，打破语言壁垒，只为将每一次偶然的"看见"，转化为你日历中确定的"未来"。
           </Text>
         </View>
       </View>
 
       {/* 功能特色 */}
       <View className="content-section">
-        <Text className="section-title">✨ 功能特色</Text>
+        <Text className="section-title">功能特色</Text>
         <View className="feature-list">
           <View className="feature-item">
-            <Text className="feature-icon">🔍</Text>
-            <Text className="feature-text">智能搜索和筛选</Text>
+            <Text className="feature-text">AI 多模态精炼：支持多种输入，精准提取要素</Text>
           </View>
           <View className="feature-item">
-            <Text className="feature-icon">❤️</Text>
-            <Text className="feature-text">收藏感兴趣的机会</Text>
+            <Text className="feature-text">原生双语视野：中英实时对照，信息无界共享</Text>
           </View>
           <View className="feature-item">
-            <Text className="feature-icon">📅</Text>
-            <Text className="feature-text">一键添加到日历</Text>
+            <Text className="feature-text">一键行动闭环：接入系统日历，锁定未来行程</Text>
           </View>
           <View className="feature-item">
-            <Text className="feature-icon">🔗</Text>
-            <Text className="feature-text">便捷分享给好友</Text>
-          </View>
-          <View className="feature-item">
-            <Text className="feature-icon">🕐</Text>
-            <Text className="feature-text">浏览历史记录</Text>
-          </View>
-          <View className="feature-item">
-            <Text className="feature-icon">⚡</Text>
-            <Text className="feature-text">过期信息自动筛选</Text>
+            <Text className="feature-text">动态时效清洗：自动隐藏过期，只看有效机会</Text>
           </View>
         </View>
       </View>
 
       {/* 联系我们 */}
       <View className="content-section">
-        <Text className="section-title">📞 联系我们</Text>
+        <Text className="section-title">联系我们</Text>
         <View className="contact-list">
           <View className="contact-item">
             <Text className="contact-label">开发团队</Text>

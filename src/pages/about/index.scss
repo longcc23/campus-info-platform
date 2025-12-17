@@ -50,23 +50,29 @@
 
 // 应用信息
 .app-info {
-  padding: $spacing-8 $spacing-4;
+  padding: $spacing-10 $spacing-4 $spacing-8;
   text-align: center;
-  background-color: $bg-primary;
+  background: linear-gradient(180deg, rgba($primary, 0.05) 0%, rgba($primary, 0.02) 50%, transparent 100%);
+  border-bottom: 1rpx solid rgba($primary, 0.1);
 }
 
 .app-logo {
-  width: 120rpx;
-  height: 120rpx;
+  width: 140rpx;
+  height: 140rpx;
   border-radius: $radius-full;
   background: $gradient-primary;
   @include flex-center;
-  margin: 0 auto $spacing-4;
-  box-shadow: $shadow-lg;
+  margin: 0 auto $spacing-5;
+  box-shadow: 0 8rpx 24rpx rgba($primary, 0.25);
+  transition: transform 0.3s ease;
+  
+  &:active {
+    transform: scale(0.95);
+  }
 }
 
 .logo-text {
-  font-size: 48rpx;
+  font-size: 56rpx;
   font-weight: $font-weight-bold;
   color: $text-inverse;
 }
@@ -74,52 +80,74 @@
 .app-name {
   @include text-title-lg;
   font-weight: $font-weight-bold;
-  margin-bottom: $spacing-1;
+  margin-bottom: $spacing-2;
   display: block;
+  color: $text-primary;
+  letter-spacing: 1rpx;
 }
 
 .app-version {
   @include text-body;
   color: $text-secondary;
-  margin-bottom: $spacing-2;
+  margin-bottom: $spacing-3;
   display: block;
+  font-size: $font-size-sm;
 }
 
 .app-slogan {
   @include text-body;
-  color: $text-tertiary;
+  color: $text-secondary;
   font-style: italic;
   display: block;
+  line-height: 1.6;
+  max-width: 600rpx;
+  margin: 0 auto;
 }
 
 // 内容区域
 .content-section {
   background-color: $bg-primary;
-  margin: $spacing-3 $spacing-4;
-  border-radius: $radius-lg;
-  padding: $spacing-5;
-  box-shadow: $shadow-sm;
+  margin: $spacing-4 $spacing-4;
+  border-radius: $radius-xl;
+  padding: $spacing-6;
+  box-shadow: 0 2rpx 12rpx rgba(0, 0, 0, 0.04);
+  border: 1rpx solid rgba($primary, 0.08);
 }
 
 .section-title {
   @include text-title;
-  font-weight: $font-weight-semibold;
-  margin-bottom: $spacing-4;
+  font-weight: $font-weight-bold;
+  margin-bottom: $spacing-5;
   display: block;
   color: $text-primary;
+  position: relative;
+  padding-bottom: $spacing-2;
+  
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 60rpx;
+    height: 4rpx;
+    background: $gradient-primary;
+    border-radius: 2rpx;
+  }
 }
 
 .section-content {
   display: flex;
   flex-direction: column;
-  gap: $spacing-3;
+  gap: $spacing-4;
 }
 
 .description {
   @include text-body;
-  line-height: $line-height-relaxed;
+  line-height: 1.8;
   color: $text-secondary;
   display: block;
+  text-align: justify;
+  letter-spacing: 0.5rpx;
 }
 
 // 功能特色
@@ -131,11 +159,29 @@
 
 .feature-item {
   display: flex;
-  align-items: center;
-  gap: $spacing-3;
-  padding: $spacing-2;
-  border-radius: $radius-base;
-  background-color: $gray-50;
+  align-items: flex-start;
+  padding: $spacing-4;
+  border-radius: $radius-lg;
+  background: linear-gradient(135deg, rgba($primary, 0.03) 0%, rgba($primary, 0.06) 100%);
+  border: 1rpx solid rgba($primary, 0.1);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 4rpx;
+    background: $gradient-primary;
+  }
+  
+  &:active {
+    transform: translateX(4rpx);
+    background: linear-gradient(135deg, rgba($primary, 0.05) 0%, rgba($primary, 0.08) 100%);
+  }
 }
 
 .feature-icon {
@@ -147,6 +193,9 @@
   @include text-body;
   color: $text-primary;
   font-weight: $font-weight-medium;
+  line-height: 1.7;
+  flex: 1;
+  padding-left: $spacing-2;
 }
 
 // 联系我们
@@ -159,20 +208,28 @@
 .contact-item {
   display: flex;
   flex-direction: column;
-  gap: $spacing-1;
+  gap: $spacing-2;
+  padding: $spacing-4;
+  background: rgba($primary, 0.02);
+  border-radius: $radius-lg;
+  border: 1rpx solid rgba($primary, 0.08);
 }
 
 .contact-label {
   @include text-caption;
   color: $text-secondary;
-  font-weight: $font-weight-medium;
+  font-weight: $font-weight-semibold;
   display: block;
+  margin-bottom: $spacing-1;
+  text-transform: uppercase;
+  letter-spacing: 1rpx;
+  font-size: $font-size-xs;
 }
 
 .contact-value-row {
   display: flex;
   align-items: center;
-  gap: $spacing-2;
+  gap: $spacing-3;
 }
 
 .contact-value {
@@ -180,43 +237,47 @@
   color: $text-primary;
   flex: 1;
   word-break: break-all;
+  line-height: 1.6;
 }
 
 .copy-btn {
   flex-shrink: 0;
-  padding: $spacing-1 $spacing-2;
-  background-color: $primary-lighter;
-  color: $primary-dark;
-  border-radius: $radius-sm;
+  padding: $spacing-2 $spacing-4;
+  background: $gradient-primary;
+  color: $text-inverse;
+  border-radius: $radius-base;
   font-size: $font-size-sm;
-  font-weight: $font-weight-medium;
+  font-weight: $font-weight-semibold;
   border: none;
   min-width: auto;
   min-height: auto;
+  box-shadow: 0 2rpx 8rpx rgba($primary, 0.2);
   
   &:active {
-    background-color: $primary-light;
     transform: scale(0.95);
+    box-shadow: 0 1rpx 4rpx rgba($primary, 0.3);
   }
 }
 
 // 底部版权
 .footer {
-  padding: $spacing-6 $spacing-4;
+  padding: $spacing-8 $spacing-4;
   text-align: center;
-  background-color: $bg-primary;
-  margin: $spacing-3 $spacing-4;
+  background: linear-gradient(180deg, transparent 0%, rgba($primary, 0.02) 100%);
+  margin: $spacing-6 $spacing-4 $spacing-4;
   border-radius: $radius-lg;
-  box-shadow: $shadow-sm;
 }
 
 .copyright {
   @include text-caption;
   color: $text-tertiary;
-  margin-bottom: $spacing-1;
+  margin-bottom: $spacing-2;
   display: block;
+  line-height: 1.6;
+  opacity: 0.7;
   
   &:last-child {
     margin-bottom: 0;
+    font-style: italic;
   }
 }
