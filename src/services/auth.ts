@@ -62,9 +62,10 @@ class AuthService {
 
     try {
       const storedOpenID = Taro.getStorageSync(STORAGE_KEY_OPENID)
-      if (storedOpenID) {
+      // 只有当存储的是真正的 OpenID（不以 temp_ 或 user_ 开头）时才加载
+      if (storedOpenID && !storedOpenID.startsWith('temp_') && !storedOpenID.startsWith('user_')) {
         this.openid = storedOpenID
-        console.log('[AuthService] 从本地存储加载 OpenID:', storedOpenID)
+        console.log('[AuthService] 从本地存储加载真实 OpenID:', storedOpenID)
       }
       this.isInitialized = true
     } catch (error) {
