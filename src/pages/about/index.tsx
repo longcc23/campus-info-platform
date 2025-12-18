@@ -28,7 +28,6 @@ export default function About() {
         <Button className="back-btn" onClick={handleBack}>
           <Text>←</Text>
         </Button>
-        <Text className="page-title">关于</Text>
       </View>
 
       {/* 应用信息 */}

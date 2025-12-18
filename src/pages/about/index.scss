@@ -11,7 +11,7 @@
 
 // 头部
 .about-header {
-  @include flex-between;
+  @include flex-start;
   padding: $spacing-3 $spacing-4;
   background-color: $bg-primary;
   border-bottom: 1rpx solid $border-light;
