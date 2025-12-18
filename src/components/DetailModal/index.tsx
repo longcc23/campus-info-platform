@@ -98,6 +98,19 @@ export default function DetailModal({
           return
         }
         
+        const calendarEvent = createCalendarEventFromItem(
+          item.title,
+          dateStr,
+          timeStr,
+          keyInfo.location || '',
+          item.summary || rawContent || ''
+        )
+        
+        if (!calendarEvent) {
+          Taro.showToast({ title: '无法解析活动时间', icon: 'none' })
+          return
+        }
+        
         await addToPhoneCalendar(calendarEvent)
       } catch (error) {
         console.error('添加到日历失败:', error)
