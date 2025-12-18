@@ -14,19 +14,9 @@ export async function withAuthGuard(actionName: string, onSuccess: () => void) {
   if (isComplete) {
     onSuccess()
   } else {
-    Taro.showModal({
-      title: '开启完整体验 🚀',
-      content: `完善个人资料后即可使用${actionName}功能`,
-      confirmText: '去完善',
-      confirmColor: '#8B5CF6',
-      cancelText: '再看看',
-      success: (res) => {
-        if (res.confirm) {
-          Taro.navigateTo({
-            url: '/pages/profile-edit/index'
-          })
-        }
-      }
+    // 🚀 优化体验：不再显示丑陋的弹窗，直接跳转到完善资料页
+    Taro.navigateTo({
+      url: '/pages/profile-edit/index'
     })
   }
 }

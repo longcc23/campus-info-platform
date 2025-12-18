@@ -4,13 +4,13 @@ import Taro from '@tarojs/taro'
 import { 
   getEvents, 
   type Event,
-  getWechatOpenID,
   upsertUser,
   recordViewHistory
 } from '../../utils/supabase-rest'
 import { FavoriteButton, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
 import { formatDate } from '../../utils/date-formatter'
 import favoritesService from '../../services/favorites'
+import authService from '../../services/auth'
 import { isExpired } from '../../services/expiration'
 import { getSafeAreaBottom } from '../../utils/system-info'
 import './index.scss'
@@ -112,25 +112,31 @@ export default class Index extends Component<{}, IndexState> {
   onPullDownRefresh = async () => {
     try {
       await this.loadEvents()
-      this.showToast('刷新成功')
+      // 🚀 修复：下拉刷新后重新加载收藏状态，防止红心消失
+      await this.loadFavoriteStatus()
+      
+      Taro.showToast({
+        title: '内容已刷新',
+        icon: 'success',
+        duration: 1500
+      })
     } catch (error) {
       console.error('刷新失败:', error)
-      this.showToast('刷新失败')
+      Taro.showToast({
+        title: '刷新失败',
+        icon: 'none'
+      })
     } finally {
       Taro.stopPullDownRefresh()
     }
   }
 
-  showToast = (message: string) => {
-    this.setState({ toast: message })
-    setTimeout(() => this.setState({ toast: null }), 2000)
-  }
-
   initUser = async () => {
     try {
-      const openid = await getWechatOpenID()
+      const openid = await authService.getOpenID()
       if (openid) {
         this.setState({ userId: openid })
+        // ensureUser 已经在 authService.getOpenID 中处理过了，但这里保留以防万一
         await upsertUser(openid)
         console.log('✅ 用户初始化成功:', openid)
         this.loadFavoriteStatus()
@@ -212,9 +218,14 @@ export default class Index extends Component<{}, IndexState> {
   handleItemClick = async (item: FeedItem) => {
     this.setState({ selectedItem: item })
     
-    const { userId } = this.state
-    if (userId) {
-      await recordViewHistory(userId, item.id)
+    // 🚀 修复：使用 authService 确保一定能拿到 ID，解决浏览历史漏损问题
+    try {
+      const openid = await authService.getOpenID()
+      if (openid) {
+        await recordViewHistory(openid, item.id)
+      }
+    } catch (error) {
+      console.error('记录浏览历史失败:', error)
     }
   }
 
@@ -262,7 +273,7 @@ export default class Index extends Component<{}, IndexState> {
   }
 
   render() {
-    const { activeFilter, selectedItem, toast, feed, searchKeyword, loading, isFirstLoad } = this.state
+    const { activeFilter, selectedItem, feed, searchKeyword, loading, isFirstLoad } = this.state
     const filteredFeed = this.getFilteredFeed()
     const safeAreaBottom = getSafeAreaBottom()
 
@@ -423,13 +434,6 @@ export default class Index extends Component<{}, IndexState> {
               })
             }}
           />
-        )}
-
-        {/* Toast */}
-        {toast && (
-          <View className="toast">
-            <Text>✅ {toast}</Text>
-          </View>
         )}
       </View>
     )

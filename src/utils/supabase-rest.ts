@@ -589,10 +589,12 @@ export async function recordViewHistory(userId: string, eventId: number): Promis
         'Content-Type': 'application/json',
         'apikey': SUPABASE_ANON_KEY,
         'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        'Prefer': 'resolution=merge-duplicates', // 🚀 优化：如果已存在则更新时间
       },
       data: {
         user_id: userId,
         event_id: eventId,
+        viewed_at: new Date().toISOString() // 🚀 强制更新浏览时间
       },
       dataType: 'json',
     })
