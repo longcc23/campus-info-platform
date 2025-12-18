@@ -2,7 +2,7 @@
  * AI 解析结果类型定义
  */
 
-export type InputType = 'text' | 'url' | 'image'
+export type InputType = 'text' | 'url' | 'image' | 'pdf'
 
 // 输出语言选项
 export type OutputLanguage = 'zh' | 'en' | 'zh-en'

@@ -307,8 +307,8 @@ class FavoritesService {
     }
 
     try {
-      // 1. 获取用户 ID（不触发登录，如果未登录返回空集合）
-      const userId = authService.getCurrentOpenID()
+      // 1. 获取用户 ID（确保已初始化，如果是真正 OpenID 则从缓存读取）
+      const userId = await authService.getOpenID()
       if (!userId) {
         return new Set()
       }

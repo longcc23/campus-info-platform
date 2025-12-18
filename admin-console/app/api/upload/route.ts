@@ -1,7 +1,7 @@
 /**
- * 图片上传 API
+ * 文件上传 API
  * POST /api/upload
- * 将图片上传到 Supabase Storage，返回公开 URL
+ * 将图片或 PDF 上传到 Supabase Storage，返回公开 URL
  */
 
 import { NextRequest, NextResponse } from 'next/server'
@@ -27,24 +27,33 @@ export async function POST(request: NextRequest) {
       // 处理文件上传
       const arrayBuffer = await file.arrayBuffer()
       fileBuffer = Buffer.from(arrayBuffer)
-      fileName = `poster_${Date.now()}_${file.name}`
+      fileName = `file_${Date.now()}_${file.name}`
       contentType = file.type
     } else if (base64Data) {
-      // 处理 base64 数据
+      // 处理 base64 数据（支持图片和 PDF）
       const matches = base64Data.match(/^data:([A-Za-z-+/]+);base64,(.+)$/)
       if (!matches || matches.length !== 3) {
         return NextResponse.json(
-          { success: false, error: '无效的 base64 图片数据' },
+          { success: false, error: '无效的 base64 数据' },
           { status: 400 }
         )
       }
       contentType = matches[1]
       fileBuffer = Buffer.from(matches[2], 'base64')
-      const ext = contentType.split('/')[1] || 'jpg'
-      fileName = `poster_${Date.now()}.${ext}`
+      
+      // 根据 contentType 确定文件扩展名
+      let ext = 'bin'
+      if (contentType.includes('image/')) {
+        ext = contentType.split('/')[1] || 'jpg'
+      } else if (contentType === 'application/pdf') {
+        ext = 'pdf'
+      }
+      
+      const prefix = contentType === 'application/pdf' ? 'pdf' : 'poster'
+      fileName = `${prefix}_${Date.now()}.${ext}`
     } else {
       return NextResponse.json(
-        { success: false, error: '请提供图片文件或 base64 数据' },
+        { success: false, error: '请提供文件或 base64 数据' },
         { status: 400 }
       )
     }

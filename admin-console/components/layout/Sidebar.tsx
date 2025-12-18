@@ -1,12 +1,15 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, 
   Sparkles, 
   Calendar, 
   Settings,
+  MessageSquare,
+  Users,
   LogOut 
 } from 'lucide-react'
 import { cn } from '@/lib/utils/cn'
@@ -17,7 +20,7 @@ const navigation = [
   { name: '数据看板', href: '/dashboard', icon: LayoutDashboard },
   { name: 'AI 智能采集台', href: '/ingest', icon: Sparkles },
   { name: '活动管理', href: '/events', icon: Calendar },
-  { name: '设置', href: '/settings', icon: Settings },
+  { name: '用户反馈', href: '/feedback', icon: MessageSquare },
 ]
 
 export default function Sidebar() {
@@ -33,9 +36,20 @@ export default function Sidebar() {
 
   return (
     <div className="fixed left-0 top-0 w-64 bg-slate-900 text-white h-screen flex flex-col">
-      <div className="p-6">
-        <h1 className="text-xl font-bold">UniFlow</h1>
-        <p className="text-sm text-slate-400 mt-1">管理后台</p>
+      <div className="p-6 flex items-center gap-3">
+        <div className="w-10 h-10 overflow-hidden flex-shrink-0 flex items-center justify-center">
+          <Image 
+            src="/logo.jpg" 
+            alt="Logo" 
+            width={40} 
+            height={40} 
+            className="object-cover rounded-lg"
+          />
+        </div>
+        <div>
+          <h1 className="text-xl font-bold leading-tight">UniFlow</h1>
+          <p className="text-xs text-slate-400">管理后台</p>
+        </div>
       </div>
       
       <nav className="px-3 space-y-1 flex-1">

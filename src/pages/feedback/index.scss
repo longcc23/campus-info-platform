@@ -191,16 +191,26 @@
   padding: $spacing-4;
   border-radius: $radius-lg;
   background: $gradient-primary;
-  color: $text-inverse;
   font-weight: $font-weight-semibold;
   @include text-body;
+  color: $text-inverse !important; // 🚀 强制白色文字，确保在紫色背景上清晰可见
   border: none;
   box-shadow: $shadow-primary;
   margin-top: $spacing-4;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+  line-height: 1;
+
+  &::after {
+    border: none;
+  }
   
   &:active {
     transform: translateY(2rpx);
     box-shadow: $shadow-sm;
+    opacity: 0.9;
   }
   
   &.submitting {

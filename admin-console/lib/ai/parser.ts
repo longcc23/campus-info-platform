@@ -6,6 +6,7 @@
 import { parseText } from './text-parser'
 import { parseURL } from './url-parser'
 import { parseImage } from './image-parser'
+import { parsePDF } from './pdf-parser'
 import type { ParsedEvent, InputType, OutputLanguage } from '@/types/ai'
 
 export async function parseContent(
@@ -28,6 +29,9 @@ export async function parseContent(
 
     case 'image':
       return parseImage(content, language)
+
+    case 'pdf':
+      return parsePDF(content, language)
 
     default:
       throw new Error(`不支持的输入类型: ${type}`)

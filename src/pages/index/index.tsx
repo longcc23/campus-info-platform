@@ -167,6 +167,9 @@ export default class Index extends Component<{}, IndexState> {
         this.setState({ 
           feed: feedItems,
           isFirstLoad: false
+        }, () => {
+          // 🚀 确保在数据加载完成后，尝试加载收藏状态
+          this.loadFavoriteStatus()
         })
       }
     } catch (error: any) {

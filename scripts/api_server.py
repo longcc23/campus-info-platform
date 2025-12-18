@@ -142,6 +142,281 @@ def ocr():
             'error': str(e)
         }), 500
 
+@app.route('/api/pdf-extract', methods=['POST'])
+def pdf_extract():
+    """
+    PDF 文字提取
+    """
+    try:
+        temp_path = None
+        
+        if 'file' in request.files:
+            file = request.files['file']
+            if file.filename:
+                upload_dir = pathlib.Path(__file__).parent.parent / 'uploads'
+                upload_dir.mkdir(exist_ok=True)
+                filename = secure_filename(file.filename)
+                filepath = upload_dir / filename
+                file.save(str(filepath))
+                temp_path = str(filepath)
+            else:
+                return jsonify({'error': '文件不能为空'}), 400
+        else:
+            data = request.get_json()
+            if not data or 'pdf' not in data:
+                return jsonify({'error': '请求体不能为空'}), 400
+            
+            pdf_data = data.get('pdf')
+            if pdf_data.startswith('data:application/pdf'):
+                header, encoded = pdf_data.split(',', 1)
+                pdf_bytes = base64.b64decode(encoded)
+                upload_dir = pathlib.Path(__file__).parent.parent / 'uploads'
+                upload_dir.mkdir(exist_ok=True)
+                temp_path = upload_dir / f'pdf_temp_{int(pathlib.Path(__file__).stat().st_mtime)}.pdf'
+                with open(temp_path, 'wb') as f:
+                    f.write(pdf_bytes)
+                temp_path = str(temp_path)
+        
+        if temp_path:
+            text = ""
+            # 尝试使用 pdfplumber 提取文字
+            try:
+                import pdfplumber
+                with pdfplumber.open(temp_path) as pdf:
+                    for page in pdf.pages:
+                        text += page.extract_text() or ""
+            except ImportError:
+                print("⚠️ pdfplumber 未安装，尝试使用 PyPDF2")
+                try:
+                    import PyPDF2
+                    with open(temp_path, 'rb') as f:
+                        reader = PyPDF2.PdfReader(f)
+                        for page in reader.pages:
+                            text += page.extract_text() or ""
+                except ImportError:
+                    return jsonify({'error': '未安装 PDF 处理库 (pdfplumber 或 PyPDF2)'}), 500
+            
+            # 清理临时文件
+            try:
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
+            except:
+                pass
+            
+            if text.strip():
+                return jsonify({
+                    'success': True,
+                    'text': text
+                }), 200
+            else:
+                return jsonify({
+                    'success': False,
+                    'error': '未能从 PDF 中提取到文字，可能是扫描件图片，请尝试截图后使用"图片"模式识别。'
+                }), 400
+        
+        return jsonify({'error': 'PDF 处理失败'}), 400
+            
+    except Exception as e:
+        print(f"❌ PDF API 错误: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/pdf-thumbnail', methods=['POST'])
+def pdf_thumbnail():
+    """
+    PDF 首页缩略图生成
+    将 PDF 第一页转换为图片，返回 base64
+    """
+    try:
+        temp_path = None
+        
+        if 'file' in request.files:
+            file = request.files['file']
+            if file.filename:
+                upload_dir = pathlib.Path(__file__).parent.parent / 'uploads'
+                upload_dir.mkdir(exist_ok=True)
+                filename = secure_filename(file.filename)
+                filepath = upload_dir / filename
+                file.save(str(filepath))
+                temp_path = str(filepath)
+            else:
+                return jsonify({'error': '文件不能为空'}), 400
+        else:
+            data = request.get_json()
+            if not data or 'pdf' not in data:
+                return jsonify({'error': '请求体不能为空'}), 400
+            
+            pdf_data = data.get('pdf')
+            if pdf_data.startswith('data:application/pdf'):
+                header, encoded = pdf_data.split(',', 1)
+                pdf_bytes = base64.b64decode(encoded)
+                upload_dir = pathlib.Path(__file__).parent.parent / 'uploads'
+                upload_dir.mkdir(exist_ok=True)
+                temp_path = str(upload_dir / f'pdf_thumb_{int(pathlib.Path(__file__).stat().st_mtime)}.pdf')
+                with open(temp_path, 'wb') as f:
+                    f.write(pdf_bytes)
+        
+        if not temp_path:
+            return jsonify({'error': 'PDF 处理失败'}), 400
+        
+        thumbnail_base64 = None
+        
+        # 方法1：使用 pdf2image（需要安装 poppler）
+        try:
+            from pdf2image import convert_from_path
+            images = convert_from_path(temp_path, first_page=1, last_page=1, dpi=150)
+            if images:
+                import io
+                img_buffer = io.BytesIO()
+                images[0].save(img_buffer, format='JPEG', quality=85)
+                img_buffer.seek(0)
+                thumbnail_base64 = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
+                print("✅ 使用 pdf2image 生成缩略图成功")
+        except ImportError:
+            print("⚠️ pdf2image 未安装，尝试使用 fitz (PyMuPDF)")
+        except Exception as e:
+            print(f"⚠️ pdf2image 失败: {e}，尝试使用 fitz")
+        
+        # 方法2：使用 PyMuPDF (fitz)
+        if not thumbnail_base64:
+            try:
+                import fitz  # PyMuPDF
+                doc = fitz.open(temp_path)
+                page = doc[0]
+                # 设置缩放比例，生成更清晰的图片
+                zoom = 2.0
+                mat = fitz.Matrix(zoom, zoom)
+                pix = page.get_pixmap(matrix=mat)
+                thumbnail_base64 = base64.b64encode(pix.tobytes("jpeg")).decode('utf-8')
+                doc.close()
+                print("✅ 使用 PyMuPDF 生成缩略图成功")
+            except ImportError:
+                print("⚠️ PyMuPDF 未安装")
+            except Exception as e:
+                print(f"⚠️ PyMuPDF 失败: {e}")
+        
+        # 方法3：使用 pdfplumber + PIL（备选方案，效果较差）
+        if not thumbnail_base64:
+            try:
+                import pdfplumber
+                from PIL import Image
+                import io
+                
+                with pdfplumber.open(temp_path) as pdf:
+                    if pdf.pages:
+                        page = pdf.pages[0]
+                        # pdfplumber 可以获取页面图片
+                        img = page.to_image(resolution=150)
+                        img_buffer = io.BytesIO()
+                        img.original.save(img_buffer, format='JPEG', quality=85)
+                        img_buffer.seek(0)
+                        thumbnail_base64 = base64.b64encode(img_buffer.getvalue()).decode('utf-8')
+                        print("✅ 使用 pdfplumber 生成缩略图成功")
+            except Exception as e:
+                print(f"⚠️ pdfplumber 缩略图失败: {e}")
+        
+        # 清理临时文件
+        try:
+            if os.path.exists(temp_path):
+                os.remove(temp_path)
+        except:
+            pass
+        
+        if thumbnail_base64:
+            return jsonify({
+                'success': True,
+                'thumbnail': f'data:image/jpeg;base64,{thumbnail_base64}'
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': '无法生成 PDF 缩略图，请安装 pdf2image 或 PyMuPDF 库'
+            }), 400
+            
+    except Exception as e:
+        print(f"❌ PDF 缩略图 API 错误: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
+@app.route('/api/extract-og-image', methods=['POST'])
+def extract_og_image():
+    """
+    从 URL 提取 og:image（Open Graph 封面图）
+    """
+    try:
+        data = request.get_json()
+        if not data or 'url' not in data:
+            return jsonify({'error': 'url 字段不能为空'}), 400
+        
+        url = data.get('url')
+        print(f"\n🔗 提取 og:image: {url}")
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+        }
+        
+        resp = requests.get(url, headers=headers, timeout=15)
+        if resp.status_code != 200:
+            return jsonify({'success': False, 'error': f'请求失败: {resp.status_code}'}), 400
+        
+        # 解析 HTML 提取 og:image
+        from bs4 import BeautifulSoup
+        soup = BeautifulSoup(resp.text, 'html.parser')
+        
+        # 尝试多种方式获取封面图
+        og_image = None
+        
+        # 1. og:image
+        og_tag = soup.find('meta', property='og:image')
+        if og_tag and og_tag.get('content'):
+            og_image = og_tag['content']
+        
+        # 2. twitter:image
+        if not og_image:
+            twitter_tag = soup.find('meta', attrs={'name': 'twitter:image'})
+            if twitter_tag and twitter_tag.get('content'):
+                og_image = twitter_tag['content']
+        
+        # 3. 微信文章特殊处理
+        if not og_image and 'mp.weixin.qq.com' in url:
+            # 微信文章的封面图可能在 msg_cdn_url 或 cover
+            import re
+            match = re.search(r'var\s+msg_cdn_url\s*=\s*["\']([^"\']+)["\']', resp.text)
+            if match:
+                og_image = match.group(1)
+        
+        if og_image:
+            # 确保是完整 URL
+            if og_image.startswith('//'):
+                og_image = 'https:' + og_image
+            elif not og_image.startswith('http'):
+                from urllib.parse import urljoin
+                og_image = urljoin(url, og_image)
+            
+            print(f"✅ 找到封面图: {og_image[:100]}...")
+            return jsonify({
+                'success': True,
+                'image_url': og_image
+            }), 200
+        else:
+            return jsonify({
+                'success': False,
+                'error': '未找到封面图'
+            }), 200
+            
+    except Exception as e:
+        print(f"❌ og:image 提取错误: {e}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
+
 @app.route('/api/extract-content', methods=['POST'])
 def extract_content():
     """

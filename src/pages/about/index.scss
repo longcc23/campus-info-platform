@@ -225,18 +225,28 @@
 
 .copy-btn {
   flex-shrink: 0;
-  padding: $spacing-2 $spacing-4;
-  background: $gradient-primary;
-  color: $text-inverse;
-  border-radius: $radius-base;
-  font-size: $font-size-sm;
-  font-weight: $font-weight-semibold;
+  padding: 6rpx 16rpx;
+  background: #8B5CF6;
+  color: #FFFFFF !important;
+  border-radius: 8rpx;
+  font-size: 20rpx;
+  font-weight: 500;
   border: none;
   min-width: auto;
   min-height: auto;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   box-shadow: 0 2rpx 8rpx rgba($primary, 0.2);
+  margin-left: 15rpx;
+  
+  text {
+    color: #FFFFFF !important;
+  }
   
   &:active {
+    opacity: 0.8;
     transform: scale(0.95);
     box-shadow: 0 1rpx 4rpx rgba($primary, 0.3);
   }

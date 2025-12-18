@@ -21,11 +21,6 @@ export default function Feedback() {
   }
 
   const handleSubmit = async () => {
-    if (!title.trim()) {
-      Taro.showToast({ title: '请填写反馈标题', icon: 'none' })
-      return
-    }
-
     if (!content.trim()) {
       Taro.showToast({ title: '请填写反馈内容', icon: 'none' })
       return
@@ -49,7 +44,7 @@ export default function Feedback() {
         data: {
           openid,
           type: feedbackType,
-          title: title.trim(),
+          title: content.trim().substring(0, 20), // 🚀 如果没有标题，自动取内容前20个字作为标题
           content: content.trim(),
           contact: contact.trim() || null,
           created_at: new Date().toISOString()
@@ -97,12 +92,11 @@ export default function Feedback() {
         <Button className="back-btn" onClick={handleBack}>
           <Text>←</Text>
         </Button>
-        <Text className="page-title">意见反馈</Text>
       </View>
 
       {/* 反馈说明 */}
       <View className="feedback-intro">
-        <Text className="intro-title">💬 畅所欲言</Text>
+        <Text className="intro-title">畅所欲言</Text>
         <Text className="intro-desc">
           您的每一条反馈都是我们前进的动力。无论是发现的问题、功能建议，还是使用感受，我们都会认真对待并持续改进。
         </Text>
@@ -129,19 +123,6 @@ export default function Feedback() {
               </Button>
             ))}
           </View>
-        </View>
-
-        {/* 反馈标题 */}
-        <View className="form-section">
-          <Text className="form-label">反馈标题</Text>
-          <Input
-            className="form-input"
-            placeholder="简要描述您的反馈..."
-            value={title}
-            onInput={(e) => setTitle(e.detail.value)}
-            maxlength={50}
-          />
-          <Text className="char-count">{title.length}/50</Text>
         </View>
 
         {/* 反馈内容 */}
@@ -188,10 +169,6 @@ export default function Feedback() {
           <View className="contact-method">
             <Text className="method-icon">🔗</Text>
             <Text className="method-text">GitHub: longcc23/campus-info-platform</Text>
-          </View>
-          <View className="contact-method">
-            <Text className="method-icon">💬</Text>
-            <Text className="method-text">微信群：扫码加入用户交流群</Text>
           </View>
         </View>
       </View>

@@ -1,6 +1,6 @@
 /**
  * 详情弹窗组件
- * 统一的事件详情展示组件，支持招聘、活动、讲座三种类型
+ * 严格参照图 2 还原：去掉所有按钮背景，修复滚动问题
  */
 
 import { View, Text, Button, ScrollView, Image } from '@tarojs/components'
@@ -15,44 +15,22 @@ import { createCalendarEventFromItem, addToPhoneCalendar } from '../../utils/ics
 import { getSafeAreaBottom } from '../../utils/system-info'
 import './index.scss'
 
-// 事件类型定义
-export interface EventKeyInfo {
-  date?: string
-  time?: string
-  location?: string
-  deadline?: string
-  company?: string
-  position?: string
-  education?: string
-  link?: string
-  contact?: string
-  registration_link?: string
-  referral?: boolean
-}
-
 export interface EventItem {
   id: number
   type: 'activity' | 'lecture' | 'recruit'
   title: string
   summary?: string
   raw_content?: string
-  rawContent?: string // 兼容首页 FeedItem 格式
+  rawContent?: string
   image_url?: string
-  imageUrl?: string // 兼容两种命名
-  key_info?: EventKeyInfo
-  keyInfo?: EventKeyInfo // 兼容两种命名
+  imageUrl?: string
+  key_info?: any
+  keyInfo?: any
   is_top?: boolean
-  isTop?: boolean // 兼容两种命名
+  isTop?: boolean
   isSaved?: boolean
   poster_color?: string
-  posterColor?: string // 兼容两种命名
-}
-
-interface DetailModalProps {
-  item: EventItem
-  onClose: () => void
-  onFavoriteToggle?: (isFavorited: boolean) => void
-  initialFavorited?: boolean
+  posterColor?: string
 }
 
 export default function DetailModal({ 
@@ -60,129 +38,74 @@ export default function DetailModal({
   onClose, 
   onFavoriteToggle,
   initialFavorited = false 
-}: DetailModalProps) {
+}: { item: EventItem, onClose: () => void, onFavoriteToggle?: any, initialFavorited?: boolean }) {
   const [showPoster, setShowPoster] = useState(false)
   
-  // 兼容两种数据格式（snake_case 和 camelCase）
   const keyInfo = item.key_info || item.keyInfo || {}
   const imageUrl = item.image_url || item.imageUrl
   const rawContent = item.raw_content || item.rawContent
   
-  const handleClose = () => {
-    setShowPoster(false)
-    onClose()
-  }
-
   const handleCopyLink = (link: string) => {
     withAuthGuard('复制', () => {
       copyToClipboard(link)
     })
   }
-
+  
   const handleAddToCalendar = async () => {
     await withAuthGuard('添加到日历', async () => {
-      try {
-        let dateStr = ''
-        let timeStr = ''
-        
-        if (keyInfo.date) {
-          dateStr = keyInfo.date
-          timeStr = keyInfo.time || ''
-        } else if (keyInfo.deadline) {
-          dateStr = keyInfo.deadline
-          timeStr = extractTimeFromDeadline(keyInfo.deadline)
-        }
-        
-        if (!dateStr) {
-          Taro.showToast({ title: '暂无活动日期', icon: 'none' })
-          return
-        }
-        
-        const calendarEvent = createCalendarEventFromItem(
-          item.title,
-          dateStr,
-          timeStr,
-          keyInfo.location || '',
-          item.summary || rawContent || ''
-        )
-        
-        if (!calendarEvent) {
-          Taro.showToast({ title: '无法解析活动时间', icon: 'none' })
-          return
-        }
-        
-        await addToPhoneCalendar(calendarEvent)
-      } catch (error) {
-        console.error('添加到日历失败:', error)
-        Taro.showToast({
-          title: '添加到日历失败',
-          icon: 'none'
-        })
-      }
+      let dateStr = keyInfo.deadline || keyInfo.date
+      if (!dateStr) return
+      const calendarEvent = createCalendarEventFromItem(
+        keyInfo.deadline ? `⏰ ${item.title}` : item.title,
+        dateStr,
+        keyInfo.time || '',
+        keyInfo.location || '',
+        item.summary || rawContent || ''
+      )
+      if (calendarEvent) await addToPhoneCalendar(calendarEvent)
     })
   }
 
-  // 判断是否显示底部操作栏
   const showActions = !!(keyInfo.date || keyInfo.deadline || keyInfo.time)
 
   return (
     <View className="detail-modal">
-      {/* 头部 */}
-      <View className="detail-header">
-        <Button className="detail-back-btn" onClick={handleClose}>
+      {/* 1. 顶部操作栏（无背景，绝对定位） */}
+      <View className="detail-header-overlay">
+        <View className="back-icon" onClick={onClose}>
           <Text>←</Text>
-        </Button>
-        <Text className="detail-title">{item.title}</Text>
-        <View className="detail-header-right">
-          <ShareButton 
-            eventData={item}
-            size="medium"
-            type="icon"
-            className="detail-share-btn"
-          />
+        </View>
+        <View className="right-icons">
+          <ShareButton eventData={item} size="medium" type="icon" />
           <FavoriteButton 
-            eventId={item.id}
-            initialFavorited={initialFavorited}
-            large={true}
-            onToggle={(isFavorited) => {
-              onFavoriteToggle?.(isFavorited)
-            }}
+            eventId={item.id} 
+            initialFavorited={initialFavorited} 
+            large={true} 
+            onToggle={onFavoriteToggle} 
           />
         </View>
       </View>
 
-      {/* 滚动内容区 */}
-      <View className="detail-scroll-wrapper">
-        <ScrollView 
-          scrollY 
-          className="detail-scroll"
-          enhanced
-          showScrollbar={false}
-        >
-          {/* 顶部渐变区域 */}
-          <View className="detail-hero">
-            <View className="detail-hero-gradient" />
-          </View>
+      {/* 2. 滚动内容区 */}
+      <ScrollView 
+        scrollY 
+        className="detail-scroll-view"
+        scrollWithAnimation
+        enablePassive
+      >
+        <View className="detail-inner-content">
+          <Text className="detail-title-main">{item.title}</Text>
 
-          {/* 标题 */}
-          <Text className="detail-main-title">{item.title}</Text>
-
-          <View className="detail-content">
-            {/* 关键信息卡片 */}
-            <View className="detail-info-card">
-              <Text className="detail-section-title">关键信息</Text>
-              
-              {/* 招聘信息 */}
-              {item.type === 'recruit' && (
-                <>
-                  {keyInfo.company && (
-                    <InfoItem icon="🏢" label="公司 | Company:" value={keyInfo.company} />
-                  )}
-                  {keyInfo.position && (
-                    <InfoItem icon="💼" label="岗位 | Position:" value={keyInfo.position} />
-                  )}
+          <View className="detail-cards-stack">
+            {/* 关键信息 */}
+            <View className="info-glass-card">
+              <Text className="card-label-purple">关键信息</Text>
+              {item.type === 'recruit' ? (
+                <View className="info-list">
+                  {keyInfo.company && <InfoRow icon="🏢" label="公司 | Company:" value={keyInfo.company} />}
+                  {keyInfo.position && <InfoRow icon="💼" label="岗位 | Position:" value={keyInfo.position} />}
                   {keyInfo.contact && (
-                    <InfoItem 
+                    <InfoRow 
                       icon="💬" 
                       label="联系方式 | Contact:" 
                       value={keyInfo.contact}
@@ -190,14 +113,10 @@ export default function DetailModal({
                       onCopy={() => handleCopyLink(keyInfo.contact || '')}
                     />
                   )}
-                  {keyInfo.education && (
-                    <InfoItem icon="🎓" label="申请群体 | Applicants:" value={keyInfo.education} />
-                  )}
-                  {keyInfo.deadline && (
-                    <InfoItem icon="⏰" label="截止时间 | Deadline:" value={formatDate(keyInfo.deadline)} />
-                  )}
+                  {keyInfo.education && <InfoRow icon="🎓" label="申请群体 | Applicants:" value={keyInfo.education} />}
+                  {keyInfo.deadline && <InfoRow icon="⏰" label="截止时间 | Deadline:" value={formatDate(keyInfo.deadline)} />}
                   {keyInfo.link && (
-                    <InfoItem 
+                    <InfoRow 
                       icon="📧" 
                       label="投递方式 | Apply:" 
                       value={keyInfo.link.replace(/^mailto:/i, '')}
@@ -205,98 +124,65 @@ export default function DetailModal({
                       onCopy={() => handleCopyLink((keyInfo.link || '').replace(/^mailto:/i, ''))}
                     />
                   )}
-                </>
-              )}
-              
-              {/* 活动/讲座信息 */}
-              {(item.type === 'activity' || item.type === 'lecture') && (
-                <>
-                  {keyInfo.date && (
-                    <InfoItem icon="📅" label="日期 | Date:" value={formatDate(keyInfo.date)} />
-                  )}
-                  {keyInfo.time && (
-                    <InfoItem icon="🕐" label="时间 | Time:" value={keyInfo.time} />
-                  )}
-                  {keyInfo.location && (
-                    <InfoItem icon="📍" label="地点 | Location:" value={keyInfo.location} />
-                  )}
-                  {keyInfo.deadline && (
-                    <InfoItem icon="⏰" label="截止时间 | Deadline:" value={formatDate(keyInfo.deadline)} />
-                  )}
-                  {keyInfo.registration_link && (
-                    <InfoItem 
-                      icon="🔗" 
-                      label="报名链接 | Register:" 
-                      value={keyInfo.registration_link}
-                      showCopy={!keyInfo.registration_link.includes('二维码报名') && !keyInfo.registration_link.includes('QR Code')}
-                      onCopy={() => handleCopyLink(keyInfo.registration_link || '')}
-                    />
-                  )}
-                </>
+                </View>
+              ) : (
+                <View className="info-list">
+                  {keyInfo.date && <InfoRow icon="📅" label="日期 | Date:" value={formatDate(keyInfo.date)} />}
+                  {keyInfo.time && <InfoRow icon="🕐" label="时间 | Time:" value={keyInfo.time} />}
+                  {keyInfo.location && <InfoRow icon="📍" label="地点 | Location:" value={keyInfo.location} />}
+                  {keyInfo.deadline && <InfoRow icon="⏰" label="截止时间 | Deadline:" value={formatDate(keyInfo.deadline)} />}
+                  {keyInfo.registration_link && <InfoRow icon="🔗" label="报名链接 | Register:" value={keyInfo.registration_link} showCopy onCopy={() => handleCopyLink(keyInfo.registration_link)} />}
+                </View>
               )}
             </View>
 
             {/* 活动详情 */}
-            <View className="detail-body">
-              <Text className="detail-body-title">活动详情 | Details</Text>
-              
-              {item.summary && rawContent && 
-               rawContent.trim() && 
-               !rawContent.startsWith('📷') &&
-               item.summary.trim() !== rawContent.trim().substring(0, Math.min(item.summary.length, rawContent.length)).trim() ? (
-                <>
-                  <Text className="detail-summary">{item.summary}</Text>
-                  {rawContent && rawContent.trim() && !rawContent.startsWith('📷') && (
-                    <View className="detail-raw-content">
-                      <TextWithLinks text={rawContent} />
-                    </View>
-                  )}
-                </>
-              ) : (
-                <View className="detail-summary">
+            <View className="info-glass-card">
+              <Text className="card-label-purple">活动详情 | Details</Text>
+              <View className="details-text">
+                {item.summary && rawContent && 
+                 rawContent.trim() && 
+                 !rawContent.startsWith('📷') &&
+                 !rawContent.startsWith('📄') &&
+                 item.summary.trim() !== rawContent.trim().substring(0, Math.min(item.summary.length, rawContent.length)).trim() ? (
+                  <>
+                    <Text className="detail-summary-text">{item.summary}</Text>
+                    <View className="detail-divider" />
+                    <TextWithLinks text={rawContent} />
+                  </>
+                ) : (
                   <TextWithLinks 
                     text={
-                      rawContent?.trim() && !rawContent.startsWith('📷') 
+                      rawContent?.trim() && !rawContent.startsWith('📷') && !rawContent.startsWith('📄') 
                         ? rawContent 
                         : item.summary || '暂无详情'
                     } 
                   />
-                </View>
-              )}
+                )}
+              </View>
 
-              {/* 海报图片 */}
               {imageUrl && (
-                <View className="detail-poster">
-                  {showPoster ? (
-                    <Image 
-                      src={imageUrl} 
-                      mode="widthFix" 
-                      className="detail-poster-image"
-                      showMenuByLongpress
-                      lazyLoad
-                    />
+                <View className="poster-area">
+                  {imageUrl.toLowerCase().endsWith('.pdf') ? (
+                    <Button className="action-link-btn" onClick={() => Taro.downloadFile({ url: imageUrl, success: (res) => Taro.openDocument({ filePath: res.tempFilePath }) })}>查看文件 | View File</Button>
                   ) : (
-                    <Button 
-                      className="load-poster-btn"
-                      onClick={() => setShowPoster(true)}
-                    >
-                      <Text>点击查看海报 | view poster</Text>
-                    </Button>
+                    showPoster ? <Image src={imageUrl} mode="widthFix" className="poster-img" showMenuByLongpress /> :
+                    <Button className="action-link-btn" onClick={() => setShowPoster(true)}>点击查看海报 | view poster</Button>
                   )}
                 </View>
               )}
             </View>
           </View>
-        </ScrollView>
-      </View>
+          
+          {/* 底部占位留白 */}
+          <View style={{ height: '300rpx' }} />
+        </View>
+      </ScrollView>
 
-      {/* 底部操作栏 */}
+      {/* 3. 底部操作按钮 */}
       {showActions && (
-        <View className="detail-actions" style={{ paddingBottom: `${getSafeAreaBottom() + 32}rpx` }}>
-          <Button 
-            className="detail-action-btn"
-            onClick={handleAddToCalendar}
-          >
+        <View className="fixed-bottom-bar" style={{ paddingBottom: `${getSafeAreaBottom() + 10}px` }}>
+          <Button className="calendar-btn" onClick={handleAddToCalendar}>
             <Text>📅 添加到日历 | Add to Calendar</Text>
           </Button>
         </View>
@@ -305,43 +191,17 @@ export default function DetailModal({
   )
 }
 
-// 信息项子组件
-interface InfoItemProps {
-  icon: string
-  label: string
-  value: string
-  showCopy?: boolean
-  onCopy?: () => void
-}
-
-function InfoItem({ icon, label, value, showCopy, onCopy }: InfoItemProps) {
+function InfoRow({ icon, label, value, showCopy, onCopy }: any) {
   return (
-    <View className="detail-info-item">
-      <View className="detail-info-icon">
-        <Text>{icon}</Text>
-      </View>
-      <View className="detail-info-content" style={showCopy ? { flex: 1 } : {}}>
-        <Text className="detail-info-label">{label}</Text>
-        {showCopy ? (
-          <View className="detail-info-value-row">
-            <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
-              {value}
-            </Text>
-            <View 
-              className="copy-link-btn"
-              onClick={(e) => {
-                e.stopPropagation()
-                onCopy?.()
-              }}
-            >
-              <Text>Copy</Text>
-            </View>
-          </View>
-        ) : (
-          <Text className="detail-info-value">{value}</Text>
-        )}
+    <View className="info-row">
+      <View className="info-row-icon">{icon}</View>
+      <View className="info-row-main">
+        <Text className="info-row-label">{label}</Text>
+        <View className="info-row-value-wrap">
+          <Text className="info-row-value">{value}</Text>
+          {showCopy && <View className="mini-copy-btn" onClick={onCopy}>Copy</View>}
+        </View>
       </View>
     </View>
   )
 }
-
