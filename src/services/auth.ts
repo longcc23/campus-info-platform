@@ -91,9 +91,9 @@ class AuthService {
       return this.openid
     }
 
-    // 2. 尝试从本地缓存读取（如果是真正的 OpenID，不是以 temp_ 开头）
+    // 2. 尝试从本地缓存读取（如果是真正的 OpenID，不是以 user_ 或 temp_ 开头）
     const cachedOpenID = Taro.getStorageSync(STORAGE_KEY_OPENID)
-    if (cachedOpenID && !cachedOpenID.startsWith('user_')) {
+    if (cachedOpenID && !cachedOpenID.startsWith('user_') && !cachedOpenID.startsWith('temp_')) {
       this.openid = cachedOpenID
       return cachedOpenID
     }
