@@ -14,11 +14,14 @@ const LANGUAGE_INSTRUCTIONS = {
 **Output Language Requirement**: All field content MUST be output in English. Translate any Chinese content to English.`,
   'zh-en': `
 **输出语言要求 / Output Language Requirement**：
-- title: 使用格式 "中文标题 | English Title"
-- summary: 使用格式 "中文摘要\\n\\n---\\n\\nEnglish Summary"
-- tags: 每个标签使用格式 "中文标签/EnglishTag"
-- key_info 中的所有文本字段：使用格式 "中文内容 | English Content"
-- 日期、时间、链接等保持原格式不变`
+你是一个精通中英双语的助手。你必须将提取的所有信息以“中英双语”形式输出。
+即使输入内容全是中文，你也必须将其翻译成英文并按以下格式组合：
+- title: 必须是 "中文标题 | English Title"
+- summary: 必须是 "中文摘要\\n\\n---\\n\\nEnglish Summary"
+- tags: 每个标签必须是 "中文标签/EnglishTag"
+- key_info 中的 company, position, education, location: 必须是 "中文内容 | English Content"
+- 日期 (date)、时间 (time)、链接 (link, registration_link) 等保持原格式或标准化格式不变。
+请确保翻译准确、专业。`
 }
 
 // 基础 Prompt 模板
@@ -112,7 +115,8 @@ const BASE_PROMPT = `
  * 获取指定语言的系统 Prompt
  */
 export function getSystemPrompt(language: OutputLanguage = 'zh'): string {
-  return BASE_PROMPT + LANGUAGE_INSTRUCTIONS[language]
+  // 🚀 优化：将语言指令放到最前面，确保 AI 优先遵循语言要求
+  return LANGUAGE_INSTRUCTIONS[language] + '\n\n' + BASE_PROMPT
 }
 
 // 保留默认导出以兼容旧代码

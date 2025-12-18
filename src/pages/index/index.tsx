@@ -116,7 +116,7 @@ export default class Index extends Component<{}, IndexState> {
       await this.loadFavoriteStatus()
       
       Taro.showToast({
-        title: '内容已刷新',
+        title: '刷新成功',
         icon: 'success',
         duration: 1500
       })

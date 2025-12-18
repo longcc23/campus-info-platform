@@ -683,25 +683,6 @@
   }
 }
 
-// ==================== Toast提示 ====================
-
-.toast {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: rgba($gray-900, 0.85);
-  color: $text-inverse;
-  padding: $spacing-2 $spacing-4;
-  border-radius: $radius-full;
-  @include text-body;
-  font-weight: $font-weight-medium;
-  z-index: $z-tooltip;
-  box-shadow: $shadow-xl;
-  backdrop-filter: blur(20rpx);
-  animation: scaleIn $transition-base $ease-out;
-}
-
 // ==================== Skeleton 加载动画 ====================
 
 .feed-container {

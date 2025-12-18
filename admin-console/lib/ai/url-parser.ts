@@ -67,9 +67,16 @@ async function extractWebContent(url: string): Promise<string> {
 
       if (response.ok) {
         const content = await response.text()
-        if (content.length > 100 && !content.includes('环境异常') && !content.includes('完成验证后即可继续访问') && !content.includes('去验证')) {
+        const isErrorPage = content.includes('环境异常') || 
+                          content.includes('完成验证后即可继续访问') || 
+                          content.includes('去验证') ||
+                          content.includes('Please verify you are a human') ||
+                          content.length < 200
+
+        if (!isErrorPage) {
           return content.substring(0, 5000) // 限制长度
         }
+        console.log('Jina Reader 返回了验证页面或内容过短，尝试其他方案')
       }
     } catch (error) {
       console.log('Jina Reader failed, trying direct fetch...')
@@ -92,8 +99,13 @@ async function extractWebContent(url: string): Promise<string> {
     const html = await response.text()
 
     // 检查是否是验证页面
-    if (html.includes('环境异常') || html.includes('完成验证后即可继续访问')) {
-      throw new Error('该微信公众号文章需要验证才能访问。请手动复制文章内容，然后使用「文本」输入方式进行识别')
+    const isWechatBlock = html.includes('环境异常') || 
+                         html.includes('完成验证后即可继续访问') || 
+                         html.includes('js_verify') ||
+                         html.includes('请输入验证码')
+
+    if (isWechatBlock) {
+      throw new Error('该微信公众号文章触发了反爬虫验证。请直接在微信中复制文章全文，然后回到这里切换到「文本」模式进行解析。')
     }
 
     // 解析 HTML
