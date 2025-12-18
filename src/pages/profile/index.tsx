@@ -3,6 +3,7 @@ import Taro, { useDidShow } from '@tarojs/taro'
 import { useState, useEffect } from 'react'
 import authService from '../../services/auth'
 import favoritesService from '../../services/favorites'
+import { withAuthGuard } from '../../utils/auth-guard'
 import './index.scss'
 
 export default function Profile() {

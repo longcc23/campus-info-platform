@@ -9,6 +9,7 @@ import Taro from '@tarojs/taro'
 import FavoriteButton from '../FavoriteButton'
 import ShareButton from '../ShareButton'
 import { TextWithLinks, copyToClipboard } from '../../utils/text-with-links'
+import { withAuthGuard } from '../../utils/auth-guard'
 import { formatDate, extractTimeFromDeadline } from '../../utils/date-formatter'
 import { createCalendarEventFromItem, addToPhoneCalendar } from '../../utils/ics-generator'
 import { getSafeAreaBottom } from '../../utils/system-info'
@@ -73,46 +74,50 @@ export default function DetailModal({
   }
 
   const handleCopyLink = (link: string) => {
-    copyToClipboard(link)
+    withAuthGuard('复制', () => {
+      copyToClipboard(link)
+    })
   }
 
   const handleAddToCalendar = async () => {
-    try {
-      let dateStr = ''
-      let timeStr = ''
-      
-      if (item.type === 'recruit' && keyInfo.deadline) {
-        dateStr = keyInfo.deadline
-        timeStr = extractTimeFromDeadline(keyInfo.deadline)
-      } else {
-        dateStr = keyInfo.date || ''
-        timeStr = keyInfo.time || ''
-      }
-      
-      const calendarEvent = createCalendarEventFromItem(
-        item.title,
-        dateStr,
-        timeStr,
-        keyInfo.location || '',
-        item.summary || rawContent || ''
-      )
-      
-      if (!calendarEvent) {
+    await withAuthGuard('添加到日历', async () => {
+      try {
+        let dateStr = ''
+        let timeStr = ''
+        
+        if (item.type === 'recruit' && keyInfo.deadline) {
+          dateStr = keyInfo.deadline
+          timeStr = extractTimeFromDeadline(keyInfo.deadline)
+        } else {
+          dateStr = keyInfo.date || ''
+          timeStr = keyInfo.time || ''
+        }
+        
+        const calendarEvent = createCalendarEventFromItem(
+          item.title,
+          dateStr,
+          timeStr,
+          keyInfo.location || '',
+          item.summary || rawContent || ''
+        )
+        
+        if (!calendarEvent) {
+          Taro.showToast({
+            title: '无法解析活动时间',
+            icon: 'none'
+          })
+          return
+        }
+        
+        await addToPhoneCalendar(calendarEvent)
+      } catch (error) {
+        console.error('添加到日历失败:', error)
         Taro.showToast({
-          title: '无法解析活动时间',
+          title: '添加到日历失败',
           icon: 'none'
         })
-        return
       }
-      
-      await addToPhoneCalendar(calendarEvent)
-    } catch (error) {
-      console.error('添加到日历失败:', error)
-      Taro.showToast({
-        title: '添加到日历失败',
-        icon: 'none'
-      })
-    }
+    })
   }
 
   // 判断是否显示底部操作栏
