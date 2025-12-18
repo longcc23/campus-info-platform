@@ -6,10 +6,7 @@
  */
 
 import Taro from '@tarojs/taro'
-
-// Supabase 配置
-const SUPABASE_URL = 'https://civlywqsdzzrvsutlrxx.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdmx5d3FzZHp6cnZzdXRscnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTkzODUsImV4cCI6MjA4MDMzNTM4NX0.vHueW-6OoZg1srGLzMvRGS1Cwy1bpyX-isVtJ_z6SbQ'
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config/supabase'
 
 // 本地存储 key
 const STORAGE_KEY_OPENID = 'user_openid'
@@ -78,7 +75,7 @@ class AuthService {
 
   /**
    * 获取当前用户的 OpenID
-   * 如果未登录，自动调用 wx.login() 获取
+   * 优先尝试微信云函数（最稳定），失败后回退到本地临时 ID
    * 
    * @returns Promise<string> - 用户的 OpenID
    * @throws AuthError - 登录失败时抛出错误
@@ -89,46 +86,78 @@ class AuthService {
       await this.initialize()
     }
 
-    // 如果已有 OpenID，直接返回
+    // 1. 如果内存中已有，直接返回
     if (this.openid) {
       return this.openid
     }
 
+    // 2. 尝试从本地缓存读取（如果是真正的 OpenID，不是以 temp_ 开头）
+    const cachedOpenID = Taro.getStorageSync(STORAGE_KEY_OPENID)
+    if (cachedOpenID && !cachedOpenID.startsWith('temp_')) {
+      this.openid = cachedOpenID
+      return cachedOpenID
+    }
+
     try {
-      // 调用微信登录接口获取 code
-      const loginRes = await Taro.login()
+      console.log('[AuthService] 正在通过云函数获取 OpenID...')
       
-      if (!loginRes.code) {
-        throw new AuthError('微信登录失败：未获取到 code')
-      }
-
-      console.log('[AuthService] 微信登录成功，code:', loginRes.code)
-
-      // TODO: 生产环境需要将 code 发送到后端换取真实的 openid
-      // 当前使用临时方案：使用 code 的 hash 作为用户标识
-      // 这样可以确保同一个用户在不同会话中使用相同的 ID
-      const tempOpenID = `temp_${this.hashCode(loginRes.code)}`
-      
-      // 保存到内存和本地存储
-      this.openid = tempOpenID
-      Taro.setStorageSync(STORAGE_KEY_OPENID, tempOpenID)
-      
-      console.log('[AuthService] 生成临时 OpenID:', tempOpenID)
-      
-      // 确保用户记录存在
-      await this.ensureUser(tempOpenID)
-      
-      return tempOpenID
-    } catch (error: any) {
-      console.error('[AuthService] 获取 OpenID 失败:', error)
-      
-      // 如果是 AuthError，直接抛出
-      if (error instanceof AuthError) {
-        throw error
+      // 🚀 优先调用微信云函数获取真正的 OpenID
+      if (Taro.cloud) {
+        const res = await Taro.cloud.callFunction({
+          name: 'login',
+          data: {}
+        })
+        
+        const result = res.result as any
+        if (result && result.openid) {
+          const realOpenID = result.openid
+          console.log('[AuthService] 云函数获取 OpenID 成功:', realOpenID)
+          
+          this.openid = realOpenID
+          Taro.setStorageSync(STORAGE_KEY_OPENID, realOpenID)
+          
+          // 确保用户记录存在
+          await this.ensureUser(realOpenID)
+          return realOpenID
+        }
       }
       
-      // 其他错误包装为 AuthError
-      throw new AuthError(`获取用户身份失败: ${error.message || error.errMsg || '未知错误'}`)
+      throw new Error('Cloud function failed or returned empty')
+      
+    } catch (cloudError) {
+      console.warn('[AuthService] 云函数获取 OpenID 失败，尝试回退方案:', cloudError)
+      
+      // 3. 回退方案：执行原有的微信登录获取 code
+      try {
+        const loginRes = await Taro.login()
+        
+        if (!loginRes.code) {
+          throw new AuthError('微信登录失败：未获取到 code')
+        }
+
+        console.log('[AuthService] 微信登录成功，code:', loginRes.code)
+
+        // 使用临时方案：使用 code 的 hash 作为用户标识
+        const tempOpenID = `temp_${this.hashCode(loginRes.code)}`
+        
+        this.openid = tempOpenID
+        Taro.setStorageSync(STORAGE_KEY_OPENID, tempOpenID)
+        
+        console.log('[AuthService] 生成临时 OpenID:', tempOpenID)
+        
+        // 确保用户记录存在
+        await this.ensureUser(tempOpenID)
+        
+        return tempOpenID
+      } catch (error: any) {
+        console.error('[AuthService] 获取 OpenID 失败:', error)
+        
+        if (error instanceof AuthError) {
+          throw error
+        }
+        
+        throw new AuthError(`获取用户身份失败: ${error.message || error.errMsg || '未知错误'}`)
+      }
     }
   }
 
