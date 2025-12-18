@@ -188,6 +188,8 @@
   transition: all $transition-base $ease-out;
   width: 100%; // 确保卡片宽度完整
   box-sizing: border-box; // 包含 border
+  position: relative; // 为左上角标签定位
+  overflow: visible; // 允许标签溢出
   
   &.first-card {
     margin-top: $spacing-2; // 第一条卡片最小上边距，确保顶部完整显示
@@ -196,6 +198,31 @@
   &:active {
     transform: scale(0.98);
   }
+}
+
+// 左上角置顶三角标签
+.top-corner-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 100rpx 100rpx 0 0;
+  border-color: #EF4444 transparent transparent transparent;
+  z-index: 10;
+}
+
+.top-corner-text {
+  position: absolute;
+  top: -85rpx;
+  left: 10rpx;
+  color: #fff;
+  font-size: 22rpx;
+  font-weight: $font-weight-bold;
+  transform: rotate(-45deg);
+  white-space: nowrap;
+  letter-spacing: 1rpx;
 }
 
 // 确保第一条卡片的顶部色条完整显示
@@ -592,6 +619,28 @@
   border: 1rpx solid $border-light;
   line-height: $line-height-relaxed;
   margin-top: $spacing-4;
+}
+
+// 带链接的文本容器
+.text-with-links {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.link-container {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-2 0;
+  
+  .link-text {
+    flex: 1;
+    color: $primary;
+    font-size: $font-size-sm;
+    line-height: 1.6;
+    word-break: break-all;
+  }
 }
 
 // 底部操作栏 - 淡紫色风格

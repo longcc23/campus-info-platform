@@ -241,6 +241,48 @@ export default function History() {
     })
   }
 
+  // 渲染带有链接识别和Copy按钮的文本内容
+  const renderTextWithLinks = (text: string) => {
+    if (!text) return null
+    
+    // 匹配URL的正则表达式
+    const urlRegex = /(https?:\/\/[^\s\n]+)/g
+    const parts = text.split(urlRegex)
+    
+    return (
+      <View className="text-with-links">
+        {parts.map((part, index) => {
+          if (urlRegex.test(part)) {
+            // 这是一个链接
+            return (
+              <View key={index} className="link-container">
+                <Text className="link-text" style={{ wordBreak: 'break-all', flex: 1 }}>
+                  {part}
+                </Text>
+                <View 
+                  className="copy-link-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    handleCopyLink(part)
+                  }}
+                >
+                  <Text>Copy</Text>
+                </View>
+              </View>
+            )
+          } else {
+            // 这是普通文本
+            return (
+              <Text key={index} style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                {part}
+              </Text>
+            )
+          }
+        })}
+      </View>
+    )
+  }
+
   const handleClearHistory = async () => {
     const result = await Taro.showModal({
       title: '确认清空',
@@ -328,6 +370,13 @@ export default function History() {
               className={`history-card ${expired ? 'expired' : ''}`}
               onClick={() => handleEventClick(item)}
             >
+              {/* 左上角置顶三角标签 */}
+              {item.is_top && (
+                <View className="top-corner-badge">
+                  <Text className="top-corner-text">置顶</Text>
+                </View>
+              )}
+              
               {/* 顶部色条 */}
               <View 
                 className="card-top-bar" 
@@ -339,9 +388,6 @@ export default function History() {
                 {/* 头部：类型标签和收藏按钮 */}
                 <View className="card-header">
                   <View className="card-tags">
-                    {item.is_top && (
-                      <Text className="top-tag">置顶</Text>
-                    )}
                     <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : item.type === 'lecture' ? 'lecture' : 'activity'}`}>
                       {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
                     </Text>
@@ -560,15 +606,18 @@ export default function History() {
                               <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
                                 {selectedItem.key_info.link.replace(/^mailto:/i, '')}
                               </Text>
-                              <View 
-                                className="copy-link-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleCopyLink((selectedItem.key_info.link || '').replace(/^mailto:/i, ''))
-                                }}
-                              >
-                                <Text>Copy</Text>
-                              </View>
+                              {/* 只有当不是二维码报名时才显示Copy按钮 */}
+                              {!selectedItem.key_info.link.includes('二维码报名') && !selectedItem.key_info.link.includes('QR Code') && (
+                                <View 
+                                  className="copy-link-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleCopyLink((selectedItem.key_info.link || '').replace(/^mailto:/i, ''))
+                                  }}
+                                >
+                                  <Text>Copy</Text>
+                                </View>
+                              )}
                             </View>
                           </View>
                         </View>
@@ -638,15 +687,18 @@ export default function History() {
                               <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
                                 {selectedItem.key_info.registration_link}
                               </Text>
-                              <View 
-                                className="copy-link-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  handleCopyLink(selectedItem.key_info.registration_link || '')
-                                }}
-                              >
-                                <Text>Copy</Text>
-                              </View>
+                              {/* 只有当不是二维码报名时才显示Copy按钮 */}
+                              {!selectedItem.key_info.registration_link.includes('二维码报名') && !selectedItem.key_info.registration_link.includes('QR Code') && (
+                                <View 
+                                  className="copy-link-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    handleCopyLink(selectedItem.key_info.registration_link || '')
+                                  }}
+                                >
+                                  <Text>Copy</Text>
+                                </View>
+                              )}
                             </View>
                           </View>
                         </View>
@@ -665,18 +717,20 @@ export default function History() {
                       <Text className="detail-summary">{selectedItem.summary}</Text>
                       {selectedItem.raw_content && selectedItem.raw_content.trim() && !selectedItem.raw_content.startsWith('📷') && (
                         <View className="detail-raw-content">
-                          <Text style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{selectedItem.raw_content}</Text>
+                          {renderTextWithLinks(selectedItem.raw_content)}
                         </View>
                       )}
                     </>
                   ) : (
                     <>
                       <Text className="detail-body-title">活动详情 | Details</Text>
-                      <Text className="detail-summary" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                        {selectedItem.raw_content?.trim() && !selectedItem.raw_content.startsWith('📷')
-                          ? selectedItem.raw_content 
-                          : selectedItem.summary || '暂无详情'}
-                      </Text>
+                      <View className="detail-summary">
+                        {renderTextWithLinks(
+                          selectedItem.raw_content?.trim() && !selectedItem.raw_content.startsWith('📷')
+                            ? selectedItem.raw_content 
+                            : selectedItem.summary || '暂无详情'
+                        )}
+                      </View>
                     </>
                   )}
 

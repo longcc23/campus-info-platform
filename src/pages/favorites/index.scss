@@ -54,12 +54,38 @@
   .favorite-card {
     @include card;
     @include card-hover;
-    overflow: hidden;
+    overflow: visible; // 允许三角标签溢出
+    position: relative; // 为三角标签定位
 
     .card-top-bar {
       height: 8rpx;
       width: 100%;
       background: $gradient-primary;
+    }
+
+    // 左上角置顶三角标签
+    .top-corner-badge {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 100rpx 100rpx 0 0;
+      border-color: #EF4444 transparent transparent transparent;
+      z-index: 10;
+    }
+
+    .top-corner-text {
+      position: absolute;
+      top: -85rpx;
+      left: 10rpx;
+      color: #fff;
+      font-size: 22rpx;
+      font-weight: $font-weight-bold;
+      transform: rotate(-45deg);
+      white-space: nowrap;
+      letter-spacing: 1rpx;
     }
 
     .card-content {
@@ -537,5 +563,27 @@
     &:active {
       background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
     }
+  }
+}
+
+// 带链接的文本容器
+.text-with-links {
+  display: flex;
+  flex-direction: column;
+  gap: $spacing-2;
+}
+
+.link-container {
+  display: flex;
+  align-items: center;
+  gap: $spacing-3;
+  padding: $spacing-2 0;
+  
+  .link-text {
+    flex: 1;
+    color: $primary;
+    font-size: $font-size-sm;
+    line-height: 1.6;
+    word-break: break-all;
   }
 }

@@ -24,8 +24,9 @@ infor_platform/
 │   ├── contexts/                # React Context 目录
 │   │   └── FilterContext.tsx    # 筛选状态上下文
 │   ├── custom-tab-bar/          # 自定义底部导航
-│   ├── pages/                   # 页面目录
-│   │   ├── index/               # 首页
+│       ├── pages/                   # 页面目录
+    │   ├── welcome/             # 欢迎页（首次进入）
+    │   ├── index/               # 首页
 │   │   ├── profile/             # 个人中心
 │   │   ├── favorites/           # 收藏页
 │   │   ├── history/             # 浏览历史

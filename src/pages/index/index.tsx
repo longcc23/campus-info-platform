@@ -365,6 +365,48 @@ export default class Index extends Component<{}, IndexState> {
     }
   }
 
+  // 渲染带有链接识别和Copy按钮的文本内容
+  renderTextWithLinks = (text: string) => {
+    if (!text) return null
+    
+    // 匹配URL的正则表达式
+    const urlRegex = /(https?:\/\/[^\s\n]+)/g
+    const parts = text.split(urlRegex)
+    
+    return (
+      <View className="text-with-links">
+        {parts.map((part, index) => {
+          if (urlRegex.test(part)) {
+            // 这是一个链接
+            return (
+              <View key={index} className="link-container">
+                <Text className="link-text" style={{ wordBreak: 'break-all', flex: 1 }}>
+                  {part}
+                </Text>
+                <View 
+                  className="copy-link-btn"
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    this.handleCopyLink(part)
+                  }}
+                >
+                  <Text>Copy</Text>
+                </View>
+              </View>
+            )
+          } else {
+            // 这是普通文本
+            return (
+              <Text key={index} style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
+                {part}
+              </Text>
+            )
+          }
+        })}
+      </View>
+    )
+  }
+
   getFilteredFeed = () => {
     const { feed, activeFilter, searchKeyword, hideExpired } = this.state
     
@@ -495,13 +537,15 @@ export default class Index extends Component<{}, IndexState> {
                         className={`feed-card ${index === 0 ? 'first-card' : ''} ${expired ? 'expired' : ''}`}
                         onClick={() => this.handleItemClick(item)}
                       >
+                        {item.isTop && (
+                          <View className="top-corner-badge">
+                            <Text className="top-corner-text">置顶</Text>
+                          </View>
+                        )}
                         <View className="card-top-bar" style={{ background: expired ? '#9CA3AF' : `linear-gradient(to right, ${item.posterColor})` }} />
                         <View className="card-content">
                           <View className="card-header">
                             <View className="card-header-left">
-                              {item.isTop && (
-                                <Text className="top-tag">置顶</Text>
-                              )}
                               <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : item.type === 'lecture' ? 'lecture' : 'activity'}`}>
                                 {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
                               </Text>
@@ -694,15 +738,18 @@ export default class Index extends Component<{}, IndexState> {
                               <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
                                 {selectedItem.keyInfo.link.replace(/^mailto:/i, '')}
                               </Text>
-                              <View 
-                                className="copy-link-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  this.handleCopyLink((selectedItem.keyInfo.link || '').replace(/^mailto:/i, ''))
-                                }}
-                              >
-                                <Text>Copy</Text>
-                              </View>
+                              {/* 只有当不是二维码报名时才显示Copy按钮 */}
+                              {!selectedItem.keyInfo.link.includes('二维码报名') && !selectedItem.keyInfo.link.includes('QR Code') && (
+                                <View 
+                                  className="copy-link-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    this.handleCopyLink((selectedItem.keyInfo.link || '').replace(/^mailto:/i, ''))
+                                  }}
+                                >
+                                  <Text>Copy</Text>
+                                </View>
+                              )}
                             </View>
                           </View>
                         </View>
@@ -772,15 +819,18 @@ export default class Index extends Component<{}, IndexState> {
                               <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
                                 {selectedItem.keyInfo.registration_link}
                               </Text>
-                              <View 
-                                className="copy-link-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  this.handleCopyLink(selectedItem.keyInfo.registration_link || '')
-                                }}
-                              >
-                                <Text>Copy</Text>
-                              </View>
+                              {/* 只有当不是二维码报名时才显示Copy按钮 */}
+                              {!selectedItem.keyInfo.registration_link.includes('二维码报名') && !selectedItem.keyInfo.registration_link.includes('QR Code') && (
+                                <View 
+                                  className="copy-link-btn"
+                                  onClick={(e) => {
+                                    e.stopPropagation()
+                                    this.handleCopyLink(selectedItem.keyInfo.registration_link || '')
+                                  }}
+                                >
+                                  <Text>Copy</Text>
+                                </View>
+                              )}
                             </View>
                           </View>
                         </View>
@@ -800,18 +850,20 @@ export default class Index extends Component<{}, IndexState> {
                       <Text className="detail-summary">{selectedItem.summary}</Text>
                       {selectedItem.rawContent && selectedItem.rawContent.trim() && !selectedItem.rawContent.startsWith('📷') && (
                         <View className="detail-raw-content">
-                          <Text style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>{selectedItem.rawContent}</Text>
+                          {this.renderTextWithLinks(selectedItem.rawContent)}
                         </View>
                       )}
                     </>
                   ) : (
                     <>
                       <Text className="detail-body-title">活动详情 | Details</Text>
-                      <Text className="detail-summary" style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                        {selectedItem.rawContent?.trim() && !selectedItem.rawContent.startsWith('📷') 
-                          ? selectedItem.rawContent 
-                          : selectedItem.summary || '暂无详情'}
-                      </Text>
+                      <View className="detail-summary">
+                        {this.renderTextWithLinks(
+                          selectedItem.rawContent?.trim() && !selectedItem.rawContent.startsWith('📷') 
+                            ? selectedItem.rawContent 
+                            : selectedItem.summary || '暂无详情'
+                        )}
+                      </View>
                     </>
                   )}
 

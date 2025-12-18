@@ -2,7 +2,7 @@
  * 个人中心页面 - 现代简约设计
  */
 
-import { View, Text, Button } from '@tarojs/components'
+import { View, Text, Button, Image } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro, { useDidShow } from '@tarojs/taro'
 import authService from '../../services/auth'
@@ -158,10 +158,13 @@ export default function Profile() {
         </View>
       </View>
 
-      {/* 底部信息 */}
+      {/* 底部logo */}
       <View className="footer">
-        <Text className="footer-text">UniFlow - 智汇流</Text>
-        <Text className="footer-slogan">让信息触手可及</Text>
+        <Image 
+          src={require('../../assets/images/logo.jpg')} 
+          className="footer-logo"
+          mode="aspectFit"
+        />
       </View>
     </View>
   )

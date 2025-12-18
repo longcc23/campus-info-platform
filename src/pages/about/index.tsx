@@ -2,8 +2,9 @@
  * 关于页面
  */
 
-import { View, Text, Button } from '@tarojs/components'
+import { View, Text, Button, Image } from '@tarojs/components'
 import Taro from '@tarojs/taro'
+import logoImg from '../../assets/images/logo.jpg'
 import './index.scss'
 
 export default function About() {
@@ -32,11 +33,14 @@ export default function About() {
 
       {/* 应用信息 */}
       <View className="app-info">
-        <View className="app-logo">
-          <Text className="logo-text">U</Text>
+        <View className="app-logo-container">
+          <Image 
+            src={logoImg} 
+            mode="aspectFit" 
+            className="app-logo-img"
+          />
         </View>
-        <Text className="app-name">UniFlow 智汇流</Text>
-        <Text className="app-version">版本 1.0.0</Text>
+        <Text className="app-version">版本 1.1.0</Text>
         <Text className="app-slogan">让校园信息不再流失，让每一个机会触手可及</Text>
       </View>
 
