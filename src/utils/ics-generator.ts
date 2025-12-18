@@ -314,14 +314,45 @@ export async function addToPhoneCalendar(event: CalendarEvent): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
     const startTime = Math.floor(event.startDate.getTime() / 1000)
-    const endTime = event.endDate 
+    // 🚀 如果是全天事件，微信要求结束时间也必须设置，且通常为同一天或下一天凌晨
+    let finalEndTime = event.endDate 
       ? Math.floor(event.endDate.getTime() / 1000)
-      : Math.floor((event.startDate.getTime() + 2 * 60 * 60 * 1000) / 1000) // 默认 2 小时
+      : Math.floor((event.startDate.getTime() + 2 * 60 * 60 * 1000) / 1000)
+
+    if (event.allDay) {
+      // 全天事件：开始时间设为当天 00:00:00，结束时间设为当天 23:59:59
+      const start = new Date(event.startDate)
+      start.setHours(0, 0, 0, 0)
+      const end = new Date(event.startDate)
+      end.setHours(23, 59, 59, 0)
+      
+      const startTs = Math.floor(start.getTime() / 1000)
+      const endTs = Math.floor(end.getTime() / 1000)
+      
+      // 注意：某些系统对全天事件的时间戳有严格要求
+      Taro.addPhoneCalendar({
+        title: event.title,
+        startTime: startTs,
+        endTime: endTs,
+        location: event.location || '',
+        description: event.description || '',
+        allDay: true,
+        success: () => {
+          Taro.showToast({ title: '已添加到日历', icon: 'success' })
+          resolve()
+        },
+        fail: (err) => {
+          console.error('[Calendar] 全天事件添加失败:', err)
+          fallbackToICS(event, resolve, reject)
+        }
+      })
+      return
+    }
     
     console.log('[Calendar] 准备调用原生 API:', {
       title: event.title,
       startTime,
-      endTime,
+      endTime: finalEndTime,
       location: event.location
     })
 
@@ -329,22 +360,24 @@ export async function addToPhoneCalendar(event: CalendarEvent): Promise<void> {
     Taro.addPhoneCalendar({
       title: event.title,
       startTime: startTime,
-      endTime: endTime, // 修复：在某些版本基础库中需要 Number
+      endTime: finalEndTime,
       location: event.location || '',
       description: event.description || '',
-      allDay: event.allDay || false,
-    }).then(() => {
+      allDay: false,
+      success: () => {
         Taro.showToast({
           title: '已添加到日历',
           icon: 'success',
           duration: 2000
         })
         resolve()
-      }).catch((err: any) => {
+      },
+      fail: (err: any) => {
         console.error('添加到日历失败:', err)
         // 如果原生 API 不可用，使用备选方案
         fallbackToICS(event, resolve, reject)
-      })
+      }
+    })
     } catch (error) {
       console.error('添加到日历异常:', error)
       // 备选方案：生成 ICS 文件
