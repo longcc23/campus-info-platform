@@ -5,6 +5,8 @@
 import { View, Text, Button, Textarea, Input } from '@tarojs/components'
 import { useState } from 'react'
 import Taro from '@tarojs/taro'
+import { authService } from '../../services/auth'
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../../config/supabase'
 import './index.scss'
 
 export default function Feedback() {
@@ -20,54 +22,58 @@ export default function Feedback() {
 
   const handleSubmit = async () => {
     if (!title.trim()) {
-      Taro.showToast({
-        title: '请填写反馈标题',
-        icon: 'none'
-      })
+      Taro.showToast({ title: '请填写反馈标题', icon: 'none' })
       return
     }
 
     if (!content.trim()) {
-      Taro.showToast({
-        title: '请填写反馈内容',
-        icon: 'none'
-      })
+      Taro.showToast({ title: '请填写反馈内容', icon: 'none' })
       return
     }
 
     setSubmitting(true)
 
     try {
-      // 这里可以集成实际的反馈提交接口
-      // 目前先模拟提交过程
-      await new Promise(resolve => setTimeout(resolve, 1000))
-
-      // 生成反馈邮件内容
-      const emailContent = `反馈类型：${getFeedbackTypeText(feedbackType)}\n标题：${title}\n内容：${content}\n联系方式：${contact || '未提供'}`
+      const openid = await authService.getOpenID()
       
-      // 复制到剪贴板
-      await Taro.setClipboardData({
-        data: emailContent
-      })
-
-      Taro.showModal({
-        title: '反馈已记录 📝',
-        content: '感谢您的宝贵意见！反馈内容已复制到剪贴板。\n\n我们会认真对待每一条反馈，持续改进产品体验。',
-        showCancel: false,
-        confirmText: '知道了',
-        confirmColor: '#8B5CF6',
-        success: () => {
-          // 清空表单
-          setTitle('')
-          setContent('')
-          setContact('')
-          setFeedbackType('suggestion')
+      // 🚀 直接提交到 Supabase feedbacks 表
+      const response = await Taro.request({
+        url: `${SUPABASE_URL}/rest/v1/feedbacks`,
+        method: 'POST',
+        header: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+          'Prefer': 'return=minimal'
+        },
+        data: {
+          openid,
+          type: feedbackType,
+          title: title.trim(),
+          content: content.trim(),
+          contact: contact.trim() || null,
+          created_at: new Date().toISOString()
         }
       })
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        Taro.showModal({
+          title: '反馈提交成功 🚀',
+          content: '感谢您的宝贵意见！我们会认真对待每一条反馈，持续改进产品体验。',
+          showCancel: false,
+          confirmText: '回首页',
+          confirmColor: '#8B5CF6',
+          success: () => {
+            Taro.reLaunch({ url: '/pages/index/index' })
+          }
+        })
+      } else {
+        throw new Error('Server responded with status: ' + response.statusCode)
+      }
     } catch (error) {
       console.error('提交反馈失败:', error)
       Taro.showToast({
-        title: '提交失败，请重试',
+        title: '网络开小差了，请重试',
         icon: 'none'
       })
     } finally {
