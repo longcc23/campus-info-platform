@@ -8,6 +8,7 @@
 import { View } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import favoritesService from '../../services/favorites'
+import { withAuthGuard } from '../../utils/auth-guard'
 import './index.scss'
 
 export interface FavoriteButtonProps {
@@ -45,35 +46,38 @@ export default function FavoriteButton({
     // 阻止事件冒泡，避免触发父元素的点击事件
     e.stopPropagation()
 
-    // 如果正在加载，忽略点击
-    if (loading) {
-      return
-    }
-
-    setLoading(true)
-
-    // 乐观更新：立即更新 UI
-    const newState = !isFavorited
-    setIsFavorited(newState)
-
-    try {
-      // 执行收藏操作
-      const success = await favoritesService.toggleFavorite(eventId, newState)
-
-      if (success) {
-        // 操作成功，通知父组件
-        onToggle?.(newState)
-      } else {
-        // 操作失败，回滚 UI 状态
-        setIsFavorited(!newState)
+    // 🚀 增加登录守卫
+    await withAuthGuard('收藏', async () => {
+      // 如果正在加载，忽略点击
+      if (loading) {
+        return
       }
-    } catch (error) {
-      // 发生异常，回滚 UI 状态
-      console.error('[FavoriteButton] 收藏操作异常:', error)
-      setIsFavorited(!newState)
-    } finally {
-      setLoading(false)
-    }
+
+      setLoading(true)
+
+      // 乐观更新：立即更新 UI
+      const newState = !isFavorited
+      setIsFavorited(newState)
+
+      try {
+        // 执行收藏操作
+        const success = await favoritesService.toggleFavorite(eventId, newState)
+
+        if (success) {
+          // 操作成功，通知父组件
+          onToggle?.(newState)
+        } else {
+          // 操作失败，回滚 UI 状态
+          setIsFavorited(!newState)
+        }
+      } catch (error) {
+        // 发生异常，回滚 UI 状态
+        console.error('[FavoriteButton] 收藏操作异常:', error)
+        setIsFavorited(!newState)
+      } finally {
+        setLoading(false)
+      }
+    })
   }
 
   return (

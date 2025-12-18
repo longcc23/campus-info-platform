@@ -348,6 +348,14 @@ class AuthService {
   }
 
   /**
+   * 检查用户是否已完成资料设置（是否有昵称）
+   */
+  async isProfileComplete(): Promise<boolean> {
+    const profile = await this.getUserProfile()
+    return !!(profile && profile.nickname && profile.nickname !== 'UniFlow 用户')
+  }
+
+  /**
    * 简单的字符串 hash 函数
    * 用于将 code 转换为一致的标识符
    * 

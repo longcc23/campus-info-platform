@@ -61,7 +61,15 @@ export default function Profile() {
   }
 
   const navigateTo = (url: string) => {
-    Taro.navigateTo({ url })
+    // 🚀 对于收藏和历史记录，增加登录守卫
+    if (url.includes('favorites') || url.includes('history')) {
+      const actionName = url.includes('favorites') ? '我的收藏' : '浏览历史'
+      withAuthGuard(actionName, () => {
+        Taro.navigateTo({ url })
+      })
+    } else {
+      Taro.navigateTo({ url })
+    }
   }
 
   if (loading) {

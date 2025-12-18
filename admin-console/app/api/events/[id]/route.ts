@@ -323,9 +323,9 @@ export async function DELETE(
       )
     }
 
-    const { error } = await supabase
+    const { error, count } = await supabase
       .from('events')
-      .delete()
+      .delete({ count: 'exact' })
       .eq('id', id)
 
     if (error) {
@@ -333,6 +333,16 @@ export async function DELETE(
       return NextResponse.json(
         { success: false, error: `数据库错误: ${error.message}` },
         { status: 500 }
+      )
+    }
+
+    if (count === 0) {
+      return NextResponse.json(
+        { 
+          success: false, 
+          error: '删除失败：记录不存在或权限不足。请检查：1. 是否配置了 SERVICE_ROLE_KEY；2. 数据库 RLS 策略是否允许删除。' 
+        },
+        { status: 403 }
       )
     }
 
