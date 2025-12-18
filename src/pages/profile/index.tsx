@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import authService from '../../services/auth'
 import favoritesService from '../../services/favorites'
 import { withAuthGuard } from '../../utils/auth-guard'
+import defaultAvatar from '../../assets/images/IMG_9253.jpg'
 import './index.scss'
 
 export default function Profile() {
@@ -14,33 +15,60 @@ export default function Profile() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    console.log('[Profile] 页面初始化')
     loadUserInfo()
   }, [])
 
   useDidShow(() => {
+    console.log('[Profile] 页面显示')
     if (userId) {
       loadFavoritesCount()
       refreshUserProfile()
     }
+    updateTabBar()
   })
+
+  const updateTabBar = () => {
+    try {
+      const page = Taro.getCurrentInstance()?.page
+      if (page && typeof (page as any).getTabBar === 'function') {
+        const tabBar = (page as any).getTabBar()
+        if (tabBar && typeof tabBar.setSelected === 'function') {
+          tabBar.setSelected(1) // 我的页面索引是 1
+        }
+      }
+    } catch (e) {
+      console.error('更新 TabBar 失败:', e)
+    }
+  }
 
   const loadUserInfo = async () => {
     try {
-      const openid = await authService.getOpenID()
-      setUserId(openid)
+      console.log('[Profile] 开始加载用户信息...')
+      // 🚀 增加超时保护，防止云函数响应慢导致页面白屏
+      const openid = await Promise.race([
+        authService.getOpenID(),
+        new Promise<string>((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
+      ]).catch(err => {
+        console.warn('[Profile] 获取 ID 超时或失败:', err)
+        return ''
+      })
       
-      // 加载个人资料
-      const profile = await authService.getUserProfile()
-      if (profile) {
-        setNickname(profile.nickname || 'UniFlow 用户')
-        setAvatarUrl(profile.avatar_url || '')
+      if (openid) {
+        setUserId(openid)
+        // 加载个人资料
+        const profile = await authService.getUserProfile()
+        if (profile) {
+          setNickname(profile.nickname || 'UniFlow 用户')
+          setAvatarUrl(profile.avatar_url || '')
+        }
+        loadFavoritesCount()
       }
-      
-      setLoading(false)
-      loadFavoritesCount()
     } catch (error) {
-      console.error('加载用户信息失败:', error)
+      console.error('[Profile] 加载用户信息异常:', error)
+    } finally {
       setLoading(false)
+      console.log('[Profile] 加载完成, loading set to false')
     }
   }
 
@@ -92,7 +120,7 @@ export default function Profile() {
         <View className="user-info" onClick={() => navigateTo('/pages/profile-edit/index')}>
           <View className="avatar-box">
             <Image 
-              src={avatarUrl || require('../../assets/images/IMG_9253.jpg')} 
+              src={avatarUrl || defaultAvatar} 
               className="user-avatar" 
               mode="aspectFill" 
             />

@@ -395,9 +395,11 @@ export default class Index extends Component<{}, IndexState> {
                             <View className="info-item">
                               <Text className="info-icon">{item.type === 'recruit' ? '⏰' : '📅'}</Text>
                               <Text className={`info-text ${expired ? 'expired-text' : ''}`}>
-                                {item.type === 'recruit' && item.keyInfo.deadline 
+                                {item.keyInfo.deadline 
                                   ? formatDate(item.keyInfo.deadline)
-                                  : item.keyInfo.date ? formatDate(item.keyInfo.date) : '-'}
+                                  : item.keyInfo.date 
+                                    ? formatDate(item.keyInfo.date) 
+                                    : item.keyInfo.time || '-'}
                               </Text>
                             </View>
                             {item.keyInfo.location && (

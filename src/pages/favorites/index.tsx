@@ -157,29 +157,16 @@ export default function Favorites() {
 
                       {/* 关键信息 */}
                       <View className="card-info">
-                        {item.type === 'recruit' ? (
-                          item.key_info.deadline && (
-                            <View className="info-item">
-                              <Text className="info-icon">⏰</Text>
-                              <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{formatDate(item.key_info.deadline)}</Text>
-                            </View>
-                          )
-                        ) : (
-                          <>
-                            {item.key_info.date && (
-                              <View className="info-item">
-                                <Text className="info-icon">📅</Text>
-                                <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{formatDate(item.key_info.date)}</Text>
-                              </View>
-                            )}
-                            {item.key_info.time && (
-                              <View className="info-item">
-                                <Text className="info-icon">🕐</Text>
-                                <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.key_info.time}</Text>
-                              </View>
-                            )}
-                          </>
-                        )}
+                        <View className="info-item">
+                          <Text className="info-icon">{item.type === 'recruit' ? '⏰' : '📅'}</Text>
+                          <Text className={`info-text ${expired ? 'expired-text' : ''}`}>
+                            {item.key_info.deadline 
+                              ? formatDate(item.key_info.deadline)
+                              : item.key_info.date 
+                                ? formatDate(item.key_info.date) 
+                                : item.key_info.time || '-'}
+                          </Text>
+                        </View>
                         {item.key_info.location && (
                           <View className="info-item">
                             <Text className="info-icon">📍</Text>

@@ -85,27 +85,16 @@ export default function DetailModal({
         let dateStr = ''
         let timeStr = ''
         
-        if (item.type === 'recruit' && keyInfo.deadline) {
+        if (keyInfo.date) {
+          dateStr = keyInfo.date
+          timeStr = keyInfo.time || ''
+        } else if (keyInfo.deadline) {
           dateStr = keyInfo.deadline
           timeStr = extractTimeFromDeadline(keyInfo.deadline)
-        } else {
-          dateStr = keyInfo.date || ''
-          timeStr = keyInfo.time || ''
         }
         
-        const calendarEvent = createCalendarEventFromItem(
-          item.title,
-          dateStr,
-          timeStr,
-          keyInfo.location || '',
-          item.summary || rawContent || ''
-        )
-        
-        if (!calendarEvent) {
-          Taro.showToast({
-            title: '无法解析活动时间',
-            icon: 'none'
-          })
+        if (!dateStr) {
+          Taro.showToast({ title: '暂无活动日期', icon: 'none' })
           return
         }
         
@@ -121,10 +110,7 @@ export default function DetailModal({
   }
 
   // 判断是否显示底部操作栏
-  const showActions = (
-    ((item.type === 'activity' || item.type === 'lecture') && keyInfo.date) ||
-    (item.type === 'recruit' && keyInfo.deadline)
-  )
+  const showActions = !!(keyInfo.date || keyInfo.deadline || keyInfo.time)
 
   return (
     <View className="detail-modal">
