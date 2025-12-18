@@ -18,6 +18,8 @@ export interface User {
   openid: string
   last_seen: string
   created_at: string
+  nickname?: string
+  avatar_url?: string
 }
 
 /**
@@ -292,6 +294,57 @@ class AuthService {
    */
   getCurrentOpenID(): string | null {
     return this.openid
+  }
+
+  /**
+   * 获取当前用户的完整个人资料
+   */
+  async getUserProfile(): Promise<User | null> {
+    const openid = await this.getOpenID()
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/users?openid=eq.${openid}&select=*`
+      const response = await Taro.request({
+        url,
+        method: 'GET',
+        header: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+        }
+      })
+
+      if (Array.isArray(response.data) && response.data.length > 0) {
+        return response.data[0] as User
+      }
+      return null
+    } catch (error) {
+      console.error('[AuthService] 获取个人资料失败:', error)
+      return null
+    }
+  }
+
+  /**
+   * 更新当前用户的个人资料
+   */
+  async updateUserProfile(profile: Partial<Pick<User, 'nickname' | 'avatar_url'>>): Promise<boolean> {
+    const openid = await this.getOpenID()
+    try {
+      const url = `${SUPABASE_URL}/rest/v1/users?openid=eq.${openid}`
+      const response = await Taro.request({
+        url,
+        method: 'PATCH',
+        header: {
+          'apikey': SUPABASE_ANON_KEY,
+          'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        data: profile
+      })
+
+      return response.statusCode >= 200 && response.statusCode < 300
+    } catch (error) {
+      console.error('[AuthService] 更新个人资料失败:', error)
+      return false
+    }
   }
 
   /**

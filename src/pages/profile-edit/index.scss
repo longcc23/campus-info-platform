@@ -1,0 +1,159 @@
+.profile-edit-container {
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding: 0 40rpx;
+
+  .header {
+    display: flex;
+    align-items: center;
+    padding: 100rpx 0 40rpx;
+    position: relative;
+
+    .back-btn {
+      width: 80rpx;
+      height: 80rpx;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: white;
+      border-radius: 20rpx;
+      box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.05);
+      
+      .icon {
+        font-size: 40rpx;
+        color: #334155;
+      }
+    }
+
+    .title {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      font-size: 34rpx;
+      font-weight: bold;
+      color: #1e293b;
+    }
+  }
+
+  .edit-form {
+    margin-top: 60rpx;
+
+    .section {
+      background: white;
+      border-radius: 32rpx;
+      padding: 40rpx;
+      margin-bottom: 40rpx;
+      box-shadow: 0 10rpx 20rpx rgba(226, 232, 240, 0.4);
+    }
+
+    .avatar-section {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 60rpx 40rpx;
+
+      .avatar-wrapper {
+        width: 200rpx;
+        height: 200rpx;
+        border-radius: 50%;
+        padding: 0;
+        margin: 0;
+        background: #f1f5f9;
+        position: relative;
+        overflow: visible;
+        border: 6rpx solid #f8fafc;
+        box-shadow: 0 8rpx 20rpx rgba(124, 58, 237, 0.1);
+
+        &::after { border: none; }
+
+        .avatar {
+          width: 100%;
+          height: 100%;
+          border-radius: 50%;
+        }
+
+        .avatar-placeholder {
+          width: 100%;
+          height: 100%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          background: #f8fafc;
+          border-radius: 50%;
+          
+          .plus-icon {
+            font-size: 60rpx;
+            color: #cbd5e1;
+          }
+        }
+
+        .edit-badge {
+          position: absolute;
+          right: 0;
+          bottom: 0;
+          width: 60rpx;
+          height: 60rpx;
+          background: #7c3aed;
+          border-radius: 50%;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          border: 4rpx solid white;
+
+          .icon-camera {
+            width: 32rpx;
+            height: 32rpx;
+            background: white;
+            mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z'/%3E%3Ccircle cx='12' cy='13' r='3'/%3E%3C/svg%3E") no-repeat center;
+            mask-size: contain;
+          }
+        }
+      }
+
+      .hint {
+        margin-top: 24rpx;
+        font-size: 24rpx;
+        color: #94a3b8;
+      }
+    }
+
+    .info-section {
+      .form-item {
+        .label {
+          font-size: 26rpx;
+          color: #64748b;
+          margin-bottom: 16rpx;
+          display: block;
+        }
+
+        .input {
+          font-size: 32rpx;
+          color: #1e293b;
+          padding: 20rpx 0;
+          border-bottom: 2rpx solid #f1f5f9;
+        }
+      }
+    }
+
+    .save-btn {
+      margin-top: 80rpx;
+      height: 100rpx;
+      line-height: 100rpx;
+      background: linear-gradient(135deg, #7c3aed 0%, #9333ea 100%);
+      color: white;
+      font-size: 32rpx;
+      font-weight: bold;
+      border-radius: 50rpx;
+      box-shadow: 0 10rpx 20rpx rgba(124, 58, 237, 0.3);
+      
+      &::after { border: none; }
+      &:active { opacity: 0.9; transform: scale(0.98); }
+      
+      &.disabled {
+        background: #cbd5e1;
+        box-shadow: none;
+      }
+    }
+  }
+}
+

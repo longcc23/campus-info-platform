@@ -7,6 +7,8 @@ import './index.scss'
 
 export default function Profile() {
   const [userId, setUserId] = useState<string>('')
+  const [nickname, setNickname] = useState<string>('UniFlow 用户')
+  const [avatarUrl, setAvatarUrl] = useState<string>('')
   const [favoritesCount, setFavoritesCount] = useState(0)
   const [loading, setLoading] = useState(true)
 
@@ -17,24 +19,35 @@ export default function Profile() {
   useDidShow(() => {
     if (userId) {
       loadFavoritesCount()
+      refreshUserProfile()
     }
   })
 
   const loadUserInfo = async () => {
     try {
-      // 增加超时保护，防止云函数初始化慢导致页面卡死
-      const openid = await Promise.race([
-        authService.getOpenID(),
-        new Promise((_, reject) => setTimeout(() => reject(new Error('Timeout')), 3000))
-      ]) as string
-      
+      const openid = await authService.getOpenID()
       setUserId(openid)
+      
+      // 加载个人资料
+      const profile = await authService.getUserProfile()
+      if (profile) {
+        setNickname(profile.nickname || 'UniFlow 用户')
+        setAvatarUrl(profile.avatar_url || '')
+      }
+      
       setLoading(false)
       loadFavoritesCount()
     } catch (error) {
       console.error('加载用户信息失败:', error)
-      // 失败也要关闭加载状态，确保页面能显示
       setLoading(false)
+    }
+  }
+
+  const refreshUserProfile = async () => {
+    const profile = await authService.getUserProfile()
+    if (profile) {
+      setNickname(profile.nickname || 'UniFlow 用户')
+      setAvatarUrl(profile.avatar_url || '')
     }
   }
 
@@ -67,15 +80,15 @@ export default function Profile() {
         <View className="blur-circle circle-1"></View>
         <View className="blur-circle circle-2"></View>
         
-        <View className="user-info">
+        <View className="user-info" onClick={() => navigateTo('/pages/profile-edit/index')}>
           <View className="avatar-box">
             <Image 
-              src={require('../../assets/images/IMG_9253.jpg')} 
+              src={avatarUrl || require('../../assets/images/IMG_9253.jpg')} 
               className="user-avatar" 
               mode="aspectFill" 
             />
           </View>
-          <Text className="user-name">UniFlow 用户</Text>
+          <Text className="user-name">{nickname}</Text>
           <View className="user-id-tag">
             <Text>ID: {userId ? `${userId.substring(0, 12)}...` : '未登录'}</Text>
           </View>

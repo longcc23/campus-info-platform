@@ -6,7 +6,8 @@ export default {
     'pages/favorites/index',
     'pages/history/index',
     'pages/about/index',
-    'pages/feedback/index'
+    'pages/feedback/index',
+    'pages/profile-edit/index'
   ],
   window: {
     backgroundTextStyle: 'light',
