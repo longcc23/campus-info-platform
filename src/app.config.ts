@@ -14,6 +14,7 @@ export default {
     navigationBarTitleText: 'UniFlow',
     navigationBarTextStyle: 'white'
   },
+  lazyCodeLoading: 'requiredComponents',
   tabBar: {
     color: '#4B5563',
     selectedColor: '#8B5CF6',
