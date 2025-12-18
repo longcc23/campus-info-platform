@@ -93,7 +93,7 @@ class AuthService {
 
     // 2. 尝试从本地缓存读取（如果是真正的 OpenID，不是以 temp_ 开头）
     const cachedOpenID = Taro.getStorageSync(STORAGE_KEY_OPENID)
-    if (cachedOpenID && !cachedOpenID.startsWith('temp_')) {
+    if (cachedOpenID && !cachedOpenID.startsWith('user_')) {
       this.openid = cachedOpenID
       return cachedOpenID
     }
@@ -135,15 +135,10 @@ class AuthService {
           throw new AuthError('微信登录失败：未获取到 code')
         }
 
-        console.log('[AuthService] 微信登录成功，code:', loginRes.code)
-
-        // 使用临时方案：使用 code 的 hash 作为用户标识
-        const tempOpenID = `temp_${this.hashCode(loginRes.code)}`
+        const tempOpenID = `user_${this.hashCode(loginRes.code)}`
         
         this.openid = tempOpenID
         Taro.setStorageSync(STORAGE_KEY_OPENID, tempOpenID)
-        
-        console.log('[AuthService] 生成临时 OpenID:', tempOpenID)
         
         // 确保用户记录存在
         await this.ensureUser(tempOpenID)
