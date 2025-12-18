@@ -1,5 +1,5 @@
 import { Component } from 'react'
-import { View, Text, Input, Button, ScrollView, Image } from '@tarojs/components'
+import { View, Text, Input, ScrollView } from '@tarojs/components'
 import Taro from '@tarojs/taro'
 import { 
   getEvents, 
@@ -8,16 +8,10 @@ import {
   upsertUser,
   recordViewHistory
 } from '../../utils/supabase-rest'
-import { 
-  createCalendarEventFromItem, 
-  addToPhoneCalendar 
-} from '../../utils/ics-generator'
-import FavoriteButton from '../../components/FavoriteButton'
-import { SkeletonList } from '../../components/Skeleton'
-import ExpiredFilter from '../../components/ExpiredFilter'
-import ShareButton from '../../components/ShareButton'
+import { FavoriteButton, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
+import { formatDate } from '../../utils/date-formatter'
 import favoritesService from '../../services/favorites'
-import { isExpired, filterExpiredEvents } from '../../services/expiration'
+import { isExpired } from '../../services/expiration'
 import { getSafeAreaBottom } from '../../utils/system-info'
 import './index.scss'
 
@@ -67,7 +61,6 @@ interface IndexState {
   loading: boolean
   isFirstLoad: boolean
   hideExpired: boolean
-  showPoster: boolean  // 是否显示海报图片
 }
 
 export default class Index extends Component<{}, IndexState> {
@@ -83,8 +76,7 @@ export default class Index extends Component<{}, IndexState> {
       searchKeyword: '',
       loading: true,
       isFirstLoad: true,
-      hideExpired: false,
-      showPoster: false  // 默认不显示海报
+      hideExpired: false
     }
   }
 
@@ -224,187 +216,6 @@ export default class Index extends Component<{}, IndexState> {
     if (userId) {
       await recordViewHistory(userId, item.id)
     }
-  }
-
-  // 格式化日期为 2025.12.30 格式
-  formatDate = (dateStr: string): string => {
-    if (!dateStr) return ''
-    
-    // 移除中英文描述，提取日期部分
-    let cleanDate = dateStr
-      .replace(/年|月|日|Year|Month|Day|Dec|Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov/gi, ' ')
-      .replace(/\s+/g, ' ')
-      .trim()
-    
-    // 尝试解析各种格式
-    // 格式1: 2025年12月30日 -> 2025.12.30
-    const match1 = dateStr.match(/(\d{4})年(\d{1,2})月(\d{1,2})日/)
-    if (match1) {
-      const year = match1[1]
-      const month = match1[2].padStart(2, '0')
-      const day = match1[3].padStart(2, '0')
-      return `${year}.${month}.${day}`
-    }
-    
-    // 格式2: 12月30日 -> 当前年份.12.30
-    const match2 = dateStr.match(/(\d{1,2})月(\d{1,2})日/)
-    if (match2) {
-      const currentYear = new Date().getFullYear()
-      const month = match2[1].padStart(2, '0')
-      const day = match2[2].padStart(2, '0')
-      return `${currentYear}.${month}.${day}`
-    }
-    
-    // 格式3: December 30, 2025 或 Dec 30, 2025
-    const match3 = dateStr.match(/(\d{1,2})[,\s]+(\d{4})/i)
-    if (match3) {
-      const monthNames = ['jan', 'feb', 'mar', 'apr', 'may', 'jun', 'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-      const monthMatch = dateStr.match(/(jan|feb|mar|apr|may|jun|jul|aug|sep|oct|nov|dec)/i)
-      if (monthMatch) {
-        const month = (monthNames.indexOf(monthMatch[1].toLowerCase()) + 1).toString().padStart(2, '0')
-        const day = match3[1].padStart(2, '0')
-        const year = match3[2]
-        return `${year}.${month}.${day}`
-      }
-    }
-    
-    // 格式4: 已经是 2025.12.30 格式
-    if (/^\d{4}\.\d{1,2}\.\d{1,2}$/.test(dateStr)) {
-      const parts = dateStr.split('.')
-      return `${parts[0]}.${parts[1].padStart(2, '0')}.${parts[2].padStart(2, '0')}`
-    }
-    
-    // 如果无法解析，返回原字符串
-    return dateStr
-  }
-
-  handleCopyLink = (link: string) => {
-    Taro.setClipboardData({
-      data: link,
-      success: () => {
-        // 不显示提示，系统会自动显示"内容已复制"
-      },
-      fail: () => {
-        this.showToast('复制失败')
-      }
-    })
-  }
-
-  // 处理链接点击：复制并提示用户在浏览器打开
-  handleLinkClick = (link: string, linkType: 'registration' | 'apply' = 'apply') => {
-    Taro.setClipboardData({
-      data: link,
-      success: () => {
-        const title = linkType === 'registration' ? '报名链接已复制' : '链接已复制'
-        Taro.showModal({
-          title: title,
-          content: '链接已复制到剪贴板，请在浏览器中粘贴打开',
-          showCancel: false,
-          confirmText: '知道了',
-          confirmColor: '#8B5CF6'
-        })
-      },
-      fail: () => {
-        this.showToast('复制失败')
-      }
-    })
-  }
-
-  handleAddToCalendar = async (item: FeedItem) => {
-    try {
-      let dateStr = ''
-      let timeStr = ''
-      
-      // 如果是招聘类型，使用 deadline
-      if (item.type === 'recruit' && item.keyInfo.deadline) {
-        dateStr = item.keyInfo.deadline
-        // 尝试从 deadline 中提取时间（如"12月16日中午12:00"）
-        const timeMatch = item.keyInfo.deadline.match(/(中午|上午|下午|晚上)?\s*(\d{1,2}):(\d{2})/)
-        if (timeMatch) {
-          const hour = parseInt(timeMatch[2])
-          const minute = parseInt(timeMatch[3])
-          const period = timeMatch[1] // "中午"、"上午"、"下午"、"晚上"
-          
-          // 转换12小时制到24小时制
-          let hour24 = hour
-          if (period === '下午' || period === '晚上') {
-            if (hour !== 12) hour24 = hour + 12
-          } else if (period === '中午') {
-            if (hour !== 12) hour24 = hour + 12
-          }
-          // 如果是"中午12:00"，保持为12:00
-          if (period === '中午' && hour === 12) {
-            hour24 = 12
-          }
-          
-          timeStr = `${hour24.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}`
-        }
-      } else {
-        // 活动/讲座类型，使用 date 和 time
-        dateStr = item.keyInfo.date || ''
-        timeStr = item.keyInfo.time || ''
-      }
-      
-      const calendarEvent = createCalendarEventFromItem(
-        item.title,
-        dateStr,
-        timeStr,
-        item.keyInfo.location || '',
-        item.summary || item.rawContent
-      )
-      
-      if (!calendarEvent) {
-        this.showToast('无法解析活动时间')
-        return
-      }
-      
-      await addToPhoneCalendar(calendarEvent)
-    } catch (error) {
-      console.error('添加到日历失败:', error)
-      this.showToast('添加到日历失败')
-    }
-  }
-
-  // 渲染带有链接识别和Copy按钮的文本内容
-  renderTextWithLinks = (text: string) => {
-    if (!text) return null
-    
-    // 匹配URL的正则表达式
-    const urlRegex = /(https?:\/\/[^\s\n]+)/g
-    const parts = text.split(urlRegex)
-    
-    return (
-      <View className="text-with-links">
-        {parts.map((part, index) => {
-          if (urlRegex.test(part)) {
-            // 这是一个链接
-            return (
-              <View key={index} className="link-container">
-                <Text className="link-text" style={{ wordBreak: 'break-all', flex: 1 }}>
-                  {part}
-                </Text>
-                <View 
-                  className="copy-link-btn"
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    this.handleCopyLink(part)
-                  }}
-                >
-                  <Text>Copy</Text>
-                </View>
-              </View>
-            )
-          } else {
-            // 这是普通文本
-            return (
-              <Text key={index} style={{ whiteSpace: 'pre-wrap', lineHeight: '1.6' }}>
-                {part}
-              </Text>
-            )
-          }
-        })}
-      </View>
-    )
   }
 
   getFilteredFeed = () => {
@@ -574,8 +385,8 @@ export default class Index extends Component<{}, IndexState> {
                               <Text className="info-icon">{item.type === 'recruit' ? '⏰' : '📅'}</Text>
                               <Text className={`info-text ${expired ? 'expired-text' : ''}`}>
                                 {item.type === 'recruit' && item.keyInfo.deadline 
-                                  ? this.formatDate(item.keyInfo.deadline)
-                                  : item.keyInfo.date ? this.formatDate(item.keyInfo.date) : '-'}
+                                  ? formatDate(item.keyInfo.deadline)
+                                  : item.keyInfo.date ? formatDate(item.keyInfo.date) : '-'}
                               </Text>
                             </View>
                             {item.keyInfo.location && (
@@ -595,330 +406,23 @@ export default class Index extends Component<{}, IndexState> {
           </View>
         </ScrollView>
 
-        {/* Detail Modal */}
+        {/* Detail Modal - 使用公共组件 */}
         {selectedItem && (
-          <View className="detail-modal">
-            <View className="detail-header">
-              <Button 
-                className="detail-back-btn"
-                onClick={() => this.setState({ selectedItem: null, showPoster: false })} 
-              >
-                <Text>←</Text>
-              </Button>
-              <Text className="detail-title">{selectedItem.title}</Text>
-              <View className="detail-header-right">
-                <ShareButton 
-                  eventData={selectedItem}
-                  size="medium"
-                  type="icon"
-                  className="detail-share-btn"
-                />
-                <FavoriteButton 
-                  eventId={selectedItem.id}
-                  initialFavorited={selectedItem.isSaved}
-                  large={true}
-                  onToggle={(isFavorited) => {
-                    this.setState({
-                      selectedItem: { ...selectedItem, isSaved: isFavorited },
-                      feed: feed.map(item => 
-                        item.id === selectedItem.id 
-                          ? { ...item, isSaved: isFavorited } 
-                          : item
-                      )
-                    })
-                  }}
-                />
-              </View>
-            </View>
-
-            <View className="detail-scroll-wrapper">
-              <ScrollView 
-                scrollY 
-                className="detail-scroll"
-                enhanced
-                showScrollbar={false}
-              >
-                {/* 图片区域 */}
-                <View className="detail-hero">
-                  <View className="detail-hero-gradient" />
-                </View>
-
-                {/* 标题 */}
-                <Text className="detail-main-title">{selectedItem.title}</Text>
-
-                <View className="detail-content">
-                <View className="detail-info-card">
-                  <Text className="detail-section-title">关键信息</Text>
-                  
-                  {/* 招聘信息：公司、岗位、联系方式、申请群体 */}
-                  {selectedItem.type === 'recruit' && (
-                    <>
-                      {selectedItem.keyInfo.company && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>🏢</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">公司 | Company:</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.company}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.position && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>💼</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">岗位 | Position:</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.position}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {/* 联系方式（微信号、电话等） */}
-                      {selectedItem.keyInfo.contact && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>💬</Text>
-                          </View>
-                          <View className="detail-info-content" style={{ flex: 1 }}>
-                            <Text className="detail-info-label">联系方式 | Contact:</Text>
-                            <View className="detail-info-value-row">
-                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
-                                {selectedItem.keyInfo.contact}
-                              </Text>
-                              <View 
-                                className="copy-link-btn"
-                                onClick={(e) => {
-                                  e.stopPropagation()
-                                  this.handleCopyLink(selectedItem.keyInfo.contact || '')
-                                }}
-                              >
-                                <Text>Copy</Text>
-                              </View>
-                            </View>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.education && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>🎓</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">申请群体 | Applicants:</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.education}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.deadline && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>⏰</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">截止时间 | Deadline:</Text>
-                            <Text className="detail-info-value">{this.formatDate(selectedItem.keyInfo.deadline)}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.link && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>📧</Text>
-                          </View>
-                          <View className="detail-info-content" style={{ flex: 1 }}>
-                            <Text className="detail-info-label">投递方式 | Apply:</Text>
-                            <View className="detail-info-value-row">
-                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
-                                {selectedItem.keyInfo.link.replace(/^mailto:/i, '')}
-                              </Text>
-                              {/* 只有当不是二维码报名时才显示Copy按钮 */}
-                              {!selectedItem.keyInfo.link.includes('二维码报名') && !selectedItem.keyInfo.link.includes('QR Code') && (
-                                <View 
-                                  className="copy-link-btn"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    this.handleCopyLink((selectedItem.keyInfo.link || '').replace(/^mailto:/i, ''))
-                                  }}
-                                >
-                                  <Text>Copy</Text>
-                                </View>
-                              )}
-                            </View>
-                          </View>
-                        </View>
-                      )}
-                    </>
-                  )}
-                  
-                  {/* 活动/讲座信息：日期、时间、地点 */}
-                  {(selectedItem.type === 'activity' || selectedItem.type === 'lecture') && (
-                    <>
-                      {selectedItem.keyInfo.date && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>📅</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">日期 | Date:</Text>
-                            <Text className="detail-info-value">{this.formatDate(selectedItem.keyInfo.date)}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.time && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>🕐</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">时间 | Time:</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.time}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.location && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>📍</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">地点 | Location:</Text>
-                            <Text className="detail-info-value">{selectedItem.keyInfo.location}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.deadline && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>⏰</Text>
-                          </View>
-                          <View className="detail-info-content">
-                            <Text className="detail-info-label">截止时间 | Deadline:</Text>
-                            <Text className="detail-info-value">{this.formatDate(selectedItem.keyInfo.deadline)}</Text>
-                          </View>
-                        </View>
-                      )}
-                      
-                      {selectedItem.keyInfo.registration_link && (
-                        <View className="detail-info-item">
-                          <View className="detail-info-icon">
-                            <Text>🔗</Text>
-                          </View>
-                          <View className="detail-info-content" style={{ flex: 1 }}>
-                            <Text className="detail-info-label">报名链接 | Register:</Text>
-                            <View className="detail-info-value-row">
-                              <Text className="detail-info-value" style={{ wordBreak: 'break-all', flex: 1 }}>
-                                {selectedItem.keyInfo.registration_link}
-                              </Text>
-                              {/* 只有当不是二维码报名时才显示Copy按钮 */}
-                              {!selectedItem.keyInfo.registration_link.includes('二维码报名') && !selectedItem.keyInfo.registration_link.includes('QR Code') && (
-                                <View 
-                                  className="copy-link-btn"
-                                  onClick={(e) => {
-                                    e.stopPropagation()
-                                    this.handleCopyLink(selectedItem.keyInfo.registration_link || '')
-                                  }}
-                                >
-                                  <Text>Copy</Text>
-                                </View>
-                              )}
-                            </View>
-                          </View>
-                        </View>
-                      )}
-                    </>
-                  )}
-                </View>
-
-                {/* 活动详情 */}
-                <View className="detail-body">
-                  {selectedItem.summary && selectedItem.rawContent && 
-                   selectedItem.rawContent.trim() && 
-                   !selectedItem.rawContent.startsWith('📷') &&  // 排除图片占位文字
-                   selectedItem.summary.trim() !== selectedItem.rawContent.trim().substring(0, Math.min(selectedItem.summary.length, selectedItem.rawContent.length)).trim() ? (
-                    <>
-                      <Text className="detail-body-title">活动详情 | Details</Text>
-                      <Text className="detail-summary">{selectedItem.summary}</Text>
-                      {selectedItem.rawContent && selectedItem.rawContent.trim() && !selectedItem.rawContent.startsWith('📷') && (
-                        <View className="detail-raw-content">
-                          {this.renderTextWithLinks(selectedItem.rawContent)}
-                        </View>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <Text className="detail-body-title">活动详情 | Details</Text>
-                      <View className="detail-summary">
-                        {this.renderTextWithLinks(
-                          selectedItem.rawContent?.trim() && !selectedItem.rawContent.startsWith('📷') 
-                            ? selectedItem.rawContent 
-                            : selectedItem.summary || '暂无详情'
-                        )}
-                      </View>
-                    </>
-                  )}
-
-                  {/* 如果有图片海报，显示在详情下面 */}
-                  {selectedItem.imageUrl && (
-                    <View className="detail-poster">
-                      {this.state.showPoster ? (
-                        <Image 
-                          src={selectedItem.imageUrl} 
-                          mode="widthFix" 
-                          className="detail-poster-image"
-                          showMenuByLongpress
-                          lazyLoad
-                        />
-                      ) : (
-                        <Button 
-                          className="load-poster-btn"
-                          onClick={() => this.setState({ showPoster: true })}
-                        >
-                          <Text>点击查看海报 | view poster</Text>
-                        </Button>
-                      )}
-                    </View>
-                  )}
-                </View>
-              </View>
-              </ScrollView>
-            </View>
-
-            {/* 只有需要显示按钮时才渲染底部操作栏 */}
-            {(((selectedItem.type === 'activity' || selectedItem.type === 'lecture') && 
-               selectedItem.keyInfo?.date) ||
-              (selectedItem.type === 'recruit' && selectedItem.keyInfo?.deadline)) && (
-              <View className="detail-actions">
-                {/* 活动/讲座：有日期时显示添加到日历 */}
-                {(selectedItem.type === 'activity' || selectedItem.type === 'lecture') && (
-                  <Button 
-                    className="detail-action-btn"
-                    onClick={() => this.handleAddToCalendar(selectedItem)}
-                  >
-                    <Text>📅 添加到日历 | Add to Calendar</Text>
-                  </Button>
-                )}
-                {/* 招聘：有截止时间时显示添加到日历 */}
-                {selectedItem.type === 'recruit' && (
-                  <Button 
-                    className="detail-action-btn"
-                    onClick={() => this.handleAddToCalendar(selectedItem)}
-                  >
-                    <Text>📅 添加到日历 | Add to Calendar</Text>
-                  </Button>
-                )}
-              </View>
-            )}
-          </View>
+          <DetailModal
+            item={selectedItem}
+            onClose={() => this.setState({ selectedItem: null })}
+            initialFavorited={selectedItem.isSaved}
+            onFavoriteToggle={(isFavorited) => {
+              this.setState({
+                selectedItem: { ...selectedItem, isSaved: isFavorited },
+                feed: feed.map(item => 
+                  item.id === selectedItem.id 
+                    ? { ...item, isSaved: isFavorited } 
+                    : item
+                )
+              })
+            }}
+          />
         )}
 
         {/* Toast */}

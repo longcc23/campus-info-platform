@@ -7,10 +7,7 @@
 
 import Taro from '@tarojs/taro'
 import authService, { AuthError, NetworkError } from './auth'
-
-// Supabase 配置
-const SUPABASE_URL = 'https://civlywqsdzzrvsutlrxx.supabase.co'
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNpdmx5d3FzZHp6cnZzdXRscnh4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjQ3NTkzODUsImV4cCI6MjA4MDMzNTM4NX0.vHueW-6OoZg1srGLzMvRGS1Cwy1bpyX-isVtJ_z6SbQ'
+import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config/supabase'
 
 /**
  * Event 类型定义（从 supabase-rest.ts 复用）

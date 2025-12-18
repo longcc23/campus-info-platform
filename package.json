@@ -1,6 +1,6 @@
 {
   "name": "uniflow-campus",
-  "version": "1.1.1",
+  "version": "1.1.2",
   "private": true,
   "description": "UniFlow (智汇流) - 基于 AI 的校园信息智能聚合平台",
   "templateInfo": {

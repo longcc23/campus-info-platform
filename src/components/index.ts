@@ -17,3 +17,7 @@ export { default as ExpiredFilter } from './ExpiredFilter'
 
 // 骨架屏组件
 export { SkeletonBox, SkeletonCard, SkeletonList } from './Skeleton'
+
+// 详情弹窗组件
+export { default as DetailModal } from './DetailModal'
+export type { EventItem, EventKeyInfo } from './DetailModal'

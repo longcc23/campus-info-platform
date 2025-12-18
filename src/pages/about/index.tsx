@@ -40,7 +40,7 @@ export default function About() {
             className="app-logo-img"
           />
         </View>
-        <Text className="app-version">版本 1.1.1</Text>
+        <Text className="app-version">版本 1.1.2</Text>
         <Text className="app-slogan">让校园信息不再流失，让每一个机会触手可及</Text>
       </View>
 
