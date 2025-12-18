@@ -4,7 +4,7 @@
  */
 
 export type EventType = 'recruit' | 'activity' | 'lecture'
-export type EventStatus = 'draft' | 'published' | 'archived' | 'expired'
+export type EventStatus = 'draft' | 'published' | 'archived' | 'expired' | 'active' | 'inactive'
 
 export interface Event {
   id: number
@@ -45,6 +45,7 @@ export interface EventCreateInput {
   key_info?: Event['key_info']
   summary?: string
   raw_content?: string
+  image_url?: string | null  // 图片海报 URL
   is_top?: boolean
   status?: EventStatus
   poster_color?: string

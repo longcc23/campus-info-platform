@@ -335,7 +335,9 @@ export default function EventsPage() {
                     <td className="px-4 py-3">
                       <div className="flex items-start">
                         {event.is_top && (
-                          <ArrowUp className="h-4 w-4 text-purple-600 mr-1 mt-0.5 flex-shrink-0" title="置顶" />
+                          <span title="置顶">
+                            <ArrowUp className="h-4 w-4 text-purple-600 mr-1 mt-0.5 flex-shrink-0" />
+                          </span>
                         )}
                         <div className="min-w-0">
                           <div className="text-sm font-medium text-gray-900 break-words leading-snug">{event.title}</div>

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { 
   Eye, 
   Heart, 
@@ -8,7 +8,8 @@ import {
   Users,
   TrendingUp,
   BarChart3,
-  Award
+  Award,
+  RefreshCw
 } from 'lucide-react'
 
 interface StatsData {
@@ -38,35 +39,63 @@ interface StatsData {
 
 export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
+  const [refreshing, setRefreshing] = useState(false)
   const [stats, setStats] = useState<StatsData | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [lastUpdated, setLastUpdated] = useState<Date | null>(null)
+  const abortControllerRef = useRef<AbortController | null>(null)
 
-  useEffect(() => {
-    fetchStats()
-    // 每 30 秒刷新一次数据
-    const interval = setInterval(fetchStats, 30000)
-    return () => clearInterval(interval)
-  }, [])
+  const fetchStats = useCallback(async (isRefresh = false) => {
+    // 取消之前的请求
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    abortControllerRef.current = new AbortController()
 
-  const fetchStats = async () => {
     try {
-      setLoading(true)
+      if (isRefresh) {
+        setRefreshing(true)
+      } else if (!stats) {
+        setLoading(true)
+      }
       setError(null)
 
-      const response = await fetch('/api/stats')
+      const response = await fetch('/api/stats', {
+        signal: abortControllerRef.current.signal,
+      })
       const result = await response.json()
 
       if (result.success) {
         setStats(result.data)
+        setLastUpdated(new Date())
       } else {
         setError(result.error || '获取统计数据失败')
       }
-    } catch (error) {
-      console.error('Error fetching stats:', error)
-      setError('获取统计数据失败，请重试')
+    } catch (error: any) {
+      if (error.name !== 'AbortError') {
+        console.error('Error fetching stats:', error)
+        setError('获取统计数据失败，请重试')
+      }
     } finally {
       setLoading(false)
+      setRefreshing(false)
     }
+  }, [stats])
+
+  useEffect(() => {
+    fetchStats()
+    // 每 60 秒刷新一次数据（从 30 秒改为 60 秒减少请求）
+    const interval = setInterval(() => fetchStats(true), 60000)
+    return () => {
+      clearInterval(interval)
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
+
+  const handleManualRefresh = () => {
+    fetchStats(true)
   }
 
   const getTypeLabel = (type: string) => {
@@ -380,9 +409,20 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* 刷新提示 */}
-      <div className="text-xs text-gray-500 text-center">
-        数据每 30 秒自动刷新
+      {/* 刷新提示和手动刷新按钮 */}
+      <div className="flex items-center justify-center space-x-4 text-xs text-gray-500">
+        <span>数据每 60 秒自动刷新</span>
+        {lastUpdated && (
+          <span>上次更新: {lastUpdated.toLocaleTimeString('zh-CN')}</span>
+        )}
+        <button
+          onClick={handleManualRefresh}
+          disabled={refreshing}
+          className="flex items-center space-x-1 px-2 py-1 bg-purple-100 text-purple-700 rounded hover:bg-purple-200 disabled:opacity-50 transition-colors"
+        >
+          <RefreshCw className={`h-3 w-3 ${refreshing ? 'animate-spin' : ''}`} />
+          <span>{refreshing ? '刷新中...' : '手动刷新'}</span>
+        </button>
       </div>
     </div>
   )
