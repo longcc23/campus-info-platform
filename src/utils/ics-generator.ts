@@ -103,8 +103,8 @@ function parseDate(dateStr: string, timeStr?: string): Date | null {
       return eventDate
     }
     
-    // 格式2: "2025-12-04" 或 "2025/12/04"
-    const isoMatch = dateStr.match(/(\d{4})[-/](\d{1,2})[-/](\d{1,2})/)
+    // 格式2: "2025-12-04" 或 "2025/12/04" 或 "2025.12.04"
+    const isoMatch = dateStr.match(/(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})/)
     if (isoMatch) {
       const year = parseInt(isoMatch[1])
       const month = parseInt(isoMatch[2]) - 1
@@ -313,21 +313,27 @@ export function createCalendarEventFromItem(
 export async function addToPhoneCalendar(event: CalendarEvent): Promise<void> {
   return new Promise((resolve, reject) => {
     try {
-      // 格式化时间戳（秒数，不是毫秒）
-      const startTime = Math.floor(event.startDate.getTime() / 1000)
-      const endTime = event.endDate 
-        ? Math.floor(event.endDate.getTime() / 1000)
-        : Math.floor((event.startDate.getTime() + 2 * 60 * 60 * 1000) / 1000) // 默认 2 小时
-      
-      // 调用微信小程序原生日历 API（Taro 已支持）
-      Taro.addPhoneCalendar({
-        title: event.title,
-        startTime: startTime,
-        endTime: String(endTime), // endTime 需要是字符串
-        location: event.location || '',
-        description: event.description || '',
-        allDay: event.allDay || false,
-      }).then(() => {
+    const startTime = Math.floor(event.startDate.getTime() / 1000)
+    const endTime = event.endDate 
+      ? Math.floor(event.endDate.getTime() / 1000)
+      : Math.floor((event.startDate.getTime() + 2 * 60 * 60 * 1000) / 1000) // 默认 2 小时
+    
+    console.log('[Calendar] 准备调用原生 API:', {
+      title: event.title,
+      startTime,
+      endTime,
+      location: event.location
+    })
+
+    // 调用微信小程序原生日历 API
+    Taro.addPhoneCalendar({
+      title: event.title,
+      startTime: startTime,
+      endTime: endTime, // 修复：在某些版本基础库中需要 Number
+      location: event.location || '',
+      description: event.description || '',
+      allDay: event.allDay || false,
+    }).then(() => {
         Taro.showToast({
           title: '已添加到日历',
           icon: 'success',
