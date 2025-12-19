@@ -2,11 +2,12 @@
 
 ## 📋 前置准备
 
-1. **GitHub 仓库**：确保代码已推送到 `https://github.com/longcc23/campus-info-platform.git`
-2. **环境变量**：准备好以下配置信息
+1. **GitHub 仓库**：确保 `admin-console` 文件夹的代码已单独推送到 `https://github.com/longcc23/campus-info-platform.git`
+2. **环境变量**：准备好以下配置信息（⚠️ **必须替换为真实数据**）
    - Supabase 项目 URL 和密钥
    - DeepSeek API Key
-   - Python 后端 API 地址
+   - Python 后端 API 地址：`http://42.193.241.119:5001`（服务器已部署）
+3. **Python 后端**：确保服务器 `42.193.241.119` 上的 Python 服务正在运行（路径：`/www/wwwroot/XY/campus-info-platform-main/scripts`）
 
 ## 🚀 Vercel 部署步骤
 
@@ -16,15 +17,16 @@
 
 ### 2. 导入项目
 
+**重要**：使用指定的团队页面导入：
+
 访问导入页面：
 ```
 https://vercel.com/new?teamSlug=mrijs-projects
 ```
 
-或者：
-1. 点击右上角 **"Add New..."** → **"Project"**
-2. 在 **"Import Git Repository"** 中搜索 `campus-info-platform`
-3. 找到仓库后点击 **"Import"**
+在 **"Import Git Repository"** 中：
+1. 搜索 `campus-info-platform` 或 `longcc23/campus-info-platform`
+2. 找到仓库后点击 **"Import"**
 
 ### 3. 配置项目
 
@@ -41,7 +43,7 @@ https://vercel.com/new?teamSlug=mrijs-projects
 | `NEXT_PUBLIC_SUPABASE_ANON_KEY` | 你的 Supabase Anon Key | 从 Supabase Dashboard 获取 |
 | `SUPABASE_SERVICE_ROLE_KEY` | 你的 Supabase Service Role Key | 从 Supabase Dashboard 获取 |
 | `DEEPSEEK_API_KEY` | 你的 DeepSeek API Key | 从 DeepSeek 平台获取 |
-| `NEXT_PUBLIC_API_URL` | Python 后端地址 | 例如：`http://42.193.241.119:5001` |
+| `NEXT_PUBLIC_API_URL` | Python 后端地址 | **必须**：`http://42.193.241.119:5001` |
 
 ⚠️ **重要**：
 - `NEXT_PUBLIC_*` 开头的变量会暴露到客户端，确保这些值可以公开
@@ -94,8 +96,10 @@ https://campus-info-platform-xxxxx.vercel.app
 3. 创建或复制 API Key → `DEEPSEEK_API_KEY`
 
 ### Python 后端地址
-- 根据运维文档，服务器地址为：`http://42.193.241.119:5001`
-- 如果使用域名，替换为实际域名
+- **服务器地址**：`http://42.193.241.119:5001`
+- **服务器路径**：`/www/wwwroot/XY/campus-info-platform-main/scripts`
+- **启动命令**：`nohup python api_server.py`
+- ⚠️ 确保服务器上的 Python 后端服务正在运行
 
 ## 🔄 更新部署
 
