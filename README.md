@@ -26,7 +26,38 @@
 
 ---
 
+## 🚀 快速部署
+
+### 管理后台部署到 Vercel
+
+1. **Fork 本仓库**到你的 GitHub 账号
+
+2. **登录 [Vercel](https://vercel.com)** 并导入项目：
+   - 选择 `campus-info-platform` 仓库
+   - **Root Directory**: `admin-console`
+   - **Framework**: Next.js
+
+3. **配置环境变量**：
+   ```
+   NEXT_PUBLIC_SUPABASE_URL=你的_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=你的_supabase_anon_key
+   DEEPSEEK_API_KEY=你的_deepseek_api_key
+   ```
+
+4. **点击 Deploy** 完成部署
+
+详细部署指南请查看 [DEPLOYMENT.md](docs/DEPLOYMENT.md)
+
+### 小程序发布
+
+1. 使用微信开发者工具打开项目根目录
+2. 运行 `npm run build:weapp` 构建小程序
+3. 在开发者工具中预览和发布
+
+---
+
 ## 📅 版本记录
-- **v1.1.2** (当前版本)：实现沉浸式 UI 还原，强化多源合并解析逻辑。
-- **v1.1.0**：接入微信云开发，实现真实 OpenID 认证与 PDF 文件深度解析。
-- **v1.0.0**：UniFlow 原型发布，基础 AI 解析与 Feed 流跑通。
+- **v1.2.0** (当前版本)：多附件支持 & 微信原生分享优化
+- **v1.1.2**：实现沉浸式 UI 还原，强化多源合并解析逻辑
+- **v1.1.0**：接入微信云开发，实现真实 OpenID 认证与 PDF 文件深度解析
+- **v1.0.0**：UniFlow 原型发布，基础 AI 解析与 Feed 流跑通
