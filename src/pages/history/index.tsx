@@ -1,17 +1,18 @@
 /**
  * 浏览历史页面
- * 使用公共 DetailModal 组件展示详情
+ * 使用公共 EventCard 和 DetailModal 组件
  */
 
 import { View, Text, ScrollView, Button } from '@tarojs/components'
 import { useState, useEffect } from 'react'
 import Taro from '@tarojs/taro'
-import { getViewHistory, type Event, clearViewHistory } from '../../utils/supabase-rest'
-import { FavoriteButton, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
+import { getViewHistory, clearViewHistory } from '../../utils/supabase-rest'
+import { EventCard, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
 import { isExpired } from '../../services/expiration'
-import { formatDate } from '../../utils/date-formatter'
 import authService from '../../services/auth'
 import favoritesService from '../../services/favorites'
+import type { Event } from '../../types/event'
+import { eventToCardData } from '../../types/event'
 import './index.scss'
 
 export default function History() {
@@ -34,19 +35,16 @@ export default function History() {
         setHistory([])
         return
       }
-      
+
       const { data, error } = await getViewHistory(userId)
       if (error) {
         console.error('加载浏览历史失败:', error)
-        Taro.showToast({
-          title: '加载失败',
-          icon: 'none'
-        })
+        Taro.showToast({ title: '加载失败', icon: 'none' })
         return
       }
-      
+
       setHistory(data || [])
-      
+
       // 加载收藏状态
       if (data && data.length > 0) {
         const eventIds = data.map(item => item.id)
@@ -79,39 +77,43 @@ export default function History() {
         cancelText: '取消',
         confirmColor: '#EF4444'
       })
-      
+
       if (result.confirm) {
         const userId = await authService.getOpenID()
         if (userId) {
           await clearViewHistory(userId)
           setHistory([])
-          Taro.showToast({
-            title: '已清空',
-            icon: 'success'
-          })
+          Taro.showToast({ title: '已清空', icon: 'success' })
         }
       }
     } catch (error) {
       console.error('清空浏览历史失败:', error)
-      Taro.showToast({
-        title: '清空失败',
-        icon: 'none'
-      })
+      Taro.showToast({ title: '清空失败', icon: 'none' })
     }
   }
 
   const handleNavigateToHome = () => {
-    Taro.switchTab({
-      url: '/pages/index/index'
+    Taro.switchTab({ url: '/pages/index/index' })
+  }
+
+  const handleFavoriteToggle = (itemId: number, isFavorited: boolean) => {
+    setFavoriteIds(prev => {
+      const newSet = new Set(prev)
+      if (isFavorited) {
+        newSet.add(itemId)
+      } else {
+        newSet.delete(itemId)
+      }
+      return newSet
     })
   }
 
   const getFilteredHistory = () => {
-    if (!hideExpired) {
-      return history
-    }
+    if (!hideExpired) return history
     return history.filter(item => !isExpired(item))
   }
+
+  const filteredHistory = getFilteredHistory()
 
   return (
     <View className="history-page">
@@ -137,7 +139,7 @@ export default function History() {
           <>
             <View className="history-header">
               <View className="history-header-left">
-                <Text className="history-count">共 {getFilteredHistory().length} 条记录</Text>
+                <Text className="history-count">共 {filteredHistory.length} 条记录</Text>
                 <ExpiredFilter
                   value={hideExpired}
                   onChange={setHideExpired}
@@ -150,84 +152,17 @@ export default function History() {
             </View>
 
             <View className="history-list">
-              {getFilteredHistory().map(item => {
-                const expired = isExpired(item)
+              {filteredHistory.map((item, index) => {
                 const isFavorited = favoriteIds.has(item.id)
                 return (
-                  <View
+                  <EventCard
                     key={item.id}
-                    className={`history-card ${expired ? 'expired' : ''}`}
+                    data={eventToCardData(item, isFavorited)}
+                    isFirst={index === 0}
                     onClick={() => handleEventClick(item)}
-                  >
-                    {/* 左上角置顶三角标签 */}
-                    {item.is_top && (
-                      <View className="top-corner-badge">
-                        <Text className="top-corner-text">置顶</Text>
-                      </View>
-                    )}
-                    
-                    {/* 顶部色条 */}
-                    <View 
-                      className="card-top-bar" 
-                      style={{ background: expired ? '#9CA3AF' : `linear-gradient(to right, ${item.poster_color})` }} 
-                    />
-
-                    {/* 卡片内容 */}
-                    <View className="card-content">
-                      {/* 头部：类型标签和收藏按钮 */}
-                      <View className="card-header">
-                        <View className="card-tags">
-                          <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : 'activity'}`}>
-                            {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
-                          </Text>
-                          {expired && <Text className="expired-tag">已过期</Text>}
-                        </View>
-                        <FavoriteButton
-                          eventId={item.id}
-                          initialFavorited={isFavorited}
-                          onToggle={(newFavorited) => {
-                            setFavoriteIds(prev => {
-                              const newSet = new Set(prev)
-                              if (newFavorited) {
-                                newSet.add(item.id)
-                              } else {
-                                newSet.delete(item.id)
-                              }
-                              return newSet
-                            })
-                          }}
-                        />
-                      </View>
-
-                      {/* 标题 */}
-                      <Text className={`card-title ${expired ? 'expired-text' : ''}`}>{item.title}</Text>
-
-                      {/* 关键信息 */}
-                      <View className="card-info">
-                        <View className="info-item">
-                          <Text className="info-icon">{item.type === 'recruit' ? '⏰' : '📅'}</Text>
-                          <Text className={`info-text ${expired ? 'expired-text' : ''}`}>
-                            {item.key_info.deadline 
-                              ? formatDate(item.key_info.deadline)
-                              : item.key_info.date 
-                                ? formatDate(item.key_info.date) 
-                                : item.key_info.time || '-'}
-                          </Text>
-                        </View>
-                        {item.key_info.location && (
-                          <View className="info-item">
-                            <Text className="info-icon">📍</Text>
-                            <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.key_info.location}</Text>
-                          </View>
-                        )}
-                      </View>
-
-                      {/* 摘要 */}
-                      {item.summary && (
-                        <Text className="card-summary">{item.summary}</Text>
-                      )}
-                    </View>
-                  </View>
+                    onFavoriteToggle={(newFavorited) => handleFavoriteToggle(item.id, newFavorited)}
+                    showSummary
+                  />
                 )
               })}
             </View>
@@ -235,22 +170,14 @@ export default function History() {
         )}
       </ScrollView>
 
-      {/* 详情 Modal - 使用公共组件 */}
+      {/* 详情弹窗 */}
       {selectedItem && (
         <DetailModal
           item={selectedItem}
           onClose={() => setSelectedItem(null)}
           initialFavorited={favoriteIds.has(selectedItem.id)}
-          onFavoriteToggle={(isFavorited) => {
-            setFavoriteIds(prev => {
-              const newSet = new Set(prev)
-              if (isFavorited) {
-                newSet.add(selectedItem.id)
-              } else {
-                newSet.delete(selectedItem.id)
-              }
-              return newSet
-            })
+          onFavoriteToggle={(isFavorited: boolean) => {
+            handleFavoriteToggle(selectedItem.id, isFavorited)
           }}
         />
       )}

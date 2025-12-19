@@ -8,40 +8,10 @@
 import Taro from '@tarojs/taro'
 import authService, { AuthError, NetworkError } from './auth'
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config/supabase'
+import type { Event } from '../types/event'
 
-/**
- * Event 类型定义（从 supabase-rest.ts 复用）
- */
-export interface Event {
-  id: number
-  title: string
-  type: 'recruit' | 'activity' | 'lecture'
-  source_group: string
-  publish_time: string
-  tags: string[]
-  key_info: {
-    date?: string
-    time?: string
-    location?: string
-    deadline?: string
-    company?: string
-    position?: string
-    education?: string
-    link?: string
-    registration_link?: string  // 活动/讲座报名链接
-    referral?: boolean
-  }
-  summary?: string
-  raw_content?: string
-  image_url?: string  // 图片海报 URL
-  is_top: boolean
-  status: 'active' | 'inactive' | 'archived' | 'new' | 'urgent'
-  poster_color: string
-  created_at?: string
-  updated_at?: string
-  // 前端扩展字段
-  isFavorited?: boolean
-}
+// 重新导出 Event 类型，保持向后兼容
+export type { Event } from '../types/event'
 
 /**
  * Favorite 类型定义

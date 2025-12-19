@@ -1,0 +1,174 @@
+/**
+ * EventCard 组件样式
+ * 统一的卡片样式，用于首页、收藏页、历史页
+ */
+
+.event-card {
+  position: relative;
+  background: #fff;
+  border-radius: 24rpx;
+  margin-bottom: 24rpx;
+  overflow: hidden;
+  box-shadow: 0 4rpx 16rpx rgba(0, 0, 0, 0.06);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+
+  &.first-card {
+    margin-top: 0;
+  }
+
+  &.expired {
+    opacity: 0.7;
+  }
+
+  &:active {
+    transform: scale(0.98);
+    box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.04);
+  }
+}
+
+/* 左上角置顶三角标签 */
+.top-corner-badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 80rpx 80rpx 0 0;
+  border-color: #EF4444 transparent transparent transparent;
+  z-index: 10;
+}
+
+.top-corner-text {
+  position: absolute;
+  top: -72rpx;
+  left: 4rpx;
+  font-size: 20rpx;
+  color: #fff;
+  font-weight: 600;
+  transform: rotate(-45deg);
+  white-space: nowrap;
+}
+
+/* 顶部色条 */
+.card-top-bar {
+  height: 8rpx;
+  width: 100%;
+}
+
+/* 卡片内容 */
+.card-content {
+  padding: 28rpx 32rpx;
+}
+
+/* 卡片头部 */
+.card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16rpx;
+}
+
+.card-tags {
+  display: flex;
+  align-items: center;
+  gap: 12rpx;
+}
+
+/* 类型标签 */
+.type-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+
+  &.recruit {
+    background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
+    color: #4F46E5;
+  }
+
+  &.lecture {
+    background: linear-gradient(135deg, #FEF3C7 0%, #FDE68A 100%);
+    color: #D97706;
+  }
+
+  &.activity {
+    background: linear-gradient(135deg, #DCFCE7 0%, #BBF7D0 100%);
+    color: #16A34A;
+  }
+}
+
+/* 过期标签 */
+.expired-tag {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6rpx 16rpx;
+  border-radius: 8rpx;
+  font-size: 22rpx;
+  font-weight: 500;
+  background: #F3F4F6;
+  color: #9CA3AF;
+}
+
+/* 卡片标题 */
+.card-title {
+  display: block;
+  font-size: 32rpx;
+  font-weight: 600;
+  color: #1F2937;
+  line-height: 1.4;
+  margin-bottom: 16rpx;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+
+  &.expired-text {
+    color: #9CA3AF;
+  }
+}
+
+/* 关键信息 */
+.card-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16rpx;
+}
+
+.info-item {
+  display: flex;
+  align-items: center;
+  gap: 8rpx;
+}
+
+.info-icon {
+  font-size: 24rpx;
+}
+
+.info-text {
+  font-size: 26rpx;
+  color: #6B7280;
+
+  &.expired-text {
+    color: #9CA3AF;
+  }
+}
+
+/* 摘要 */
+.card-summary {
+  display: block;
+  margin-top: 16rpx;
+  font-size: 26rpx;
+  color: #6B7280;
+  line-height: 1.5;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+}

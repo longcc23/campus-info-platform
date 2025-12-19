@@ -21,3 +21,7 @@ export { SkeletonBox, SkeletonCard, SkeletonList } from './Skeleton'
 // 详情弹窗组件
 export { default as DetailModal } from './DetailModal'
 export type { EventItem, EventKeyInfo } from './DetailModal'
+
+// 事件卡片组件
+export { default as EventCard } from './EventCard'
+export type { EventCardProps } from './EventCard'

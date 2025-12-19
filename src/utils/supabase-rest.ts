@@ -6,36 +6,9 @@
 import Taro from '@tarojs/taro'
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../config/supabase'
 
-/**
- * Events 表类型定义
- */
-export interface Event {
-  id: number
-  title: string
-  type: 'recruit' | 'activity' | 'lecture'
-  source_group: string
-  publish_time: string
-  tags: string[]
-  key_info: {
-    date: string
-    time: string
-    location: string
-    deadline: string
-    company?: string // 公司名称（招聘信息）
-    position?: string // 岗位名称（可以是多个岗位）
-    education?: string // 学历要求
-    link?: string // 投递链接/问卷链接
-    registration_link?: string // 活动/讲座报名链接
-    referral?: boolean // 是否内推
-  }
-  summary?: string
-  raw_content?: string
-  is_top: boolean
-  status: 'active' | 'inactive' | 'archived' | 'new' | 'urgent'
-  poster_color: string
-  created_at?: string
-  updated_at?: string
-}
+// 使用统一的类型定义
+export type { Event, KeyInfo, EventType, EventStatus } from '../types/event'
+import type { Event } from '../types/event'
 
 /**
  * 基础请求方法

@@ -1,105 +1,66 @@
-import { Component } from 'react'
+/**
+ * 首页 - 信息流列表
+ * 使用函数组件 + Hooks 重构
+ */
+
+import { useState, useEffect, useCallback } from 'react'
 import { View, Text, Input, ScrollView } from '@tarojs/components'
-import Taro from '@tarojs/taro'
-import { 
-  getEvents, 
-  type Event,
-  upsertUser,
-  recordViewHistory
-} from '../../utils/supabase-rest'
-import { FavoriteButton, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
-import { formatDate } from '../../utils/date-formatter'
-import favoritesService from '../../services/favorites'
-import authService from '../../services/auth'
+import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import { getEvents, upsertUser, recordViewHistory } from '../../utils/supabase-rest'
+import { EventCard, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
 import { isExpired } from '../../services/expiration'
 import { getSafeAreaBottom } from '../../utils/system-info'
+import favoritesService from '../../services/favorites'
+import authService from '../../services/auth'
+import type { Event, FeedItem, CardData } from '../../types/event'
+import { eventToFeedItem, feedItemToCardData } from '../../types/event'
 import './index.scss'
 
-// --- Type Definitions ---
-interface KeyInfo {
-  date?: string
-  time?: string
-  location?: string
-  deadline?: string
-  company?: string
-  position?: string
-  education?: string
-  link?: string
-  contact?: string  // 联系方式（微信号、电话等）
-  registration_link?: string  // 活动/讲座报名链接
-  referral?: boolean
-}
+type FilterType = 'all' | 'recruit' | 'activity'
 
-interface FeedItem {
-  id: number
-  type: 'activity' | 'lecture' | 'recruit'
-  status: 'open' | 'urgent' | 'new'
-  title: string
-  organizer: string
-  sourceGroup: string
-  publishTime: string
-  tags: string[]
-  keyInfo: KeyInfo
-  summary: string
-  rawContent: string
-  imageUrl?: string  // 图片海报 URL
-  isTop: boolean
-  isSaved: boolean
-  posterColor: string
-}
+export default function Index() {
+  const [activeFilter, setActiveFilter] = useState<FilterType>('all')
+  const [feed, setFeed] = useState<FeedItem[]>([])
+  const [selectedItem, setSelectedItem] = useState<FeedItem | null>(null)
+  const [searchKeyword, setSearchKeyword] = useState('')
+  const [loading, setLoading] = useState(true)
+  const [isFirstLoad, setIsFirstLoad] = useState(true)
+  const [hideExpired, setHideExpired] = useState(false)
 
-// 过期判断逻辑已移至 src/services/expiration.ts
+  // 初始化
+  useEffect(() => {
+    initUser()
+    loadEvents()
+    updateTabBar()
+  }, [])
 
-interface IndexState {
-  activeFilter: 'all' | 'recruit' | 'activity'
-  feed: FeedItem[]
-  selectedItem: FeedItem | null
-  toast: string | null
-  userId: string | null
-  favorites: FeedItem[]
-  searchKeyword: string
-  loading: boolean
-  isFirstLoad: boolean
-  hideExpired: boolean
-}
+  // 页面显示时刷新收藏状态
+  useDidShow(() => {
+    loadFavoriteStatus()
+    updateTabBar()
+  })
 
-export default class Index extends Component<{}, IndexState> {
-  constructor(props: {}) {
-    super(props)
-    this.state = {
-      activeFilter: 'all',
-      feed: [],
-      selectedItem: null,
-      toast: null,
-      userId: null,
-      favorites: [],
-      searchKeyword: '',
-      loading: true,
-      isFirstLoad: true,
-      hideExpired: false
+  // 下拉刷新
+  usePullDownRefresh(async () => {
+    try {
+      await loadEvents()
+      await loadFavoriteStatus()
+      Taro.showToast({ title: '刷新成功', icon: 'success', duration: 1500 })
+    } catch (error) {
+      console.error('刷新失败:', error)
+      Taro.showToast({ title: '刷新失败', icon: 'none' })
+    } finally {
+      Taro.stopPullDownRefresh()
     }
-  }
+  })
 
-  componentDidMount() {
-    this.initUser()
-    this.loadEvents()
-    this.updateTabBar()
-  }
-
-  componentDidShow() {
-    // 每次页面显示时重新加载收藏状态
-    this.loadFavoriteStatus()
-    this.updateTabBar()
-  }
-
-  updateTabBar = () => {
-    // 更新自定义 TabBar 的选中状态
+  const updateTabBar = () => {
     try {
       const page = Taro.getCurrentInstance()?.page
       if (page && typeof (page as any).getTabBar === 'function') {
         const tabBar = (page as any).getTabBar()
         if (tabBar && typeof tabBar.setSelected === 'function') {
-          tabBar.setSelected(0) // 首页的索引是 0
+          tabBar.setSelected(0)
         }
       }
     } catch (error) {
@@ -107,121 +68,72 @@ export default class Index extends Component<{}, IndexState> {
     }
   }
 
-
-  // 下拉刷新处理
-  onPullDownRefresh = async () => {
-    try {
-      await this.loadEvents()
-      // 🚀 修复：下拉刷新后重新加载收藏状态，防止红心消失
-      await this.loadFavoriteStatus()
-      
-      Taro.showToast({
-        title: '刷新成功',
-        icon: 'success',
-        duration: 1500
-      })
-    } catch (error) {
-      console.error('刷新失败:', error)
-      Taro.showToast({
-        title: '刷新失败',
-        icon: 'none'
-      })
-    } finally {
-      Taro.stopPullDownRefresh()
-    }
-  }
-
-  initUser = async () => {
+  const initUser = async () => {
     try {
       const openid = await authService.getOpenID()
       if (openid) {
-        this.setState({ userId: openid })
-        // ensureUser 已经在 authService.getOpenID 中处理过了，但这里保留以防万一
         await upsertUser(openid)
         console.log('✅ 用户初始化成功:', openid)
-        this.loadFavoriteStatus()
+        loadFavoriteStatus()
       }
     } catch (error) {
       console.error('❌ 用户初始化失败:', error)
     }
   }
 
-  loadEvents = async () => {
+  const loadEvents = async () => {
     try {
-      // 只在首次加载时显示 Skeleton
-      if (this.state.isFirstLoad) {
-        this.setState({ loading: true })
+      if (isFirstLoad) {
+        setLoading(true)
       }
-      
+
       console.log('📡 开始加载 Supabase 数据...')
       const { data, error } = await getEvents()
-      
+
       if (error) {
         console.error('❌ 加载失败：', error)
         return
       }
-      
+
       if (data && data.length > 0) {
         console.log(`✅ 成功加载 ${data.length} 条数据`)
-        const feedItems = data.map(this.convertEventToFeedItem)
-        this.setState({ 
-          feed: feedItems,
-          isFirstLoad: false
-        }, () => {
-          // 🚀 确保在数据加载完成后，尝试加载收藏状态
-          this.loadFavoriteStatus()
-        })
+        const feedItems = data.map((event: Event) => eventToFeedItem(event))
+        setFeed(feedItems)
+        setIsFirstLoad(false)
       }
-    } catch (error: any) {
+    } catch (error) {
       console.error('❌ 加载数据异常：', error)
     } finally {
-      this.setState({ loading: false })
+      setLoading(false)
     }
   }
 
-  convertEventToFeedItem = (event: Event): FeedItem => {
-    return {
-      id: event.id,
-      type: event.type,
-      status: event.status === 'active' ? 'open' : event.status === 'inactive' ? 'urgent' : 'new',
-      title: event.title,
-      organizer: event.source_group.split(' ')[0] || event.source_group,
-      sourceGroup: event.source_group,
-      publishTime: event.publish_time,
-      tags: event.tags,
-      keyInfo: event.key_info,
-      summary: event.summary || '',
-      rawContent: event.raw_content || '',
-      imageUrl: (event as any).image_url || '',  // 图片海报 URL
-      isTop: event.is_top,
-      isSaved: false,
-      posterColor: event.poster_color
-    }
-  }
-
-  loadFavoriteStatus = async () => {
-    const { feed } = this.state
+  const loadFavoriteStatus = useCallback(async () => {
     if (feed.length === 0) return
-    
+
     try {
       const eventIds = feed.map(item => item.id)
       const favoritedIds = await favoritesService.getFavoriteStatus(eventIds)
-      
-      this.setState({
-        feed: feed.map(item => ({
-          ...item,
-          isSaved: favoritedIds.has(item.id)
-        }))
-      })
+
+      setFeed(prev => prev.map(item => ({
+        ...item,
+        isSaved: favoritedIds.has(item.id)
+      })))
     } catch (error) {
       console.error('加载收藏状态失败:', error)
     }
-  }
+  }, [feed.length])
 
-  handleItemClick = async (item: FeedItem) => {
-    this.setState({ selectedItem: item })
-    
-    // 🚀 修复：使用 authService 确保一定能拿到 ID，解决浏览历史漏损问题
+  // feed 加载完成后加载收藏状态
+  useEffect(() => {
+    if (feed.length > 0 && !isFirstLoad) {
+      loadFavoriteStatus()
+    }
+  }, [feed.length, isFirstLoad])
+
+  const handleItemClick = async (item: FeedItem) => {
+    setSelectedItem(item)
+
     try {
       const openid = await authService.getOpenID()
       if (openid) {
@@ -232,28 +144,29 @@ export default class Index extends Component<{}, IndexState> {
     }
   }
 
-  getFilteredFeed = () => {
-    const { feed, activeFilter, searchKeyword, hideExpired } = this.state
-    
+  const handleFavoriteToggle = (itemId: number, isFavorited: boolean) => {
+    setFeed(prev => prev.map(item =>
+      item.id === itemId ? { ...item, isSaved: isFavorited } : item
+    ))
+  }
+
+  const getFilteredFeed = useCallback(() => {
     let filteredItems = feed.filter(item => {
       // 分类过滤
-      let matchesFilter = true
       if (activeFilter === 'activity') {
-        matchesFilter = ['activity', 'lecture'].includes(item.type)
+        if (!['activity', 'lecture'].includes(item.type)) return false
       } else if (activeFilter === 'recruit') {
-        matchesFilter = item.type === 'recruit'
+        if (item.type !== 'recruit') return false
       }
-      
-      if (!matchesFilter) return false
-      
+
       // 过期筛选
       if (hideExpired && isExpired(item)) {
         return false
       }
-      
+
       // 搜索过滤
       if (!searchKeyword.trim()) return true
-      
+
       const keyword = searchKeyword.trim().toLowerCase()
       return (
         item.title.toLowerCase().includes(keyword) ||
@@ -264,184 +177,114 @@ export default class Index extends Component<{}, IndexState> {
         (item.keyInfo.location && item.keyInfo.location.toLowerCase().includes(keyword))
       )
     })
-    
-    // 排序：置顶的在前，然后按创建时间倒序
+
+    // 排序：置顶的在前
     filteredItems.sort((a, b) => {
       if (a.isTop && !b.isTop) return -1
       if (!a.isTop && b.isTop) return 1
-      return 0 // 如果都置顶或都不置顶，保持原有顺序（后端已排序）
+      return 0
     })
-    
+
     return filteredItems
-  }
+  }, [feed, activeFilter, searchKeyword, hideExpired])
 
-  render() {
-    const { activeFilter, selectedItem, feed, searchKeyword, loading, isFirstLoad } = this.state
-    const filteredFeed = this.getFilteredFeed()
-    const safeAreaBottom = getSafeAreaBottom()
+  const filteredFeed = getFilteredFeed()
+  const safeAreaBottom = getSafeAreaBottom()
 
-    return (
-      <View className="index-page">
-        {/* 搜索栏和筛选栏（移到 ScrollView 外面，确保无缝连接） */}
-        <View className="header-section">
-          <View className="search-section">
-            <View className="search-input-wrapper">
-              <Text className="search-icon">🔍</Text>
-              <Input 
-                className="search-input"
-                type="text" 
-                placeholder="搜索职位、公司或活动..." 
-                value={searchKeyword}
-                onInput={(e) => this.setState({ searchKeyword: e.detail.value || '' })}
-              />
-              {searchKeyword && (
-                <View 
-                  className="search-clear"
-                  onClick={() => this.setState({ searchKeyword: '' })}
-                >
-                  <Text>✕</Text>
-                </View>
-              )}
-            </View>
-          </View>
-          
-          {/* Filter Bar */}
-          <View className="filter-bar">
-            <View className="filter-tabs">
-              {[
-                { id: 'all', label: '全部' }, 
-                { id: 'recruit', label: '实习招聘' }, 
-                { id: 'activity', label: '讲座活动' }
-              ].map((tab) => (
-                <View 
-                  key={tab.id}
-                  className={`filter-tab ${activeFilter === tab.id ? 'active' : ''}`}
-                  onClick={() => this.setState({ activeFilter: tab.id as any })}
-                >
-                  <Text>{tab.label}</Text>
-                  {activeFilter === tab.id && <View className="filter-tab-indicator" />}
-                </View>
-              ))}
-            </View>
-            
-            <ExpiredFilter
-              value={this.state.hideExpired}
-              onChange={(hideExpired) => this.setState({ hideExpired })}
-              className="filter-expired-toggle"
+  return (
+    <View className="index-page">
+      {/* 搜索栏和筛选栏 */}
+      <View className="header-section">
+        <View className="search-section">
+          <View className="search-input-wrapper">
+            <Text className="search-icon">🔍</Text>
+            <Input
+              className="search-input"
+              type="text"
+              placeholder="搜索职位、公司或活动..."
+              value={searchKeyword}
+              onInput={(e) => setSearchKeyword(e.detail.value || '')}
             />
-          </View>
-        </View>
-
-        {/* Main Content */}
-        <ScrollView 
-          scrollY 
-          className="page-scroll"
-          enhanced
-          showScrollbar={false}
-        >
-          <View className="page-content" style={{ paddingBottom: `${safeAreaBottom + 200}rpx` }}>
-
-            {/* 显示 Skeleton 或真实内容 */}
-            {loading && isFirstLoad ? (
-              <SkeletonList count={5} />
-            ) : (
-              <View className="feed-container">
-                {/* Feed List */}
-                {filteredFeed.length === 0 ? (
-                  <View className="empty-state">
-                    <Text className="empty-icon">📭</Text>
-                    <Text className="empty-title">暂无数据</Text>
-                    <Text className="empty-desc">试试其他筛选条件</Text>
-                  </View>
-                ) : (
-                  filteredFeed.map((item, index) => {
-                    const expired = isExpired(item)
-                    return (
-                      <View 
-                        key={item.id} 
-                        className={`feed-card ${index === 0 ? 'first-card' : ''} ${expired ? 'expired' : ''}`}
-                        onClick={() => this.handleItemClick(item)}
-                      >
-                        {item.isTop && (
-                          <View className="top-corner-badge">
-                            <Text className="top-corner-text">置顶</Text>
-                          </View>
-                        )}
-                        <View className="card-top-bar" style={{ background: expired ? '#9CA3AF' : `linear-gradient(to right, ${item.posterColor})` }} />
-                        <View className="card-content">
-                          <View className="card-header">
-                            <View className="card-header-left">
-                              <Text className={`type-tag ${item.type === 'recruit' ? 'recruit' : item.type === 'lecture' ? 'lecture' : 'activity'}`}>
-                                {item.type === 'recruit' ? '招聘' : item.type === 'lecture' ? '讲座' : '活动'}
-                              </Text>
-                              {expired && (
-                                <Text className="expired-tag">已过期</Text>
-                              )}
-                            </View>
-                            <FavoriteButton 
-                              eventId={item.id}
-                              initialFavorited={item.isSaved}
-                              className="card-favorite-btn"
-                              onToggle={(isFavorited) => {
-                                this.setState({
-                                  feed: feed.map(feedItem => 
-                                    feedItem.id === item.id 
-                                      ? { ...feedItem, isSaved: isFavorited } 
-                                      : feedItem
-                                  )
-                                })
-                              }}
-                            />
-                          </View>
-                          <Text className={`card-title ${expired ? 'expired-text' : ''}`}>{item.title}</Text>
-                          <View className="card-info">
-                            <View className="info-item">
-                              <Text className="info-icon">{item.type === 'recruit' ? '⏰' : '📅'}</Text>
-                              <Text className={`info-text ${expired ? 'expired-text' : ''}`}>
-                                {item.keyInfo.deadline 
-                                  ? formatDate(item.keyInfo.deadline)
-                                  : item.keyInfo.date 
-                                    ? formatDate(item.keyInfo.date) 
-                                    : item.keyInfo.time || '-'}
-                              </Text>
-                            </View>
-                            {item.keyInfo.location && (
-                              <View className="info-item location">
-                                <Text className="info-icon">📍</Text>
-                                <Text className={`info-text ${expired ? 'expired-text' : ''}`}>{item.keyInfo.location}</Text>
-                              </View>
-                            )}
-                          </View>
-                        </View>
-                      </View>
-                    )
-                  })
-                )}
+            {searchKeyword && (
+              <View className="search-clear" onClick={() => setSearchKeyword('')}>
+                <Text>✕</Text>
               </View>
             )}
           </View>
-        </ScrollView>
+        </View>
 
-        {/* Detail Modal - 使用公共组件 */}
-        {selectedItem && (
-          <DetailModal
-            item={selectedItem}
-            onClose={() => this.setState({ selectedItem: null })}
-            initialFavorited={selectedItem.isSaved}
-            onFavoriteToggle={(isFavorited) => {
-              this.setState({
-                selectedItem: { ...selectedItem, isSaved: isFavorited },
-                feed: feed.map(item => 
-                  item.id === selectedItem.id 
-                    ? { ...item, isSaved: isFavorited } 
-                    : item
-                )
-              })
-            }}
+        <View className="filter-bar">
+          <View className="filter-tabs">
+            {[
+              { id: 'all', label: '全部' },
+              { id: 'recruit', label: '实习招聘' },
+              { id: 'activity', label: '讲座活动' }
+            ].map((tab) => (
+              <View
+                key={tab.id}
+                className={`filter-tab ${activeFilter === tab.id ? 'active' : ''}`}
+                onClick={() => setActiveFilter(tab.id as FilterType)}
+              >
+                <Text>{tab.label}</Text>
+                {activeFilter === tab.id && <View className="filter-tab-indicator" />}
+              </View>
+            ))}
+          </View>
+
+          <ExpiredFilter
+            value={hideExpired}
+            onChange={setHideExpired}
+            className="filter-expired-toggle"
           />
-        )}
+        </View>
       </View>
-    )
-  }
-}
 
+      {/* 主内容区 */}
+      <ScrollView
+        scrollY
+        className="page-scroll"
+        enhanced
+        showScrollbar={false}
+      >
+        <View className="page-content" style={{ paddingBottom: `${safeAreaBottom + 200}rpx` }}>
+          {loading && isFirstLoad ? (
+            <SkeletonList count={5} />
+          ) : (
+            <View className="feed-container">
+              {filteredFeed.length === 0 ? (
+                <View className="empty-state">
+                  <Text className="empty-icon">📭</Text>
+                  <Text className="empty-title">暂无数据</Text>
+                  <Text className="empty-desc">试试其他筛选条件</Text>
+                </View>
+              ) : (
+                filteredFeed.map((item, index) => (
+                  <EventCard
+                    key={item.id}
+                    data={feedItemToCardData(item)}
+                    isFirst={index === 0}
+                    onClick={() => handleItemClick(item)}
+                    onFavoriteToggle={(isFavorited) => handleFavoriteToggle(item.id, isFavorited)}
+                  />
+                ))
+              )}
+            </View>
+          )}
+        </View>
+      </ScrollView>
+
+      {/* 详情弹窗 */}
+      {selectedItem && (
+        <DetailModal
+          item={selectedItem}
+          onClose={() => setSelectedItem(null)}
+          initialFavorited={selectedItem.isSaved}
+          onFavoriteToggle={(isFavorited: boolean) => {
+            setSelectedItem(prev => prev ? { ...prev, isSaved: isFavorited } : null)
+            handleFavoriteToggle(selectedItem.id, isFavorited)
+          }}
+        />
+      )}
+    </View>
+  )
+}
