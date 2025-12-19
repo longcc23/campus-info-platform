@@ -3,16 +3,16 @@
  * 使用函数组件 + Hooks 重构
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { View, Text, Input, ScrollView } from '@tarojs/components'
-import Taro, { useDidShow, usePullDownRefresh } from '@tarojs/taro'
+import Taro, { useDidShow, usePullDownRefresh, useShareAppMessage } from '@tarojs/taro'
 import { getEvents, upsertUser, recordViewHistory } from '../../utils/supabase-rest'
 import { EventCard, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
 import { isExpired } from '../../services/expiration'
 import { getSafeAreaBottom } from '../../utils/system-info'
 import favoritesService from '../../services/favorites'
 import authService from '../../services/auth'
-import type { Event, FeedItem, CardData } from '../../types/event'
+import type { Event, FeedItem } from '../../types/event'
 import { eventToFeedItem, feedItemToCardData } from '../../types/event'
 import './index.scss'
 
@@ -26,12 +26,54 @@ export default function Index() {
   const [loading, setLoading] = useState(true)
   const [isFirstLoad, setIsFirstLoad] = useState(true)
   const [hideExpired, setHideExpired] = useState(false)
+  
+  // 用于分享的当前选中项引用
+  const selectedItemRef = useRef<FeedItem | null>(null)
+  // 用于处理分享跳转的待打开 eventId
+  const pendingEventIdRef = useRef<number | null>(null)
+  
+  // 配置微信分享
+  useShareAppMessage(() => {
+    const item = selectedItemRef.current
+    if (item) {
+      // 分享当前查看的活动详情
+      const keyInfo = item.keyInfo || {}
+      let desc = item.summary || ''
+      if (item.type === 'recruit') {
+        const parts: string[] = []
+        if (keyInfo.company) parts.push(keyInfo.company)
+        if (keyInfo.position) parts.push(keyInfo.position)
+        if (parts.length > 0) desc = parts.join(' | ')
+      }
+      
+      return {
+        title: item.title,
+        path: `/pages/index/index?eventId=${item.id}`,
+        imageUrl: item.imageUrl || undefined
+      }
+    }
+    
+    // 默认分享小程序首页
+    return {
+      title: 'UniFlow 智汇流 - 校园信息一站式平台',
+      path: '/pages/index/index'
+    }
+  })
 
   // 初始化
   useEffect(() => {
     initUser()
     loadEvents()
     updateTabBar()
+    
+    // 检查是否有分享跳转的 eventId 参数
+    const instance = Taro.getCurrentInstance()
+    const eventId = instance?.router?.params?.eventId
+    if (eventId) {
+      console.log('📌 检测到分享跳转 eventId:', eventId)
+      // 保存到 ref，等数据加载完成后打开
+      pendingEventIdRef.current = parseInt(eventId, 10)
+    }
   }, [])
 
   // 页面显示时刷新收藏状态
@@ -124,15 +166,27 @@ export default function Index() {
     }
   }, [feed.length])
 
-  // feed 加载完成后加载收藏状态
+  // feed 加载完成后加载收藏状态，并处理分享跳转
   useEffect(() => {
     if (feed.length > 0 && !isFirstLoad) {
       loadFavoriteStatus()
+      
+      // 处理分享跳转：自动打开对应的详情弹窗
+      if (pendingEventIdRef.current) {
+        const targetItem = feed.find(item => item.id === pendingEventIdRef.current)
+        if (targetItem) {
+          console.log('📌 自动打开分享的活动:', targetItem.title)
+          setSelectedItem(targetItem)
+          selectedItemRef.current = targetItem
+        }
+        pendingEventIdRef.current = null  // 清除，避免重复打开
+      }
     }
   }, [feed.length, isFirstLoad])
 
   const handleItemClick = async (item: FeedItem) => {
     setSelectedItem(item)
+    selectedItemRef.current = item  // 更新分享引用
 
     try {
       const openid = await authService.getOpenID()
@@ -277,7 +331,10 @@ export default function Index() {
       {selectedItem && (
         <DetailModal
           item={selectedItem}
-          onClose={() => setSelectedItem(null)}
+          onClose={() => {
+            setSelectedItem(null)
+            selectedItemRef.current = null  // 清除分享引用
+          }}
           initialFavorited={selectedItem.isSaved}
           onFavoriteToggle={(isFavorited: boolean) => {
             setSelectedItem(prev => prev ? { ...prev, isSaved: isFavorited } : null)

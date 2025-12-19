@@ -46,6 +46,18 @@ function parseDate(dateStr: string, timeStr?: string): Date | null {
   if (!dateStr) return null
 
   try {
+    // 格式0: "2026年2月" 或 "2025年12月" - 只有年月，没有日
+    const yearMonthMatch = dateStr.match(/(\d{4})年(\d{1,2})月(?!.*日)/)
+    if (yearMonthMatch && !dateStr.includes('日')) {
+      const year = parseInt(yearMonthMatch[1])
+      const month = parseInt(yearMonthMatch[2])
+      // 默认使用该月的最后一天作为截止日期
+      const lastDay = new Date(year, month, 0).getDate()
+      const eventDate = new Date(year, month - 1, lastDay)
+      eventDate.setHours(23, 59, 0, 0)
+      return eventDate
+    }
+    
     // 尝试解析常见格式
     // 格式1: "12月4日" 或 "12月04日"
     const monthDayMatch = dateStr.match(/(\d{1,2})月(\d{1,2})日/)

@@ -1,66 +1,63 @@
 /**
  * 分享按钮组件
- * 可复用的分享按钮，支持不同尺寸和样式
+ * 使用微信原生分享功能，点击后弹出分享菜单
  */
 
-import { View, Text } from '@tarojs/components'
-import { generateShareCard, triggerShare, showShareOptions, handleShareResult } from '../../services/share'
+import { Button, Text, View } from '@tarojs/components'
 import './index.scss'
 
 interface ShareButtonProps {
-  eventData: any // 活动数据
+  eventData: any // 活动数据（用于页面 onShareAppMessage 获取）
   className?: string
   size?: 'small' | 'medium' | 'large'
   type?: 'icon' | 'text' | 'both'
   disabled?: boolean
-  showOptions?: boolean // 是否显示更多选项
 }
 
+// 简约分享图标 SVG
+const ShareIcon = ({ size = 20, color = '#666' }: { size?: number; color?: string }) => (
+  <View 
+    className="share-svg-icon"
+    style={{ 
+      width: `${size}px`, 
+      height: `${size}px`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center'
+    }}
+  >
+    <View
+      style={{
+        width: `${size}px`,
+        height: `${size}px`,
+        background: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='${encodeURIComponent(color)}' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8'/%3E%3Cpolyline points='16 6 12 2 8 6'/%3E%3Cline x1='12' y1='2' x2='12' y2='15'/%3E%3C/svg%3E") no-repeat center`,
+        backgroundSize: 'contain'
+      }}
+    />
+  </View>
+)
+
 export default function ShareButton({ 
-  eventData, 
   className = '', 
   size = 'medium',
   type = 'both',
-  disabled = false,
-  showOptions = false
+  disabled = false
 }: ShareButtonProps) {
 
-  const handleShare = async (e: any) => {
-    e.stopPropagation()
-    
-    if (disabled) return
-    
-    try {
-      // 生成分享数据
-      const shareData = generateShareCard(eventData)
-      
-      // 根据配置选择分享方式
-      const result = showOptions 
-        ? await showShareOptions(shareData)  // 显示选项菜单
-        : await triggerShare(shareData)      // 直接复制
-      
-      // 处理分享结果
-      handleShareResult(result)
-    } catch (error) {
-      console.error('分享失败:', error)
-      handleShareResult({
-        success: false,
-        error: '分享失败'
-      })
-    }
-  }
+  const iconSize = size === 'small' ? 16 : size === 'large' ? 24 : 20
+  const iconColor = '#8B5CF6'  // 紫色主题色
 
   const renderContent = () => {
     switch (type) {
       case 'icon':
-        return <Text className="share-icon">🔗</Text>
+        return <ShareIcon size={iconSize} color={iconColor} />
       case 'text':
         return <Text className="share-text">分享</Text>
       case 'both':
       default:
         return (
           <>
-            <Text className="share-icon">🔗</Text>
+            <ShareIcon size={iconSize} color={iconColor} />
             <Text className="share-text">分享</Text>
           </>
         )
@@ -68,11 +65,12 @@ export default function ShareButton({
   }
 
   return (
-    <View 
+    <Button 
       className={`share-button ${size} ${type} ${disabled ? 'disabled' : ''} ${className}`}
-      onClick={handleShare}
+      openType="share"
+      plain
     >
       {renderContent()}
-    </View>
+    </Button>
   )
 }

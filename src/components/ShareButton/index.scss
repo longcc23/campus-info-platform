@@ -7,96 +7,65 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: $radius-base;
+  border-radius: $radius-full;
   transition: all $transition-base $ease-out;
   cursor: pointer;
   background: transparent;
-  border: 1rpx solid $border-default;
+  border: none !important;
+  padding: 0 !important;
+  margin: 0;
+  line-height: 1;
+  
+  &::after {
+    display: none;  // 移除微信按钮默认边框
+  }
   
   &:active {
-    transform: scale(0.95);
-    opacity: 0.7;
+    transform: scale(0.9);
+    opacity: 0.8;
   }
   
   // 尺寸变体
   &.small {
-    padding: $spacing-1 $spacing-2;
-    gap: $spacing-1;
-    
-    .share-icon {
-      font-size: $font-size-sm;
-    }
-    
-    .share-text {
-      @include text-caption;
-      font-weight: $font-weight-medium;
-    }
+    width: 60rpx;
+    height: 60rpx;
   }
   
   &.medium {
-    padding: $spacing-2 $spacing-3;
-    gap: $spacing-1;
-    
-    .share-icon {
-      font-size: $font-size-base;
-    }
-    
-    .share-text {
-      @include text-body;
-      font-weight: $font-weight-medium;
-    }
+    width: 72rpx;
+    height: 72rpx;
   }
   
   &.large {
-    padding: $spacing-3 $spacing-4;
-    gap: $spacing-2;
-    
-    .share-icon {
-      font-size: $font-size-lg;
-    }
-    
-    .share-text {
-      @include text-title;
-      font-weight: $font-weight-semibold;
-    }
+    width: 88rpx;
+    height: 88rpx;
   }
   
   // 类型变体
   &.icon {
-    padding: $spacing-2;
-    border-radius: $radius-full;
-    
-    .share-icon {
+    .share-svg-icon {
       margin: 0;
     }
   }
   
   &.text {
+    width: auto;
+    padding: $spacing-2 $spacing-3 !important;
+    
     .share-text {
       color: $primary;
-    }
-    
-    &:hover {
-      background-color: rgba($primary, 0.05);
+      font-size: $font-size-sm;
     }
   }
   
   &.both {
-    .share-icon {
-      color: $text-secondary;
-    }
+    width: auto;
+    padding: $spacing-2 $spacing-3 !important;
+    gap: $spacing-1;
     
     .share-text {
       color: $text-primary;
-    }
-    
-    &:hover {
-      background-color: $gray-50;
-      border-color: $primary;
-      
-      .share-icon {
-        color: $primary;
-      }
+      font-size: $font-size-sm;
     }
   }
   
@@ -105,21 +74,5 @@
     opacity: 0.5;
     cursor: not-allowed;
     pointer-events: none;
-  }
-  
-  // 主题色变体
-  &.primary {
-    background-color: $primary;
-    border-color: $primary;
-    
-    .share-icon,
-    .share-text {
-      color: $text-inverse;
-    }
-    
-    &:hover {
-      background-color: $primary-dark;
-      border-color: $primary-dark;
-    }
   }
 }

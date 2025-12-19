@@ -152,17 +152,27 @@ async function parseSource(source: SourceItem): Promise<ParsedSource> {
 }
 
 /**
+ * 附件类型定义
+ */
+interface Attachment {
+  url: string
+  type: 'pdf' | 'image' | 'doc'
+  name?: string
+}
+
+/**
  * 多源合并解析
  * 1. 并行提取所有信息源的文本内容
- * 2. 合并所有文本
- * 3. 调用 AI 进行统一解析
+ * 2. 收集所有附件（PDF、图片）
+ * 3. 合并所有文本
+ * 4. 调用 AI 进行统一解析
  */
 export async function parseMultipleSources(
   sources: SourceItem[],
   language: OutputLanguage = 'zh'
 ): Promise<{
   success: boolean
-  data?: ParsedEvent
+  data?: ParsedEvent & { attachments?: Attachment[] }
   logs: string[]
   sourceResults: ParsedSource[]
 }> {
@@ -191,7 +201,29 @@ export async function parseMultipleSources(
     }
   })
   
-  // 2. 收集成功提取的内容，并保留原始链接 URL
+  // 2. 收集附件（PDF 和图片的原始 URL）
+  const attachments: Attachment[] = []
+  sources.forEach((source, index) => {
+    if (source.type === 'pdf') {
+      attachments.push({
+        url: source.content, // PDF 的 URL
+        type: 'pdf',
+        name: `文件 ${attachments.filter(a => a.type === 'pdf').length + 1}`
+      })
+    } else if (source.type === 'image') {
+      attachments.push({
+        url: source.content, // 图片的 URL
+        type: 'image',
+        name: `图片 ${attachments.filter(a => a.type === 'image').length + 1}`
+      })
+    }
+  })
+  
+  if (attachments.length > 0) {
+    logs.push(`📎 收集到 ${attachments.length} 个附件`)
+  }
+  
+  // 3. 收集成功提取的内容，并保留原始链接 URL
   const successfulContents = sourceResults
     .filter(r => r.success && r.content)
     .map((r, index) => {
@@ -215,10 +247,10 @@ export async function parseMultipleSources(
   
   logs.push(`🔄 成功提取 ${successfulContents.length}/${sources.length} 个信息源，开始 AI 合并解析...`)
   
-  // 3. 合并所有内容
+  // 4. 合并所有内容
   const mergedContent = successfulContents.join('\n\n---\n\n')
   
-  // 4. 调用 AI 进行统一解析
+  // 5. 调用 AI 进行统一解析
   try {
     const openai = getOpenAIClient()
     const systemPrompt = getSystemPrompt(language)
@@ -258,16 +290,27 @@ ${mergedContent}`
     
     logs.push('✅ AI 合并解析成功')
     
+    // 构建返回数据，包含附件信息
+    const eventData: ParsedEvent & { attachments?: Attachment[] } = {
+      title: result.title || '',
+      type: result.type || 'recruit',
+      key_info: result.key_info || {},
+      summary: result.summary || '',
+      raw_content: '',  // 不再显示多源合并文字
+      tags: result.tags || [],
+    }
+    
+    // 如果有附件，添加到数据中
+    if (attachments.length > 0) {
+      eventData.attachments = attachments
+      // 为了向后兼容，将第一个附件的 URL 也存入 image_url
+      eventData.image_url = attachments[0].url
+      logs.push(`📎 已添加 ${attachments.length} 个附件到结果中`)
+    }
+    
     return {
       success: true,
-      data: {
-        title: result.title || '',
-        type: result.type || 'recruit',
-        key_info: result.key_info || {},
-        summary: result.summary || '',
-        raw_content: `📦 多源合并（${sources.length} 个信息源）`,
-        tags: result.tags || [],
-      },
+      data: eventData,
       logs,
       sourceResults,
     }

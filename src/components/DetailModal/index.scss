@@ -189,6 +189,90 @@
   }
 }
 
+// 附件区域
+.attachments-area {
+  margin-top: 30rpx;
+  
+  .attachments-title {
+    display: block;
+    font-size: 26rpx;
+    color: #6B7280;
+    margin-bottom: 20rpx;
+    font-weight: 500;
+  }
+  
+  .attachment-item {
+    margin-bottom: 16rpx;
+    
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+  
+  .attachment-btn {
+    width: 100%;
+    background: #F3E8FF;
+    border: 2rpx solid #E9D5FF;
+    color: #8B5CF6;
+    font-size: 26rpx;
+    border-radius: 16rpx;
+    height: 80rpx;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24rpx;
+    
+    &::after {
+      border: none;
+    }
+  }
+  
+  .attachment-icon {
+    font-size: 32rpx;
+    margin-right: 16rpx;
+  }
+  
+  .attachment-name {
+    flex: 1;
+    text-align: left;
+    font-size: 26rpx;
+    color: #6B7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .attachment-action {
+    font-size: 24rpx;
+    color: #8B5CF6;
+    font-weight: 500;
+  }
+  
+  .attachment-image-wrapper {
+    .attachment-img {
+      width: 100%;
+      border-radius: 16rpx;
+      margin-bottom: 12rpx;
+    }
+    
+    .collapse-btn {
+      width: 100%;
+      background: #F9FAFB;
+      border: 1rpx solid #E5E7EB;
+      color: #6B7280;
+      font-size: 24rpx;
+      border-radius: 12rpx;
+      height: 60rpx;
+      @include flex-center;
+      
+      &::after {
+        border: none;
+      }
+    }
+  }
+}
+
+// 保留旧的 poster-area 样式以向后兼容
 .poster-area {
   margin-top: 30rpx;
   

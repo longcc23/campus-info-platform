@@ -63,7 +63,8 @@ export async function POST(request: NextRequest) {
       key_info: eventData.key_info || {},
       summary: eventData.summary || '',
       raw_content: eventData.raw_content || '',
-      image_url: eventData.image_url || null,  // 图片海报 URL
+      image_url: eventData.image_url || null,  // 图片海报 URL（向后兼容）
+      attachments: eventData.attachments || [],  // 多个附件（PDF、图片等）
       is_top: eventData.is_top || false,
       poster_color: eventData.poster_color || 'from-gray-500 to-gray-600',
     }

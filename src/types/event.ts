@@ -4,6 +4,15 @@
  */
 
 /**
+ * 附件类型
+ */
+export interface Attachment {
+  url: string
+  type: 'pdf' | 'image' | 'doc'
+  name?: string
+}
+
+/**
  * 关键信息类型
  */
 export interface KeyInfo {
@@ -33,7 +42,8 @@ export interface Event {
   key_info: KeyInfo
   summary?: string
   raw_content?: string
-  image_url?: string
+  image_url?: string  // 保留向后兼容
+  attachments?: Attachment[]  // 新增：支持多个附件
   is_top: boolean
   status: EventStatus
   poster_color: string
@@ -60,6 +70,7 @@ export interface FeedItem {
   summary: string
   rawContent: string
   imageUrl?: string
+  attachments?: Attachment[]  // 新增：支持多个附件
   isTop: boolean
   isSaved: boolean
   posterColor: string
@@ -92,6 +103,7 @@ export function eventToFeedItem(event: Event): FeedItem {
     summary: event.summary || '',
     rawContent: event.raw_content || '',
     imageUrl: event.image_url || '',
+    attachments: event.attachments || [],  // 新增：保留附件信息
     isTop: event.is_top,
     isSaved: event.isFavorited || false,
     posterColor: event.poster_color

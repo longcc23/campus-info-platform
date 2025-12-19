@@ -4,8 +4,8 @@
  */
 
 import { View, Text, ScrollView, Button } from '@tarojs/components'
-import { useState, useEffect } from 'react'
-import Taro from '@tarojs/taro'
+import { useState, useEffect, useRef } from 'react'
+import Taro, { useShareAppMessage } from '@tarojs/taro'
 import { getViewHistory, clearViewHistory } from '../../utils/supabase-rest'
 import { EventCard, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
 import { isExpired } from '../../services/expiration'
@@ -22,6 +22,23 @@ export default function History() {
   const [selectedItem, setSelectedItem] = useState<Event | null>(null)
   const [favoriteIds, setFavoriteIds] = useState<Set<number>>(new Set())
   const [hideExpired, setHideExpired] = useState(false)
+  const selectedItemRef = useRef<Event | null>(null)
+  
+  // 配置微信分享
+  useShareAppMessage(() => {
+    const item = selectedItemRef.current
+    if (item) {
+      return {
+        title: item.title,
+        path: `/pages/index/index?eventId=${item.id}`,
+        imageUrl: item.image_url || undefined
+      }
+    }
+    return {
+      title: 'UniFlow 智汇流 - 浏览历史',
+      path: '/pages/index/index'
+    }
+  })
 
   useEffect(() => {
     loadHistory()
@@ -66,6 +83,7 @@ export default function History() {
 
   const handleEventClick = (item: Event) => {
     setSelectedItem(item)
+    selectedItemRef.current = item
   }
 
   const handleClearHistory = async () => {
@@ -174,7 +192,10 @@ export default function History() {
       {selectedItem && (
         <DetailModal
           item={selectedItem}
-          onClose={() => setSelectedItem(null)}
+          onClose={() => {
+            setSelectedItem(null)
+            selectedItemRef.current = null
+          }}
           initialFavorited={favoriteIds.has(selectedItem.id)}
           onFavoriteToggle={(isFavorited: boolean) => {
             handleFavoriteToggle(selectedItem.id, isFavorited)

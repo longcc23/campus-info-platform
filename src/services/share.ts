@@ -56,7 +56,6 @@ interface EventData {
 export const generateShareCard = (event: EventData): ShareData => {
   // 兼容不同的数据结构
   const keyInfo = event.keyInfo || event.key_info || {}
-  const sourceGroup = event.sourceGroup || event.source_group || '信息平台'
   const content = event.summary || event.rawContent || event.raw_content || ''
   
   // 生成分享标题
@@ -87,22 +86,12 @@ export const generateShareCard = (event: EventData): ShareData => {
     desc = content.length > 50 ? content.substring(0, 47) + '...' : content
   }
   
-  // 添加来源信息
-  if (desc) {
-    desc += ` | 来源：${sourceGroup}`
-  } else {
-    desc = `来源：${sourceGroup}`
-  }
-  
-  // 生成分享链接（这里可以根据实际需求调整）
-  const link = `https://your-domain.com/event/${event.id}`
-  
   return {
     title,
     desc,
-    link,
+    link: '',  // 小程序内分享不需要链接
     type: event.type,
-    source: sourceGroup
+    source: 'UniFlow'
   }
 }
 
@@ -127,8 +116,12 @@ export const getShareConfig = (shareData: ShareData) => {
  */
 export const triggerShare = async (shareData: ShareData): Promise<ShareResult> => {
   try {
-    // 直接复制分享内容，这是最实用的分享方式
-    const shareText = `📢 ${shareData.title}\n\n${shareData.desc}\n\n🔗 查看详情：${shareData.link}\n\n📱 来自 UniFlow 智汇流`
+    // 构建分享文本，不包含链接
+    let shareText = `📢 ${shareData.title}`
+    if (shareData.desc) {
+      shareText += `\n\n${shareData.desc}`
+    }
+    shareText += `\n\n📱 来自 UniFlow 智汇流小程序`
     
     await Taro.setClipboardData({
       data: shareText
@@ -155,24 +148,19 @@ export const triggerShare = async (shareData: ShareData): Promise<ShareResult> =
 export const showShareOptions = async (shareData: ShareData): Promise<ShareResult> => {
   try {
     const result = await Taro.showActionSheet({
-      itemList: ['复制分享内容', '复制链接地址']
+      itemList: ['复制分享内容']
     })
     
     if (result.tapIndex === 0) {
       // 复制完整分享内容
-      const shareText = `📢 ${shareData.title}\n\n${shareData.desc}\n\n🔗 查看详情：${shareData.link}\n\n📱 来自 UniFlow 智汇流`
+      let shareText = `📢 ${shareData.title}`
+      if (shareData.desc) {
+        shareText += `\n\n${shareData.desc}`
+      }
+      shareText += `\n\n📱 来自 UniFlow 智汇流小程序`
+      
       await Taro.setClipboardData({
         data: shareText
-      })
-      
-      return {
-        success: true,
-        platform: 'clipboard'
-      }
-    } else if (result.tapIndex === 1) {
-      // 只复制链接
-      await Taro.setClipboardData({
-        data: shareData.link
       })
       
       return {

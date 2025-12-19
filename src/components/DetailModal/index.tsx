@@ -15,6 +15,12 @@ import { createCalendarEventFromItem, addToPhoneCalendar } from '../../utils/ics
 import { getSafeAreaBottom } from '../../utils/system-info'
 import './index.scss'
 
+export interface Attachment {
+  url: string
+  type: 'pdf' | 'image' | 'doc'
+  name?: string
+}
+
 export interface EventItem {
   id: number
   type: 'activity' | 'lecture' | 'recruit'
@@ -24,6 +30,7 @@ export interface EventItem {
   rawContent?: string
   image_url?: string
   imageUrl?: string
+  attachments?: Attachment[]  // 新增：支持多个附件
   key_info?: any
   keyInfo?: any
   is_top?: boolean
@@ -39,11 +46,96 @@ export default function DetailModal({
   onFavoriteToggle,
   initialFavorited = false 
 }: { item: EventItem, onClose: () => void, onFavoriteToggle?: any, initialFavorited?: boolean }) {
-  const [showPoster, setShowPoster] = useState(false)
+  const [expandedAttachments, setExpandedAttachments] = useState<Set<number>>(new Set())
   
   const keyInfo = item.key_info || item.keyInfo || {}
   const imageUrl = item.image_url || item.imageUrl
   const rawContent = item.raw_content || item.rawContent
+  const attachments = item.attachments || []
+  
+  // 调试日志
+  console.log('[DetailModal] 附件数据:', {
+    hasAttachments: attachments.length > 0,
+    attachmentsCount: attachments.length,
+    attachments: attachments,
+    imageUrl: imageUrl
+  })
+  
+  // 如果有 image_url 但没有 attachments，自动转换为 attachments 格式
+  const allAttachments: Attachment[] = attachments.length > 0 
+    ? attachments 
+    : imageUrl 
+      ? [{ url: imageUrl, type: imageUrl.toLowerCase().endsWith('.pdf') ? 'pdf' : 'image' }]
+      : []
+  
+  console.log('[DetailModal] 最终附件列表:', allAttachments)
+  
+  const toggleAttachment = (index: number) => {
+    setExpandedAttachments(prev => {
+      const newSet = new Set(prev)
+      if (newSet.has(index)) {
+        newSet.delete(index)
+      } else {
+        newSet.add(index)
+      }
+      return newSet
+    })
+  }
+  
+  const handleOpenAttachment = (attachment: Attachment) => {
+    console.log('[DetailModal] 打开附件:', attachment)
+    
+    if (attachment.type === 'pdf' || attachment.type === 'doc') {
+      // 显示加载提示
+      Taro.showLoading({
+        title: '正在下载...',
+        mask: true
+      })
+      
+      Taro.downloadFile({
+        url: attachment.url,
+        success: (res) => {
+          console.log('[DetailModal] 下载成功:', res)
+          Taro.hideLoading()
+          
+          if (res.statusCode === 200) {
+            Taro.openDocument({
+              filePath: res.tempFilePath,
+              showMenu: true,
+              success: () => {
+                console.log('[DetailModal] 文件打开成功')
+              },
+              fail: (err) => {
+                console.error('[DetailModal] 打开文档失败:', err)
+                Taro.showModal({
+                  title: '无法打开文件',
+                  content: `错误信息: ${err.errMsg || '未知错误'}`,
+                  showCancel: false
+                })
+              }
+            })
+          } else {
+            Taro.showToast({
+              title: `下载失败 (${res.statusCode})`,
+              icon: 'none',
+              duration: 2000
+            })
+          }
+        },
+        fail: (err) => {
+          console.error('[DetailModal] 下载文件失败:', err)
+          Taro.hideLoading()
+          
+          // 显示详细错误信息
+          Taro.showModal({
+            title: '下载失败',
+            content: `${err.errMsg || '网络错误'}\n\n提示：请检查网络连接或文件链接是否有效`,
+            showCancel: false
+          })
+        }
+      })
+    }
+  }
   
   const handleCopyLink = (link: string) => {
     withAuthGuard('复制', () => {
@@ -144,6 +236,7 @@ export default function DetailModal({
                  rawContent.trim() && 
                  !rawContent.startsWith('📷') &&
                  !rawContent.startsWith('📄') &&
+                 !rawContent.startsWith('📦') &&
                  item.summary.trim() !== rawContent.trim().substring(0, Math.min(item.summary.length, rawContent.length)).trim() ? (
                   <>
                     <Text className="detail-summary-text">{item.summary}</Text>
@@ -153,7 +246,7 @@ export default function DetailModal({
                 ) : (
                   <TextWithLinks 
                     text={
-                      rawContent?.trim() && !rawContent.startsWith('📷') && !rawContent.startsWith('📄') 
+                      rawContent?.trim() && !rawContent.startsWith('📷') && !rawContent.startsWith('📄') && !rawContent.startsWith('📦')
                         ? rawContent 
                         : item.summary || '暂无详情'
                     } 
@@ -161,14 +254,60 @@ export default function DetailModal({
                 )}
               </View>
 
-              {imageUrl && (
-                <View className="poster-area">
-                  {imageUrl.toLowerCase().endsWith('.pdf') ? (
-                    <Button className="action-link-btn" onClick={() => Taro.downloadFile({ url: imageUrl, success: (res) => Taro.openDocument({ filePath: res.tempFilePath }) })}>查看文件 | View File</Button>
-                  ) : (
-                    showPoster ? <Image src={imageUrl} mode="widthFix" className="poster-img" showMenuByLongpress /> :
-                    <Button className="action-link-btn" onClick={() => setShowPoster(true)}>点击查看海报 | view poster</Button>
-                  )}
+              {/* 附件区域 */}
+              {allAttachments.length > 0 && (
+                <View className="attachments-area">
+                  <Text className="attachments-title">
+                    📎 附件 | Attachments ({allAttachments.length})
+                  </Text>
+                  {allAttachments.map((attachment, index) => (
+                    <View key={index} className="attachment-item">
+                      {attachment.type === 'pdf' || attachment.type === 'doc' ? (
+                        <Button 
+                          className="attachment-btn" 
+                          onClick={() => handleOpenAttachment(attachment)}
+                        >
+                          <Text className="attachment-icon">
+                            {attachment.type === 'pdf' ? '📄' : '📝'}
+                          </Text>
+                          <Text className="attachment-name">
+                            {attachment.name || `文件 ${index + 1}`}
+                          </Text>
+                          <Text className="attachment-action">查看</Text>
+                        </Button>
+                      ) : (
+                        <View className="attachment-image-wrapper">
+                          {expandedAttachments.has(index) ? (
+                            <Image 
+                              src={attachment.url} 
+                              mode="widthFix" 
+                              className="attachment-img" 
+                              showMenuByLongpress 
+                            />
+                          ) : (
+                            <Button 
+                              className="attachment-btn" 
+                              onClick={() => toggleAttachment(index)}
+                            >
+                              <Text className="attachment-icon">🖼️</Text>
+                              <Text className="attachment-name">
+                                {attachment.name || `图片 ${index + 1}`}
+                              </Text>
+                              <Text className="attachment-action">查看</Text>
+                            </Button>
+                          )}
+                          {expandedAttachments.has(index) && (
+                            <Button 
+                              className="collapse-btn" 
+                              onClick={() => toggleAttachment(index)}
+                            >
+                              收起
+                            </Button>
+                          )}
+                        </View>
+                      )}
+                    </View>
+                  ))}
                 </View>
               )}
             </View>

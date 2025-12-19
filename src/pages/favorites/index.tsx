@@ -4,8 +4,8 @@
  */
 
 import { View, Text, ScrollView } from '@tarojs/components'
-import { useState, useEffect } from 'react'
-import Taro from '@tarojs/taro'
+import { useState, useEffect, useRef } from 'react'
+import Taro, { useShareAppMessage } from '@tarojs/taro'
 import favoritesService from '../../services/favorites'
 import { EventCard, SkeletonList, ExpiredFilter, DetailModal } from '../../components'
 import { recordViewHistory } from '../../utils/supabase-rest'
@@ -21,6 +21,23 @@ export default function Favorites() {
   const [refreshing, setRefreshing] = useState(false)
   const [selectedItem, setSelectedItem] = useState<Event | null>(null)
   const [hideExpired, setHideExpired] = useState(false)
+  const selectedItemRef = useRef<Event | null>(null)
+  
+  // 配置微信分享
+  useShareAppMessage(() => {
+    const item = selectedItemRef.current
+    if (item) {
+      return {
+        title: item.title,
+        path: `/pages/index/index?eventId=${item.id}`,
+        imageUrl: item.image_url || undefined
+      }
+    }
+    return {
+      title: 'UniFlow 智汇流 - 我的收藏',
+      path: '/pages/index/index'
+    }
+  })
 
   useEffect(() => {
     loadFavorites()
@@ -47,6 +64,7 @@ export default function Favorites() {
 
   const handleEventClick = async (item: Event) => {
     setSelectedItem(item)
+    selectedItemRef.current = item
 
     try {
       const userId = await authService.getOpenID()
@@ -126,12 +144,16 @@ export default function Favorites() {
       {selectedItem && (
         <DetailModal
           item={selectedItem}
-          onClose={() => setSelectedItem(null)}
+          onClose={() => {
+            setSelectedItem(null)
+            selectedItemRef.current = null
+          }}
           initialFavorited={true}
           onFavoriteToggle={(isFavorited: boolean) => {
             if (!isFavorited) {
               handleUnfavorite(selectedItem.id)
               setSelectedItem(null)
+              selectedItemRef.current = null
             }
           }}
         />

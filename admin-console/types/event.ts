@@ -6,6 +6,12 @@
 export type EventType = 'recruit' | 'activity' | 'lecture'
 export type EventStatus = 'draft' | 'published' | 'archived' | 'expired' | 'active' | 'inactive'
 
+export interface Attachment {
+  url: string
+  type: 'pdf' | 'image' | 'doc'
+  name?: string
+}
+
 export interface Event {
   id: number
   title: string
@@ -27,6 +33,8 @@ export interface Event {
   }
   summary?: string
   raw_content?: string
+  image_url?: string  // 图片海报 URL（向后兼容）
+  attachments?: Attachment[]  // 多个附件（PDF、图片等）
   is_top: boolean
   status: EventStatus
   poster_color: string
@@ -45,7 +53,8 @@ export interface EventCreateInput {
   key_info?: Event['key_info']
   summary?: string
   raw_content?: string
-  image_url?: string | null  // 图片海报 URL
+  image_url?: string | null  // 图片海报 URL（向后兼容）
+  attachments?: Attachment[]  // 多个附件（PDF、图片等）
   is_top?: boolean
   status?: EventStatus
   poster_color?: string

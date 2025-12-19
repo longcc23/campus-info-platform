@@ -7,6 +7,12 @@ export type InputType = 'text' | 'url' | 'image' | 'pdf'
 // 输出语言选项
 export type OutputLanguage = 'zh' | 'en' | 'zh-en'
 
+export interface Attachment {
+  url: string
+  type: 'pdf' | 'image' | 'doc'
+  name?: string
+}
+
 export interface ParsedEvent {
   title: string
   type: 'recruit' | 'activity' | 'lecture'
@@ -24,7 +30,8 @@ export interface ParsedEvent {
   }
   summary?: string
   raw_content?: string
-  image_url?: string  // 图片海报 URL（用于显示原图）
+  image_url?: string  // 图片海报 URL（用于显示原图，向后兼容）
+  attachments?: Attachment[]  // 多个附件（PDF、图片等）
   tags?: string[]
 }
 
