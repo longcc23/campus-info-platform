@@ -57,3 +57,11 @@ uploads/
 # WeChat Mini Program
 project.config.json
 project.private.config.json
+
+# Kiro
+.kiro/
+
+# Admin console local docs/tests
+admin-console/API_USAGE_GUIDE.md
+admin-console/test-gemini3-api.js
+admin-console/scripts/chatbot_tables.sql

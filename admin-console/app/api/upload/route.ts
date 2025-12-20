@@ -7,14 +7,24 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// 创建 Supabase 客户端
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-)
-
 export async function POST(request: NextRequest) {
   try {
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+    if (!supabaseUrl || !supabaseKey) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Supabase 环境变量未配置，请检查 NEXT_PUBLIC_SUPABASE_URL 与 (SUPABASE_SERVICE_ROLE_KEY 或 NEXT_PUBLIC_SUPABASE_ANON_KEY)',
+        },
+        { status: 500 }
+      )
+    }
+
+    // 创建 Supabase 客户端（延迟初始化，避免模块加载时因 env 缺失导致非 JSON 500）
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
     const formData = await request.formData()
     const file = formData.get('file') as File | null
     const base64Data = formData.get('base64') as string | null

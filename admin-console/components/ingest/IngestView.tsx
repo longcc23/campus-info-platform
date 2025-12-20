@@ -1,13 +1,19 @@
 'use client'
 
 import { useState } from 'react'
-import { Layers } from 'lucide-react'
+import { Layers, MessageCircle, FileText } from 'lucide-react'
 import ReviewArea from './ReviewArea'
 import AILogs from './AILogs'
 import MultiSourceInput, { type SourceItem } from './MultiSourceInput'
+import SimpleChatInterface from './SimpleChatInterface'
 import type { ParsedEvent, OutputLanguage } from '@/types/ai'
 
+type IngestMode = 'form' | 'chat'
+
 export default function IngestView() {
+  // 模式切换
+  const [mode, setMode] = useState<IngestMode>('form')
+  
   const [parsedData, setParsedData] = useState<ParsedEvent | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [logs, setLogs] = useState<string[]>([])
@@ -256,10 +262,88 @@ export default function IngestView() {
     }
   }
 
+  // 处理对话模式完成
+  const handleChatComplete = (draft: ParsedEvent) => {
+    setParsedData(draft)
+    setMode('form') // 切换到表单模式查看/编辑结果
+    setLogs(prev => [...prev, '✅ 对话采集完成，已填入表单'])
+  }
+
   return (
     <div className="space-y-6">
-      {/* 主内容区：左右分栏 */}
-      <div className="grid grid-cols-2 gap-6">
+      {/* 模式切换器 */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center space-x-1 bg-gray-100 rounded-lg p-1">
+          <button
+            onClick={() => setMode('form')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              mode === 'form'
+                ? 'bg-white text-purple-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <FileText className="w-4 h-4" />
+            <span>表单模式</span>
+          </button>
+          <button
+            onClick={() => setMode('chat')}
+            className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+              mode === 'chat'
+                ? 'bg-white text-purple-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <MessageCircle className="w-4 h-4" />
+            <span>对话模式</span>
+          </button>
+        </div>
+        
+        <div className="text-sm text-gray-500">
+          {mode === 'form' ? '结构化表单输入' : '自然语言对话输入'}
+        </div>
+      </div>
+
+      {/* 内容区域 */}
+      {mode === 'chat' ? (
+        /* 对话模式 */
+        <div className="grid grid-cols-2 gap-6">
+          <div className="col-span-1">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">对话采集</h2>
+            <SimpleChatInterface
+              onDraftUpdate={(draft) => setParsedData(draft as ParsedEvent)}
+              onComplete={handleChatComplete}
+              language={outputLanguage}
+              className="h-[500px]"
+            />
+          </div>
+          <div className="col-span-1">
+            <h2 className="text-lg font-semibold text-gray-900 mb-2">AI 识别结果</h2>
+            <ReviewArea
+              data={parsedData}
+              originalContent={originalContent}
+              onUpdate={(updatedData) => setParsedData(updatedData)}
+            />
+            {parsedData && (
+              <div className="mt-4 flex space-x-3">
+                <button
+                  onClick={handleSaveDraft}
+                  className="flex-1 px-4 py-2 border border-gray-300 text-gray-700 rounded-md hover:bg-gray-50 transition-colors"
+                >
+                  保存草稿
+                </button>
+                <button
+                  onClick={handlePublish}
+                  className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
+                >
+                  确认发布
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      ) : (
+        /* 表单模式 */
+        <div className="grid grid-cols-2 gap-6">
         {/* 左侧：输入区 */}
         <div className="space-y-4">
           <div>
@@ -343,6 +427,7 @@ export default function IngestView() {
           )}
         </div>
       </div>
+      )}
     </div>
   )
 }

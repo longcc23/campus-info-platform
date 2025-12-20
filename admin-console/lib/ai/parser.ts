@@ -31,6 +31,9 @@ export async function parseContent(
       return parseImage(content, language)
 
     case 'pdf':
+      if (typeof content !== 'string') {
+        throw new Error('PDF 输入必须是字符串（Base64 或 URL）')
+      }
       return parsePDF(content, language)
 
     default:
