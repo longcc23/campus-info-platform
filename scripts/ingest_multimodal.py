@@ -34,10 +34,26 @@ load_dotenv(dotenv_path=env_path)
 
 # 2. 初始化客户端
 try:
+    # DeepSeek 客户端（用于文本解析）
     openai_client = OpenAI(
         api_key=os.getenv("deepseek_API_KEY"),
         base_url="https://api.deepseek.com"
     )
+    
+    # 智谱AI GLM-4V 客户端（用于图片识别）
+    zhipu_api_key = os.getenv("ZHIPU_API_KEY")
+    zhipu_base_url = os.getenv("ZHIPU_BASE_URL", "https://open.bigmodel.cn/api/paas/v4")
+    zhipu_model = os.getenv("ZHIPU_MODEL", "glm-4v")
+    
+    if zhipu_api_key:
+        zhipu_client = OpenAI(
+            api_key=zhipu_api_key,
+            base_url=zhipu_base_url
+        )
+        print("✅ 智谱AI GLM-4V 客户端初始化成功")
+    else:
+        zhipu_client = None
+        print("⚠️ 智谱AI API Key 未配置，图片识别将使用OCR")
     
     url: str = os.getenv("SUPABASE_URL")
     key: str = os.getenv("SUPABASE_KEY")
@@ -685,10 +701,13 @@ def extract_text_from_image(image_path):
     try:
         print(f"🔍 使用 OCR 提取图片文字...")
         image = Image.open(image_path)
-        # 使用中文和英文识别
+        
+        # 使用中文和英文识别，使用更宽松的配置
         text = pytesseract.image_to_string(image, lang='chi_sim+eng')
+        
         if text and len(text.strip()) > 10:
             print(f"✅ OCR 提取成功，共 {len(text)} 字符")
+            print(f"📝 OCR内容预览: {text[:300]}...")  # 显示前300字符用于调试
             return text.strip()
         else:
             print("⚠️ OCR 未能提取到有效文字")
@@ -696,6 +715,64 @@ def extract_text_from_image(image_path):
     except Exception as e:
         print(f"❌ OCR 提取失败: {e}")
         return None
+
+def extract_text_from_image_with_vision(image_path):
+    """使用 GLM-4V 视觉模型从图片中提取文字和理解内容"""
+    if not zhipu_client:
+        print("⚠️ 智谱AI客户端未初始化，回退到OCR")
+        return extract_text_from_image(image_path)
+    
+    try:
+        print(f"🔍 使用 GLM-4V 视觉模型分析图片...")
+        
+        # 读取图片并转为base64
+        with open(image_path, 'rb') as f:
+            image_data = base64.b64encode(f.read()).decode('utf-8')
+        
+        # 构建请求
+        response = zhipu_client.chat.completions.create(
+            model=zhipu_model,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [
+                        {
+                            "type": "image_url",
+                            "image_url": {
+                                "url": f"data:image/jpeg;base64,{image_data}"
+                            }
+                        },
+                        {
+                            "type": "text",
+                            "text": """请仔细分析这张图片，提取所有文字内容。
+
+要求：
+1. 按照图片中文字的布局顺序提取
+2. 保留所有重要信息（标题、日期、时间、地点、公司名称、岗位等）
+3. 如果是海报，请识别主标题、副标题、正文内容
+4. 提取所有数字、日期、时间信息
+5. 保留中英文内容
+
+请直接输出提取的文字内容，不要添加额外说明。"""
+                        }
+                    ]
+                }
+            ]
+        )
+        
+        text = response.choices[0].message.content
+        
+        if text and len(text.strip()) > 10:
+            print(f"✅ GLM-4V 提取成功，共 {len(text)} 字符")
+            print(f"📝 GLM-4V内容预览: {text[:300]}...")
+            return text.strip()
+        else:
+            print("⚠️ GLM-4V 未能提取到有效文字，回退到OCR")
+            return extract_text_from_image(image_path)
+            
+    except Exception as e:
+        print(f"❌ GLM-4V 提取失败: {e}，回退到OCR")
+        return extract_text_from_image(image_path)
 
 def process_and_save(input_content, input_type="text"):
     """
@@ -715,11 +792,22 @@ def process_and_save(input_content, input_type="text"):
         # DeepSeek 不支持图片输入，使用 OCR 提取文字后作为文本处理
         is_image_input = True  # 标记为图片输入
         if os.path.exists(input_content):
-            # 本地文件：使用 OCR 提取文字
+            # 本地文件：使用 GLM-4V 视觉模型提取文字
             print(f"📷 读取本地图片文件: {input_content}")
-            text_content = extract_text_from_image(input_content)
+            text_content = extract_text_from_image_with_vision(input_content)
             if text_content:
-                messages.append({"role": "user", "content": f"海报图片中的文字内容：\n{text_content}\n\n请从以上文字中提取活动信息："})
+                messages.append({"role": "user", "content": f"""这是从海报图片中OCR提取的文字内容：
+
+{text_content}
+
+请仔细分析这些文字，提取活动信息。注意：
+1. 标题应该是海报的主标题，不是嘉宾信息
+2. 如果是讲座/学堂系列，type应该是"lecture"
+3. 地点信息要完整提取（如：建华楼A509）
+4. 嘉宾信息放在summary中，不要作为标题
+5. 如果是学校内部活动，source_group应该是"CDC"或"学院官方"
+
+请从以上OCR文字中提取活动信息："""})
             else:
                 print("❌ 无法从图片中提取文字，请手动输入图片内容")
                 return
@@ -733,7 +821,7 @@ def process_and_save(input_content, input_type="text"):
                     temp_path = "/tmp/temp_image.jpg"
                     with open(temp_path, 'wb') as f:
                         f.write(resp.content)
-                    text_content = extract_text_from_image(temp_path)
+                    text_content = extract_text_from_image_with_vision(temp_path)
                     if text_content:
                         messages.append({"role": "user", "content": f"海报图片中的文字内容：\n{text_content}\n\n请从以上文字中提取活动信息："})
                     else:

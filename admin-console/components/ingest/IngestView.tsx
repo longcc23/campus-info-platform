@@ -308,7 +308,34 @@ export default function IngestView() {
         /* 对话模式 */
         <div className="grid grid-cols-2 gap-6">
           <div className="col-span-1">
-            <h2 className="text-lg font-semibold text-gray-900 mb-2">对话采集</h2>
+            <div className="flex items-center justify-between mb-2">
+              <h2 className="text-lg font-semibold text-gray-900">对话采集</h2>
+              
+              {/* 语言选择 */}
+              <div className="flex items-center space-x-2">
+                <span className="text-sm text-gray-600">输出语言：</span>
+                <div className="flex space-x-1 bg-gray-100 rounded-lg p-1">
+                  {[
+                    { value: 'zh', label: '中文', icon: '🇨🇳' },
+                    { value: 'zh-en', label: '中英', icon: '🌐' },
+                    { value: 'en', label: 'EN', icon: '🇬🇧' },
+                  ].map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setOutputLanguage(option.value as any)}
+                      className={`flex items-center space-x-1 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+                        outputLanguage === option.value
+                          ? 'bg-white text-purple-700 shadow-sm'
+                          : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+                      }`}
+                    >
+                      <span>{option.icon}</span>
+                      <span>{option.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
             <SimpleChatInterface
               onDraftUpdate={(draft) => setParsedData(draft as ParsedEvent)}
               onComplete={handleChatComplete}

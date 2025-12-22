@@ -38,13 +38,39 @@ export async function createClient() {
  * 使用 @supabase/supabase-js 的 createClient，绕过 RLS
  */
 export function createAdminClient() {
-  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables')
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+    throw new Error('Missing SUPABASE_URL environment variable')
+  }
+
+  // 检查 service role key 是否有效
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!serviceKey || 
+      serviceKey === 'your_service_role_key_here' || 
+      serviceKey.includes('example_service_role_key') ||
+      serviceKey.trim() === '') {
+    // 如果 service role key 无效，使用 anon key
+    console.log('Service Role Key not configured, using anon key')
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    if (!anonKey) {
+      throw new Error('Missing both SUPABASE_SERVICE_ROLE_KEY and SUPABASE_ANON_KEY environment variables')
+    }
+    
+    return createSupabaseClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL,
+      anonKey,
+      {
+        auth: {
+          autoRefreshToken: false,
+          persistSession: false
+        }
+      }
+    )
   }
 
   return createSupabaseClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL,
-    process.env.SUPABASE_SERVICE_ROLE_KEY,
+    serviceKey,
     {
       auth: {
         autoRefreshToken: false,

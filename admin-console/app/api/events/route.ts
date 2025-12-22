@@ -21,24 +21,22 @@ export async function POST(request: NextRequest) {
     const hasServiceRoleKey = 
       process.env.SUPABASE_SERVICE_ROLE_KEY && 
       process.env.SUPABASE_SERVICE_ROLE_KEY !== 'your_service_role_key_here' &&
-      process.env.SUPABASE_SERVICE_ROLE_KEY.trim() !== ''
+      process.env.SUPABASE_SERVICE_ROLE_KEY.trim() !== '' &&
+      !process.env.SUPABASE_SERVICE_ROLE_KEY.includes('example_service_role_key')
     
     if (hasServiceRoleKey) {
       // 使用 Service Role Key，绕过 RLS
-      supabase = createAdminClient()
-      console.log('Using Service Role Key (bypasses RLS)')
+      try {
+        supabase = createAdminClient()
+        console.log('Using Service Role Key (bypasses RLS)')
+      } catch (error) {
+        console.log('Service Role Key invalid, falling back to anon key')
+        supabase = await createClient()
+      }
     } else {
       // 使用普通客户端，需要 RLS 策略允许插入
       supabase = await createClient()
-      const { data: { user: authUser } } = await supabase.auth.getUser()
-      
-      if (!authUser) {
-        return NextResponse.json(
-          { success: false, error: '未授权，请先登录' },
-          { status: 401 }
-        )
-      }
-      console.log('Using authenticated client (requires RLS policy)')
+      console.log('Using anon key (requires RLS policy or public access)')
     }
 
     const body: EventCreateInput & { action: 'draft' | 'publish' } = await request.json()

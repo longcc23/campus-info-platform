@@ -280,11 +280,23 @@ ${mergedContent}`
     
     const result = JSON.parse(response.choices[0].message.content || '{}')
     
+    // 记录AI返回的完整结果用于调试
+    console.log('AI解析结果:', JSON.stringify(result, null, 2))
+    
     if (!result.is_valid) {
-      return {
-        success: false,
-        logs: [...logs, '❌ AI 判定内容无效'],
-        sourceResults,
+      logs.push('⚠️ AI 判定内容无效（可能是无关闲聊或信息不完整）')
+      logs.push(`📝 AI返回的标题: ${result.title || '无'}`)
+      logs.push(`📝 AI返回的类型: ${result.type || '无'}`)
+      
+      // 如果有标题和类型，即使is_valid为false，也尝试返回数据
+      if (result.title && result.type) {
+        logs.push('✅ 检测到有效的标题和类型，继续处理...')
+      } else {
+        return {
+          success: false,
+          logs: [...logs, '❌ AI 判定内容无效且缺少关键信息'],
+          sourceResults,
+        }
       }
     }
     
